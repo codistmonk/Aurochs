@@ -33,7 +33,7 @@ import java.util.Set;
 import net.sourceforge.aprog.events.AbstractObservable;
 
 import net.sourceforge.aprog.tools.Tools;
-import net.sourceforge.aurochs.Grammar.Production;
+import net.sourceforge.aurochs.Grammar.Rule;
 
 /**
  * @author codistmonk (creation 2010-10-05)
@@ -106,11 +106,11 @@ public final class LRTable extends AbstractObservable<LRTable.Listener> implemen
      * @param symbol
      * <br>Maybe null
      * <br>Shared
-     * @param productionIndex
-     * <br>Range: {@code [0 .. this.getGrammar().getProductions().size() - 1]}
+     * @param ruleIndex
+     * <br>Range: {@code [0 .. this.getGrammar().getRules().size() - 1]}
      */
-    public final void addReduction(final int originStateIndex, final Object symbol, final int productionIndex) {
-        this.addOperation(originStateIndex, symbol, this.new Reduction(productionIndex));
+    public final void addReduction(final int originStateIndex, final Object symbol, final int ruleIndex) {
+        this.addOperation(originStateIndex, symbol, this.new Reduction(ruleIndex));
     }
 
     /**
@@ -299,29 +299,29 @@ public final class LRTable extends AbstractObservable<LRTable.Listener> implemen
      */
     public final class Reduction implements Operation {
 
-        private final int productionIndex;
+        private final int ruleIndex;
 
         /**
          *
-         * @param productionIndex
-         * <br>Range: {@code [0 .. LRTable.this.getGrammar().getProductionList().size() - 1]}
+         * @param ruleIndex
+         * <br>Range: {@code [0 .. LRTable.this.getGrammar().getRuleList().size() - 1]}
          */
-        Reduction(final int productionIndex) {
-            this.productionIndex = productionIndex;
+        Reduction(final int ruleIndex) {
+            this.ruleIndex = ruleIndex;
         }
 
         @Override
         public final short getPriority() {
-            return this.getProduction().getPriority();
+            return this.getRule().getPriority();
         }
 
         /**
          *
          * @return
-         * <br>Range: {@code [0 .. LRTable.this.getGrammar().getProductionList().size() - 1]}
+         * <br>Range: {@code [0 .. LRTable.this.getGrammar().getRuleList().size() - 1]}
          */
-        public final int getProductionIndex() {
-            return this.productionIndex;
+        public final int getRuleIndex() {
+            return this.ruleIndex;
         }
 
         /**
@@ -330,13 +330,13 @@ public final class LRTable extends AbstractObservable<LRTable.Listener> implemen
          * <br>Not null
          * <br>Shared
          */
-        public final Production getProduction() {
-            return LRTable.this.getGrammar().getProduction(this.getProductionIndex());
+        public final Rule getRule() {
+            return LRTable.this.getGrammar().getRule(this.getRuleIndex());
         }
 
         @Override
         public final String toString() {
-            return "r" + this.getProductionIndex() + "(" + this.getPriority() + ")";
+            return "r" + this.getRuleIndex() + "(" + this.getPriority() + ")";
         }
 
         /**

@@ -33,7 +33,7 @@ import java.util.Map;
 import java.util.logging.Level;
 
 import net.sourceforge.aprog.tools.Tools;
-import net.sourceforge.aurochs.Grammar.Production;
+import net.sourceforge.aurochs.Grammar.Rule;
 import net.sourceforge.aurochs.Grammar.Regular;
 import net.sourceforge.aurochs.LALR1ClosureTable.Closure;
 import net.sourceforge.aurochs.LALR1ClosureTable.Item;
@@ -137,8 +137,8 @@ public final class LALR1ParserBuilder {
      * @param development
      * <br>Not null
      */
-    public final void addProduction(final Object nonterminal, final Object... development) {
-        this.getGrammar().addProduction(nonterminal, development);
+    public final void addRule(final Object nonterminal, final Object... development) {
+        this.getGrammar().addRule(nonterminal, development);
     }
 
     /**
@@ -148,8 +148,8 @@ public final class LALR1ParserBuilder {
      * @param regularDevelopment
      * <br>Not null
      */
-    public final void addProduction(final Object nonterminal, final Regular regularDevelopment) {
-        this.getGrammar().addProduction(nonterminal, regularDevelopment);
+    public final void addRule(final Object nonterminal, final Regular regularDevelopment) {
+        this.getGrammar().addRule(nonterminal, regularDevelopment);
     }
 
     /**
@@ -183,7 +183,7 @@ public final class LALR1ParserBuilder {
      * <br>New
      */
     public final LRTable newTable() {
-        this.maybeRemoveEpsilonProductions();
+        this.maybeRemoveEpsilonRules();
 
         return newTable(new LALR1ClosureTable(this.getGrammar()), this.getListeners());
     }
@@ -206,26 +206,26 @@ public final class LALR1ParserBuilder {
         return this.grammar;
     }
 
-    private final void maybeRemoveEpsilonProductions() {
+    private final void maybeRemoveEpsilonRules() {
         final boolean debug = false;
 
         // <editor-fold defaultstate="collapsed" desc="DEBUG">
         if (debug) {
-            for (final Production production : this.getGrammar().getProductions()) {
-                debugPrint("(", production.getIndex(), ")", production.getNonterminal(), production.getDevelopment());
+            for (final Rule rule : this.getGrammar().getRules()) {
+                debugPrint("(", rule.getIndex(), ")", rule.getNonterminal(), rule.getDevelopment());
             }
         }
         // </editor-fold>
 
         if (!this.isEpsilonProdutionsAllowed()) {
             this.normalizeEpsilonNonterminalUses();
-            this.normalizeInitialProduction();
+            this.normalizeInitialRule();
         }
 
         // <editor-fold defaultstate="collapsed" desc="DEBUG">
         if (debug) {
-            for (final Production production : this.getGrammar().getProductions()) {
-                debugPrint("(", production.getIndex(), ")", production.getNonterminal(), production.getDevelopment());
+            for (final Rule rule : this.getGrammar().getRules()) {
+                debugPrint("(", rule.getIndex(), ")", rule.getNonterminal(), rule.getDevelopment());
             }
         }
         // </editor-fold>
@@ -242,7 +242,7 @@ public final class LALR1ParserBuilder {
             }
         }
 
-        this.removeAllEpsilonProductions();
+        this.removeAllEpsilonRules();
     }
 
     /**
@@ -250,17 +250,17 @@ public final class LALR1ParserBuilder {
      * <br>Maybe null
      */
     private final void removeAllUses(final Object nonterminal) {
-        for (final Production production : this.getGrammar().getProductions()) {
-            while (production.getDevelopment().remove(nonterminal)) {
+        for (final Rule rule : this.getGrammar().getRules()) {
+            while (rule.getDevelopment().remove(nonterminal)) {
                 // Deliberately left empty
             }
         }
     }
 
     /**
-     * Adds alternative productions corresponding to the cases where <code>nonterminal</code> is collapsed.
+     * Adds alternative rules corresponding to the cases where <code>nonterminal</code> is collapsed.
      * <br>For instance, if the nontermial <code>C</code> can collapse (ie expand to epsilon),
-     * then from the production <code>A -&gt; bCdCe</code> we can add:<ul>
+     * then from the rule <code>A -&gt; bCdCe</code> we can add:<ul>
      *  <li><code>A -&gt; bdCe</code></li>
      *  <li><code>A -&gt; bCde</code></li>
      *  <li><code>A -&gt; bde</code></li>
@@ -269,61 +269,61 @@ public final class LALR1ParserBuilder {
      * <br>Maybe null
      */
     private final void addAlternativeUses(final Object nonterminal) {
-        // Duplicate each production using nonterminal and remove nonterminals from the duplicate
+        // Duplicate each rule using nonterminal and remove nonterminals from the duplicate
         // Repeat until nonterminal isn't used anymore
-        final List<Production> todo = new LinkedList<Production>(this.getGrammar().getProductions());
+        final List<Rule> todo = new LinkedList<Rule>(this.getGrammar().getRules());
 
         while (!todo.isEmpty()) {
-            final Production production = AurochsTools.take(todo);
+            final Rule rule = AurochsTools.take(todo);
 
             if (this.getGrammar().getFirsts(nonterminal).isEmpty()) {
-                this.getGrammar().removeProduction(production);
-                this.getGrammar().addProduction(production.getNonterminal(), production.newOriginalDevelopmentWithEpsilon(nonterminal));
+                this.getGrammar().removeRule(rule);
+                this.getGrammar().addRule(rule.getNonterminal(), rule.newOriginalDevelopmentWithEpsilon(nonterminal));
             } else {
-                for (int i = 0; i < production.getOriginalDevelopment().length; ++i) {
-                    if (Tools.equals(nonterminal, production.getOriginalDevelopment()[i])) {
-                        todo.add(this.getGrammar().addProduction(
-                                production.getNonterminal(), production.newOriginalDevelopmentWithEpsilon(i)));
+                for (int i = 0; i < rule.getOriginalDevelopment().length; ++i) {
+                    if (Tools.equals(nonterminal, rule.getOriginalDevelopment()[i])) {
+                        todo.add(this.getGrammar().addRule(
+                                rule.getNonterminal(), rule.newOriginalDevelopmentWithEpsilon(i)));
                     }
                 }
             }
         }
     }
 
-    private final void removeAllEpsilonProductions() {
+    private final void removeAllEpsilonRules() {
         final boolean debug = false;
 
-        for (final Production production : new ArrayList<Production>(this.getGrammar().getProductions())) {
-            if (production.getDevelopment().isEmpty() && production.getNonterminal() != Grammar.SpecialSymbol.INITIAL_NONTERMINAL) {
+        for (final Rule rule : new ArrayList<Rule>(this.getGrammar().getRules())) {
+            if (rule.getDevelopment().isEmpty() && rule.getNonterminal() != Grammar.SpecialSymbol.INITIAL_NONTERMINAL) {
                 // <editor-fold defaultstate="collapsed" desc="DEBUG">
                 if (debug) {
-                    debugPrint(production.getNonterminal(), production.getDevelopment());
+                    debugPrint(rule.getNonterminal(), rule.getDevelopment());
                 }
                 // </editor-fold>
 
-                this.getGrammar().removeProduction(production);
+                this.getGrammar().removeRule(rule);
             }
         }
     }
 
     /**
-     * Ensures there is only one initial production.
+     * Ensures there is only one initial rule.
      */
-    private final void normalizeInitialProduction() {
-        final List<Production> initialProductions = this.getGrammar().getProductions(Grammar.SpecialSymbol.INITIAL_NONTERMINAL);
+    private final void normalizeInitialRule() {
+        final List<Rule> initialRules = this.getGrammar().getRules(Grammar.SpecialSymbol.INITIAL_NONTERMINAL);
 
-        if (initialProductions.size() > 1) {
+        if (initialRules.size() > 1) {
             final Object nonterminal = new Object();
 
-            for (final Production production : initialProductions) {
-                this.getGrammar().addProduction(nonterminal, production.getDevelopment().toArray());
+            for (final Rule rule : initialRules) {
+                this.getGrammar().addRule(nonterminal, rule.getDevelopment().toArray());
             }
 
-            while (initialProductions.size() > 1) {
-                this.getGrammar().removeProduction(initialProductions.get(1));
+            while (initialRules.size() > 1) {
+                this.getGrammar().removeRule(initialRules.get(1));
             }
 
-            initialProductions.get(0).getDevelopment().set(0, nonterminal);
+            initialRules.get(0).getDevelopment().set(0, nonterminal);
         }
     }
 
@@ -381,11 +381,11 @@ public final class LALR1ParserBuilder {
                     for (final Object symbol : item.getLookAheads()) {
                         // <editor-fold defaultstate="collapsed" desc="DEBUG">
                         if (debug) {
-                            debugPrint(closureIndex + "[" + symbol + "] = r" + item.getProductionIndex());
+                            debugPrint(closureIndex + "[" + symbol + "] = r" + item.getRuleIndex());
                         }
                         // </editor-fold>
 
-                        result.addReduction(closureIndex, symbol, item.getProductionIndex());
+                        result.addReduction(closureIndex, symbol, item.getRuleIndex());
                     }
                 }
             }

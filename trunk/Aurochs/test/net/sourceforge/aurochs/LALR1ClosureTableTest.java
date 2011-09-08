@@ -66,7 +66,7 @@ public final class LALR1ClosureTableTest {
         // (1) A -> []
         this.setGrammar(
                 /*(0)   implicit*/
-                /*(1)*/ production(nonterminal("A"), development())
+                /*(1)*/ rule(nonterminal("A"), development())
         );
 
         debugPrint("\n" + toString(this.closureTable.getClosures()));
@@ -83,7 +83,7 @@ public final class LALR1ClosureTableTest {
         // (1) A -> b
         this.setGrammar(
                 /*(0)   implicit*/
-                /*(1)*/ production(nonterminal("A"), development("b"))
+                /*(1)*/ rule(nonterminal("A"), development("b"))
         );
 
         debugPrint("\n" + toString(this.closureTable.getClosures()));
@@ -101,7 +101,7 @@ public final class LALR1ClosureTableTest {
         // (1) A -> bc
         this.setGrammar(
                 /*(0)   implicit*/
-                /*(1)*/ production(nonterminal("A"), development("b", "c"))
+                /*(1)*/ rule(nonterminal("A"), development("b", "c"))
         );
 
         debugPrint("\n" + toString(this.closureTable.getClosures()));
@@ -121,8 +121,8 @@ public final class LALR1ClosureTableTest {
         // (2) A -> c
         this.setGrammar(
                 /*(0)   implicit*/
-                /*(1)*/ production(nonterminal("A"), development("b")),
-                /*(2)*/ production(nonterminal("A"), development("c"))
+                /*(1)*/ rule(nonterminal("A"), development("b")),
+                /*(2)*/ rule(nonterminal("A"), development("c"))
         );
 
         debugPrint("\n" + toString(this.closureTable.getClosures()));
@@ -142,8 +142,8 @@ public final class LALR1ClosureTableTest {
         // (2) A -> []
         this.setGrammar(
                 /*(0)   implicit*/
-                /*(1)*/ production(nonterminal("A"), development("A", "b")),
-                /*(2)*/ production(nonterminal("A"), development())
+                /*(1)*/ rule(nonterminal("A"), development("A", "b")),
+                /*(2)*/ rule(nonterminal("A"), development())
         );
 
         debugPrint("\n" + toString(this.closureTable.getClosures()));
@@ -162,8 +162,8 @@ public final class LALR1ClosureTableTest {
         // (2) A -> []
         this.setGrammar(
                 /*(0)   implicit*/
-                /*(1)*/ production(nonterminal("A"), development("b", "A")),
-                /*(1)*/ production(nonterminal("A"), development())
+                /*(1)*/ rule(nonterminal("A"), development("b", "A")),
+                /*(1)*/ rule(nonterminal("A"), development())
         );
 
         debugPrint("\n" + toString(this.closureTable.getClosures()));
@@ -184,8 +184,8 @@ public final class LALR1ClosureTableTest {
         // (2) A -> b
         this.setGrammar(
                 /*(0)   implicit*/
-                /*(1)*/ production(nonterminal("A"), development("A", "b")),
-                /*(2)*/ production(nonterminal("A"), development("b"))
+                /*(1)*/ rule(nonterminal("A"), development("A", "b")),
+                /*(2)*/ rule(nonterminal("A"), development("b"))
         );
 
         debugPrint("\n" + toString(this.closureTable.getClosures()));
@@ -205,8 +205,8 @@ public final class LALR1ClosureTableTest {
         // (2) A -> b
         this.setGrammar(
                 /*(0)   implicit*/
-                /*(1)*/ production(nonterminal("A"), development("b", "A")),
-                /*(2)*/ production(nonterminal("A"), development("b"))
+                /*(1)*/ rule(nonterminal("A"), development("b", "A")),
+                /*(2)*/ rule(nonterminal("A"), development("b"))
         );
 
         debugPrint("\n" + toString(this.closureTable.getClosures()));
@@ -227,8 +227,8 @@ public final class LALR1ClosureTableTest {
         // (2) B -> []
         this.setGrammar(
                 /*(0)   implicit*/
-                /*(1)*/ production(nonterminal("A"), development("B")),
-                /*(2)*/ production(nonterminal("B"), development())
+                /*(1)*/ rule(nonterminal("A"), development("B")),
+                /*(2)*/ rule(nonterminal("B"), development())
         );
 
         debugPrint("\n" + toString(this.closureTable.getClosures()));
@@ -247,8 +247,8 @@ public final class LALR1ClosureTableTest {
         // (2) B -> []
         this.setGrammar(
                 /*(0)   implicit*/
-                /*(1)*/ production(nonterminal("A"), development("B", "c")),
-                /*(2)*/ production(nonterminal("B"), development())
+                /*(1)*/ rule(nonterminal("A"), development("B", "c")),
+                /*(2)*/ rule(nonterminal("B"), development())
         );
 
         debugPrint("\n" + toString(this.closureTable.getClosures()));
@@ -430,14 +430,14 @@ public final class LALR1ClosureTableTest {
 
     /**
      *
-     * @param productions
+     * @param rules
      * <br>Not null
      * @return
      * <br>Not null
      * <br>New
      */
-    private final void setGrammar(final Object[]... productions) {
-        this.grammar = newGrammar(productions);
+    private final void setGrammar(final Object[]... rules) {
+        this.grammar = newGrammar(rules);
         this.closureTable = new LALR1ClosureTable(this.grammar);
     }
 
