@@ -28,11 +28,15 @@ import static net.sourceforge.aprog.tools.Tools.*;
 
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
+import net.sourceforge.aurochs.AbstractLRParser.GeneratedToken;
 
 import net.sourceforge.aurochs.AbstractLRParser.ReductionEvent;
 import net.sourceforge.aurochs.AbstractLRParser.UnexpectedSymbolErrorEvent;
 import net.sourceforge.aurochs.Grammar.Regular;
+import net.sourceforge.aurochs.Grammar.Rule;
+import net.sourceforge.aurochs.Grammar.SpecialSymbol;
 
 /**
  * @author codistmonk (creation 2011-09-06)
@@ -76,11 +80,16 @@ public final class LALR1LexerBuilder {
      * <br>Will become reference
      * @param development
      * <br>Not null
+     * @return
+     * <br>Not null
+     * <br>Maybe New
+     * <br>Reference
      * @throws IllegalArgumentException if {@code nonterminal} is {@link SpecialSymbol#END_TERMINAL}
      */
-    public final void addNontokenRule(final Object nonterminal, final Object... development) {
+    public final Rule addNontokenRule(final Object nonterminal, final Object... development) {
         this.addNontoken(nonterminal);
-        this.addHelperRule(nonterminal, development);
+
+        return this.addHelperRule(nonterminal, development);
     }
 
     /**
@@ -89,10 +98,15 @@ public final class LALR1LexerBuilder {
      * <br>Will become reference
      * @param regularDevelopment
      * <br>Not null
+     * @return
+     * <br>Not null
+     * <br>Maybe New
+     * <br>Reference
      */
-    public final void addNontokenRule(final Object nonterminal, final Regular regularDevelopment) {
+    public final Rule addNontokenRule(final Object nonterminal, final Regular regularDevelopment) {
         this.addNontoken(nonterminal);
-        this.addHelperRule(nonterminal, regularDevelopment);
+
+        return this.addHelperRule(nonterminal, regularDevelopment);
     }
 
     /**
@@ -101,11 +115,16 @@ public final class LALR1LexerBuilder {
      * <br>Will become reference
      * @param development
      * <br>Not null
+     * @return
+     * <br>Not null
+     * <br>Maybe New
+     * <br>Reference
      * @throws IllegalArgumentException if {@code nonterminal} is {@link SpecialSymbol#END_TERMINAL}
      */
-    public final void addTokenRule(final Object nonterminal, final Object... development) {
+    public final Rule addTokenRule(final Object nonterminal, final Object... development) {
         this.addToken(nonterminal);
-        this.addHelperRule(nonterminal, development);
+
+        return this.addHelperRule(nonterminal, development);
     }
 
     /**
@@ -114,10 +133,15 @@ public final class LALR1LexerBuilder {
      * <br>Will become reference
      * @param regularDevelopment
      * <br>Not null
+     * @return
+     * <br>Not null
+     * <br>Maybe New
+     * <br>Reference
      */
-    public final void addTokenRule(final Object nonterminal, final Regular regularDevelopment) {
+    public final Rule addTokenRule(final Object nonterminal, final Regular regularDevelopment) {
         this.addToken(nonterminal);
-        this.addHelperRule(nonterminal, regularDevelopment);
+
+        return this.addHelperRule(nonterminal, regularDevelopment);
     }
 
     /**
@@ -126,11 +150,16 @@ public final class LALR1LexerBuilder {
      * <br>Will become reference
      * @param development
      * <br>Not null
+     * @return
+     * <br>Not null
+     * <br>Maybe New
+     * <br>Reference
      * @throws IllegalArgumentException if {@code nonterminal} is {@link SpecialSymbol#END_TERMINAL}
      */
-    public final void addVerbatimTokenRule(final Object nonterminal, final Object... development) {
+    public final Rule addVerbatimTokenRule(final Object nonterminal, final Object... development) {
         this.addVerbatimToken(nonterminal);
-        this.addHelperRule(nonterminal, development);
+
+        return this.addHelperRule(nonterminal, development);
     }
 
     /**
@@ -139,10 +168,15 @@ public final class LALR1LexerBuilder {
      * <br>Will become reference
      * @param regularDevelopment
      * <br>Not null
+     * @return
+     * <br>Not null
+     * <br>Maybe New
+     * <br>Reference
      */
-    public final void addVerbatimTokenRule(final Object nonterminal, final Regular regularDevelopment) {
+    public final Rule addVerbatimTokenRule(final Object nonterminal, final Regular regularDevelopment) {
         this.addVerbatimToken(nonterminal);
-        this.addHelperRule(nonterminal, regularDevelopment);
+
+        return this.addHelperRule(nonterminal, regularDevelopment);
     }
 
     /**
@@ -151,10 +185,14 @@ public final class LALR1LexerBuilder {
      * <br>Will become reference
      * @param development
      * <br>Not null
+     * @return
+     * <br>Not null
+     * <br>Maybe New
+     * <br>Reference
      * @throws IllegalArgumentException if {@code nonterminal} is {@link SpecialSymbol#END_TERMINAL}
      */
-    public final void addHelperRule(final Object nonterminal, final Object... development) {
-        this.lexerTableBuilder.addRule(nonterminal, development);
+    public final Rule addHelperRule(final Object nonterminal, final Object... development) {
+        return this.lexerTableBuilder.addRule(nonterminal, development);
     }
 
     /**
@@ -163,9 +201,13 @@ public final class LALR1LexerBuilder {
      * <br>Will become reference
      * @param regularDevelopment
      * <br>Not null
+     * @return
+     * <br>Not null
+     * <br>Maybe New
+     * <br>Reference
      */
-    public final void addHelperRule(final Object nonterminal, final Regular regularDevelopment) {
-        this.lexerTableBuilder.addRule(nonterminal, regularDevelopment);
+    public final Rule addHelperRule(final Object nonterminal, final Regular regularDevelopment) {
+        return this.lexerTableBuilder.addRule(nonterminal, regularDevelopment);
     }
 
     /**
@@ -261,8 +303,16 @@ public final class LALR1LexerBuilder {
 
                 final Object symbol = event.getGeneratedToken().getSymbol();
 
+                unwrapRegulars(event.getTokens());
+
+                if (symbol instanceof Regular.GeneratedSymbol) {
+                    event.getGeneratedToken().setUserObject(condense(event.getTokens()));
+                }
+
                 if (lexer.getTokens().contains(symbol)) {
-                    token[0] = symbol;
+                    token[0] = new GeneratedToken(symbol);
+
+                    ((GeneratedToken) token[0]).setUserObject(condense(event.getTokens()));
                 } else if (lexer.getVerbatimTokenNonterminals().contains(symbol)) {
                     switch (event.getTokens().size()) {
                         case 0:
@@ -272,13 +322,7 @@ public final class LALR1LexerBuilder {
 
                             break;
                         default:
-                            final StringBuilder tokenBuilder = new StringBuilder();
-
-                            for (final Object developmentSymbol : event.getTokens()) {
-                                tokenBuilder.append(developmentSymbol);
-                            }
-
-                            token[0] = tokenBuilder.toString();
+                            token[0] = condense(event.getTokens());;
 
                             break;
                     }
@@ -343,6 +387,68 @@ public final class LALR1LexerBuilder {
             }
 
         };
+    }
+
+    /**
+     * @param token
+     * <br>Maybe null
+     * @return
+     * <br>Maybe null
+     * <br>Maybe new
+     */
+    static final Object condense(final Object token) {
+        if (token instanceof Character || token instanceof CharSequence) {
+            return token;
+        }
+
+        final List<?> list = cast(List.class, token);
+
+        if (list != null && !list.isEmpty()) {
+            final StringBuilder result = new StringBuilder();
+
+            for (final Object subToken : list) {
+                result.append(condense(subToken));
+            }
+
+            return result.toString();
+        }
+
+        return token;
+    }
+
+    /**
+     * @param token
+     * <br>Maybe null
+     * @return
+     * <br>Range: any boolean
+     */
+    static final boolean isCharacterOrCharSequence(final Object token) {
+        if (token instanceof Character || token instanceof CharSequence) {
+            return true;
+        }
+
+        final List<?> list = cast(List.class, token);
+
+        if (list != null && !list.isEmpty()) {
+            return isCharacterOrCharSequence(list.get(0));
+        }
+
+        return false;
+    }
+
+    /**
+     * @param tokens
+     * <br>Not null
+     * <br>Input-output
+     */
+    static final void unwrapRegulars(final List<Object> tokens) {
+        for (int i = 0; i < tokens.size(); ++i) {
+            final GeneratedToken generatedToken = cast(GeneratedToken.class, tokens.get(i));
+
+            if (generatedToken != null && generatedToken.getSymbol() instanceof Regular.GeneratedSymbol) {
+                tokens.set(i, generatedToken.getUserObject());
+            }
+        }
     }
 
     /**

@@ -27,6 +27,7 @@ package net.sourceforge.aurochs;
 import static net.sourceforge.aprog.tools.Tools.*;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -45,6 +46,24 @@ public final class AurochsTools {
      */
     private AurochsTools() {
         throw new IllegalInstantiationException();
+    }
+
+    /**
+     * @param <E> The element type
+     * @param size
+     * <br>Range: <code>[0 .. Integer.MAX_VALUE]</code>
+     * @return
+     * <br>Not null
+     * <br>New
+     */
+    public static final <E> ArrayList<E> newArrayList(final int size) {
+        final ArrayList<E> result = new ArrayList<E>(size);
+
+        for (int i = 0; i < size; ++i) {
+            result.add(null);
+        }
+
+        return result;
     }
 
 	/**

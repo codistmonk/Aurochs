@@ -28,6 +28,7 @@ import static net.sourceforge.aprog.tools.Tools.*;
 import static net.sourceforge.aurochs.Grammar.SpecialSymbol.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -35,6 +36,8 @@ import java.util.List;
 
 import net.sourceforge.aprog.events.AbstractObservable;
 import net.sourceforge.aprog.tools.Tools;
+import net.sourceforge.aurochs.Grammar.Action;
+import net.sourceforge.aurochs.Grammar.Rule;
 import net.sourceforge.aurochs.LRTable.*;
 
 /**
@@ -60,6 +63,40 @@ public abstract class AbstractLRParser extends AbstractObservable<AbstractLRPars
         this.table = table;
         this.inputTokens = new LinkedList<Object>();
         this.stack = new Stack();
+
+        this.addListener(new Listener() {
+
+            @Override
+            public final void reductionOccured(final ReductionEvent event) {
+                final Rule rule = event.getReduction().getRule();
+                final List<Object> originalTokens;
+
+                if (!rule.getActions().isEmpty()) {
+                    final List<Object> tokens = event.getTokens();
+                    assert(rule.getDevelopment().size() == tokens.size());
+
+                    if (rule.getOriginalDevelopment().length != rule.getDevelopment().size()) {
+                        originalTokens = AurochsTools.newArrayList(rule.getOriginalDevelopment().length);
+                        
+                        for (int i = 0; i < tokens.size(); ++i) {
+                            originalTokens.set(i, tokens.get(rule.getOriginalIndices().get(i)));
+                        }
+                    } else {
+                        originalTokens = tokens;
+                    }
+
+                    for (final Action action : rule.getActions()) {
+                        action.perform(rule, event.getGeneratedToken(), originalTokens);
+                    }
+                }
+            }
+
+            @Override
+            public final void unexpectedSymbolErrorOccured(final UnexpectedSymbolErrorEvent event) {
+                ignore(event);
+            }
+
+        });
     }
 
     /**
@@ -306,7 +343,7 @@ public abstract class AbstractLRParser extends AbstractObservable<AbstractLRPars
          *
          * @param reduction
          * <br>Not null
-         * <br>Shared
+         * <br>Will become reference
          */
         public ReductionEvent(final Reduction reduction) {
             this.reduction = reduction;
@@ -318,7 +355,7 @@ public abstract class AbstractLRParser extends AbstractObservable<AbstractLRPars
          *
          * @return
          * <br>Not null
-         * <br>Shared
+         * <br>Reference
          */
         public final GeneratedToken getGeneratedToken() {
             return this.generatedToken;
@@ -328,7 +365,7 @@ public abstract class AbstractLRParser extends AbstractObservable<AbstractLRPars
          *
          * @return
          * <br>Not null
-         * <br>Shared
+         * <br>Reference
          */
         public Reduction getReduction() {
             return this.reduction;
@@ -338,7 +375,7 @@ public abstract class AbstractLRParser extends AbstractObservable<AbstractLRPars
          *
          * @return
          * <br>Not null
-         * <br>Shared
+         * <br>Reference
          */
         public final List<Object> getTokens() {
             return this.tokens;
