@@ -658,7 +658,7 @@ public final class LRParserTest {
 
             @Override
             public final void perform(final Rule rule, final GeneratedToken generatedToken, final List<Object> developmentTokens) {
-                result[0] = ((GeneratedToken) developmentTokens.get(0)).getUserObject();
+                result[0] = ((GeneratedToken) developmentTokens.get(0)).getValue();
             }
 
         });
@@ -672,7 +672,7 @@ public final class LRParserTest {
                 }
                 // </editor-fold>
 
-                generatedToken.setUserObject((Integer) ((GeneratedToken) developmentTokens.get(0)).getUserObject() + (Integer) ((GeneratedToken) developmentTokens.get(2)).getUserObject());
+                generatedToken.setValue((Integer) ((GeneratedToken) developmentTokens.get(0)).getValue() + (Integer) ((GeneratedToken) developmentTokens.get(2)).getValue());
             }
 
         });
@@ -686,7 +686,7 @@ public final class LRParserTest {
                 }
                 // </editor-fold>
 
-                generatedToken.setUserObject((Integer) ((GeneratedToken) developmentTokens.get(0)).getUserObject() * (Integer) ((GeneratedToken) developmentTokens.get(2)).getUserObject());
+                generatedToken.setValue((Integer) ((GeneratedToken) developmentTokens.get(0)).getValue() * (Integer) ((GeneratedToken) developmentTokens.get(2)).getValue());
             }
 
         });
@@ -700,7 +700,7 @@ public final class LRParserTest {
                 }
                 // </editor-fold>
 
-                generatedToken.setUserObject(((GeneratedToken) developmentTokens.get(1)).getUserObject());
+                generatedToken.setValue(((GeneratedToken) developmentTokens.get(1)).getValue());
             }
 
         });
@@ -714,7 +714,7 @@ public final class LRParserTest {
                 }
                 // </editor-fold>
 
-                generatedToken.setUserObject(Integer.parseInt(((GeneratedToken) developmentTokens.get(0)).getUserObject().toString()));
+                generatedToken.setValue(Integer.parseInt(((GeneratedToken) developmentTokens.get(0)).getValue().toString()));
             }
 
         });
@@ -869,7 +869,7 @@ public final class LRParserTest {
 
             @Override
             public final void reductionOccured(final ReductionEvent event) {
-                event.getGeneratedToken().setUserObject(event.getTokens());
+                event.getGeneratedToken().setValue(event.getTokens());
 
                 debugPrint(event.getReduction(), event.getGeneratedToken());
             }

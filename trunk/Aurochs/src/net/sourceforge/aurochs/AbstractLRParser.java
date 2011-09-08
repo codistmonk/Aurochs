@@ -488,7 +488,7 @@ public abstract class AbstractLRParser extends AbstractObservable<AbstractLRPars
 
         private final Object symbol;
 
-        private Object userObject;
+        private Object value;
 
         /**
          *
@@ -530,23 +530,23 @@ public abstract class AbstractLRParser extends AbstractObservable<AbstractLRPars
          * <br>Reference
          */
         @SuppressWarnings("unchecked")
-        public final <T> T getUserObject() {
-            return (T) this.userObject;
+        public final <T> T getValue() {
+            return (T) this.value;
         }
 
         /**
          *
-         * @param userObject
+         * @param value
          * <br>Maybe null
          * <br>Will become reference
          */
-        public final void setUserObject(final Object userObject) {
-            this.userObject = userObject;
+        public final void setValue(final Object value) {
+            this.value = value;
         }
 
         @Override
         public String toString() {
-            return this.getSymbol() + "(" + this.getUserObject() + ")";
+            return this.getSymbol() + "(" + this.getValue() + ")";
         }
 
         /**

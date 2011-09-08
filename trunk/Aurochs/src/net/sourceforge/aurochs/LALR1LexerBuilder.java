@@ -306,13 +306,13 @@ public final class LALR1LexerBuilder {
                 unwrapRegulars(event.getTokens());
 
                 if (symbol instanceof Regular.GeneratedSymbol) {
-                    event.getGeneratedToken().setUserObject(condense(event.getTokens()));
+                    event.getGeneratedToken().setValue(condense(event.getTokens()));
                 }
 
                 if (lexer.getTokens().contains(symbol)) {
                     token[0] = new GeneratedToken(symbol);
 
-                    ((GeneratedToken) token[0]).setUserObject(condense(event.getTokens()));
+                    ((GeneratedToken) token[0]).setValue(condense(event.getTokens()));
                 } else if (lexer.getVerbatimTokenNonterminals().contains(symbol)) {
                     switch (event.getTokens().size()) {
                         case 0:
@@ -446,7 +446,7 @@ public final class LALR1LexerBuilder {
             final GeneratedToken generatedToken = cast(GeneratedToken.class, tokens.get(i));
 
             if (generatedToken != null && generatedToken.getSymbol() instanceof Regular.GeneratedSymbol) {
-                tokens.set(i, generatedToken.getUserObject());
+                tokens.set(i, generatedToken.getValue());
             }
         }
     }
