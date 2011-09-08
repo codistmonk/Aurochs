@@ -42,6 +42,15 @@ import org.junit.Test;
 public final class AurochsToolsTest {
 
     @Test
+    public final void testNewArrayList() {
+        final ArrayList<?> list = AurochsTools.newArrayList(2);
+
+        assertEquals(2, list.size());
+        assertEquals(null, list.get(0));
+        assertEquals(null, list.get(1));
+    }
+
+    @Test
     public final void testTake() {
         final List<Integer> list = new ArrayList<Integer>(Arrays.asList(42, 33));
 

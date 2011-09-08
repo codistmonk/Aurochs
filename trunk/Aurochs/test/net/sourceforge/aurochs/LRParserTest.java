@@ -26,11 +26,14 @@ package net.sourceforge.aurochs;
 
 import java.util.logging.LogRecord;
 import static net.sourceforge.aprog.tools.Tools.*;
+import net.sourceforge.aurochs.AbstractLRParser.GeneratedToken;
+import net.sourceforge.aurochs.Grammar.Rule;
 import static net.sourceforge.aurochs.LRParserTest.Nonterminal.*;
 
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -576,6 +579,154 @@ public final class LRParserTest {
         assertTrue(this.tokenizeAndParse(input("a = 42")));
         assertTrue(this.tokenizeAndParse(input("2 * (3 - 4)")));
         assertFalse(this.tokenizeAndParse(input("2 * (3 - 4")));
+    }
+
+    @Test
+    public final void testActions0() {
+        final int[] reductionCount = new int[1];
+
+        this.parserBuilder.addRule('A', 'b').getActions().add(new Grammar.Action() {
+
+            @Override
+            public final void perform(final Rule rule, final GeneratedToken generatedToken, final List<Object> developmentTokens) {
+                assertEquals(Arrays.asList('b'), developmentTokens);
+
+                ++reductionCount[0];
+            }
+
+        });
+
+        assertTrue(this.parse(input("b")));
+        assertEquals(1, reductionCount[0]);
+    }
+
+    @Test
+    public final void testActions1() {
+        final int[] reductionCount = new int[1];
+
+        this.parserBuilder.addRule('A', 'b', 'C').getActions().add(new Grammar.Action() {
+
+            @Override
+            public final void perform(final Rule rule, final GeneratedToken generatedToken, final List<Object> developmentTokens) {
+                final boolean debug = false;
+
+                // <editor-fold defaultstate="collapsed" desc="DEBUG">
+                if (debug) {
+                    debugPrint("Derivation found:", generatedToken, "->", developmentTokens);
+                }
+                // </editor-fold>
+
+                assertEquals(Arrays.asList('b', null), developmentTokens);
+
+                ++reductionCount[0];
+            }
+
+        });
+        this.parserBuilder.addRule('C');
+
+        assertTrue(this.parse(input("b")));
+        assertEquals(1, reductionCount[0]);
+    }
+
+    @Test
+    public final void testActions2() {
+        final boolean debug = false;
+        final int[] integerDerivationCount = new int[1];
+        final Object[] result = new Integer[1];
+
+        this.lexerBuilder.addTokenRule(INTEGER, range('0', '9')).getActions().add(new Grammar.Action() {
+
+            @Override
+            public final void perform(final Rule rule, final GeneratedToken generatedToken, final List<Object> developmentTokens) {
+                // <editor-fold defaultstate="collapsed" desc="DEBUG">
+                if (debug) {
+                    debugPrint("Derivation found:", generatedToken, "->", developmentTokens);
+                }
+                // </editor-fold>
+
+                ++integerDerivationCount[0];
+            }
+
+        });
+        this.lexerBuilder.addVerbatimTokenRule(PLUS, '+');
+        this.lexerBuilder.addVerbatimTokenRule(TIMES, '*');
+        this.lexerBuilder.addVerbatimTokenRule(LEFT_PARENTHESIS, '(');
+        this.lexerBuilder.addVerbatimTokenRule(RIGHT_PARENTHESIS, ')');
+        this.lexerBuilder.addNontokenRule(_, zeroOrMore(' '));
+
+        this.parserBuilder.addRule(PROGRAM, 'E').getActions().add(new Grammar.Action() {
+
+            @Override
+            public final void perform(final Rule rule, final GeneratedToken generatedToken, final List<Object> developmentTokens) {
+                result[0] = ((GeneratedToken) developmentTokens.get(0)).getUserObject();
+            }
+
+        });
+        this.parserBuilder.addRule('E', 'E', '+', 'E').getActions().add(new Grammar.Action() {
+
+            @Override
+            public final void perform(final Rule rule, final GeneratedToken generatedToken, final List<Object> developmentTokens) {
+                // <editor-fold defaultstate="collapsed" desc="DEBUG">
+                if (debug) {
+                    debugPrint("Derivation found:", generatedToken, "->", developmentTokens);
+                }
+                // </editor-fold>
+
+                generatedToken.setUserObject((Integer) ((GeneratedToken) developmentTokens.get(0)).getUserObject() + (Integer) ((GeneratedToken) developmentTokens.get(2)).getUserObject());
+            }
+
+        });
+        this.parserBuilder.addRule('E', 'E', '*', 'E').getActions().add(new Grammar.Action() {
+
+            @Override
+            public final void perform(final Rule rule, final GeneratedToken generatedToken, final List<Object> developmentTokens) {
+                // <editor-fold defaultstate="collapsed" desc="DEBUG">
+                if (debug) {
+                    debugPrint("Derivation found:", generatedToken, "->", developmentTokens);
+                }
+                // </editor-fold>
+
+                generatedToken.setUserObject((Integer) ((GeneratedToken) developmentTokens.get(0)).getUserObject() * (Integer) ((GeneratedToken) developmentTokens.get(2)).getUserObject());
+            }
+
+        });
+        this.parserBuilder.addRule('E', '(', 'E', ')').getActions().add(new Grammar.Action() {
+
+            @Override
+            public final void perform(final Rule rule, final GeneratedToken generatedToken, final List<Object> developmentTokens) {
+                // <editor-fold defaultstate="collapsed" desc="DEBUG">
+                if (debug) {
+                    debugPrint("Derivation found:", generatedToken, "->", developmentTokens);
+                }
+                // </editor-fold>
+
+                generatedToken.setUserObject(((GeneratedToken) developmentTokens.get(1)).getUserObject());
+            }
+
+        });
+        this.parserBuilder.addRule('E', INTEGER).getActions().add(new Grammar.Action() {
+
+            @Override
+            public final void perform(final Rule rule, final GeneratedToken generatedToken, final List<Object> developmentTokens) {
+                // <editor-fold defaultstate="collapsed" desc="DEBUG">
+                if (debug) {
+                    debugPrint("Derivation found:", generatedToken, "->", developmentTokens);
+                }
+                // </editor-fold>
+
+                generatedToken.setUserObject(Integer.parseInt(((GeneratedToken) developmentTokens.get(0)).getUserObject().toString()));
+            }
+
+        });
+
+        this.parserBuilder.addLeftAssociativeBinaryOperator('+');
+        this.parserBuilder.addLeftAssociativeBinaryOperator('*');
+        this.parserBuilder.setPriority('+', (short) 100);
+        this.parserBuilder.setPriority('*', (short) 200);
+
+        assertTrue(this.tokenizeAndParse(input("1 + (2 + 3) * 4")));
+        assertEquals(21, result[0]);
+        assertEquals(4, integerDerivationCount[0]);
     }
 
     @Test(expected=Grammar.AmbiguousGrammarException.class)

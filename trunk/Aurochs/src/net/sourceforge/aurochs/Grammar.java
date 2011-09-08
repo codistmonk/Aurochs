@@ -45,6 +45,7 @@ import java.util.Set;
 import java.util.logging.Level;
 
 import net.sourceforge.aprog.tools.Tools;
+import net.sourceforge.aurochs.AbstractLRParser.GeneratedToken;
 
 /**
  * @author codistmonk (creation 2010-10-04)
@@ -263,7 +264,7 @@ public final class Grammar implements Serializable {
      * @return
      * <br>Not null
      * <br>Maybe New
-     * <br>Strong reference
+     * <br>Reference
      * @throws IllegalArgumentException if {@code nonterminal} is {@link SpecialSymbol#END_TERMINAL}
      */
     public final Rule addRule(final Object nonterminal, final Object... development) {
@@ -419,9 +420,13 @@ public final class Grammar implements Serializable {
      * <br>Will be strong reference
      * @param regularDevelopment
      * <br>Not null
+     * @return
+     * <br>Not null
+     * <br>Maybe New
+     * <br>Reference
      */
-    public final void addRule(final Object nonterminal, final Regular regularDevelopment) {
-        this.addRule(nonterminal, regularDevelopment.getOrCreateSymbol(this));
+    public final Rule addRule(final Object nonterminal, final Regular regularDevelopment) {
+        return this.addRule(nonterminal, regularDevelopment.getOrCreateSymbol(this));
     }
 
     /**
@@ -633,57 +638,11 @@ public final class Grammar implements Serializable {
         }
     }
 
-//    /**
-//     * @param nonterminal
-//     * <br>Maybe null
-//     * <br>Will become strong reference
-//     * @param development
-//     * <br>Not null
-//     * <br>Will become strong reference
-//     * @return
-//     * <br>Not null
-//     * <br>New
-//     * <br>Strong reference
-//     */
-//    private final Rule newRule(final Object nonterminal, final List<Object> development) {
-//        final Rule result = this.new Rule(this.getRules().size(), nonterminal, development);
-//
-//        this.rules.add(result);
-//        this.nonterminals.add(nonterminal);
-//        this.terminals.addAll(result.getDevelopment());
-//        this.terminals.removeAll(this.getNonterminals());
-//
-//        return result;
-//    }
-
-    /**
-     * @param nonterminal
-     * <br>Maybe null
-     * <br>Will become strong reference
-     * @param development
-     * <br>Not null
-     * <br>Will become strong reference
-     * @return
-     * <br>Not null
-     * <br>New
-     * <br>Strong reference
-     */
-    private final Rule newRule(final Object nonterminal, final Object[] development) {
-        final Rule result = this.new Rule(this.getRules().size(), nonterminal, development);
-
-        this.rules.add(result);
-        this.nonterminals.add(nonterminal);
-        this.terminals.addAll(result.getDevelopment());
-        this.terminals.removeAll(this.getNonterminals());
-
-        return result;
-    }
-
     /**
      *
      * @return
      * <br>Not null
-     * <br>Shared
+     * <br>Reference
      */
     private final Map<Object, List<Rule>> getRuleMap() {
         return this.ruleMap;
@@ -702,6 +661,10 @@ public final class Grammar implements Serializable {
 
         private final List<Object> development;
 
+        private final List<Integer> originalIndices;
+
+        private final List<Action> actions;
+
         /**
          *
          * @param index
@@ -717,27 +680,19 @@ public final class Grammar implements Serializable {
             this.nonterminal = nonterminal;
             this.originalDevelopment = originalDevelopment.clone();
             this.development = new ArrayList<Object>(this.getOriginalDevelopment().length);
+            this.originalIndices = new ArrayList<Integer>(this.getOriginalDevelopment().length);
+            this.actions = new ArrayList<Action>();
 
-            this.resetDevelopment();
+            this.setDevelopment();
         }
 
         /**
          * @return
          * <br>Not null
-         * <br>Strong reference
+         * <br>Reference
          */
-        final Object[] getOriginalDevelopment() {
-            return this.originalDevelopment;
-        }
-
-        private final void resetDevelopment() {
-            this.getDevelopment().clear();
-
-            for (final Object symbol : this.getOriginalDevelopment()) {
-                if (!(symbol instanceof Epsilon)) {
-                    this.getDevelopment().add(symbol);
-                }
-            }
+        public final List<Action> getActions() {
+            return this.actions;
         }
 
         /**
@@ -798,6 +753,15 @@ public final class Grammar implements Serializable {
             return this.getDevelopment().size();
         }
 
+        /**
+         * @return
+         * <br>Not null
+         * <br>Reference
+         */
+        public final List<Integer> getOriginalIndices() {
+            return this.originalIndices;
+        }
+
         @Override
         public final String toString() {
             return this.getNonterminal() + " -> " + Arrays.toString(this.getOriginalDevelopment());
@@ -846,6 +810,28 @@ public final class Grammar implements Serializable {
         }
 
         /**
+         * @return
+         * <br>Not null
+         * <br>Strong reference
+         */
+        final Object[] getOriginalDevelopment() {
+            return this.originalDevelopment;
+        }
+
+        private final void setDevelopment() {
+            int i = 0;
+
+            for (final Object symbol : this.getOriginalDevelopment()) {
+                if (!(symbol instanceof Epsilon)) {
+                    this.getDevelopment().add(symbol);
+                    this.getOriginalIndices().add(i);
+                }
+
+                ++i;
+            }
+        }
+
+        /**
          * {@value}.
          */
         private static final long serialVersionUID = 1002200991414988497L;
@@ -856,6 +842,26 @@ public final class Grammar implements Serializable {
      * {@value}.
      */
     private static final long serialVersionUID = 8965715477317349325L;
+
+    /**
+     * @author codistmonk (creation 2011-09-08)
+     */
+    public static interface Action {
+
+        /**
+         * @param rule
+         * <br>Not null
+         * <br>Reference
+         * @param generatedToken
+         * <br>Not null
+         * <br>Reference
+         * @param developmentTokens
+         * <br>Not null
+         * <br>Reference
+         */
+        public abstract void perform(Rule rule, GeneratedToken generatedToken, List<Object> developmentTokens);
+
+    }
 
     /**
      * @author codistmonk (creation 2010-10-04)
@@ -881,6 +887,15 @@ public final class Grammar implements Serializable {
          * <br>Strong reference
          */
         public abstract Object getOrCreateSymbol(Grammar grammar);
+
+        /**
+         * @author codistmonk (creation 2011-09-08)
+         */
+        static final class GeneratedSymbol {
+
+            // Deliberately left empty
+
+        }
 
     }
 
@@ -960,7 +975,7 @@ public final class Grammar implements Serializable {
 
         @Override
         public final Object getOrCreateSymbol(final Grammar grammar) {
-            final Object result = new Object();
+            final Object result = new GeneratedSymbol();
             final Object[] development = new Object[this.getRegulars().length];
 
             for (int i = 0; i < development.length; ++i) {
@@ -990,7 +1005,7 @@ public final class Grammar implements Serializable {
 
         @Override
         public final Object getOrCreateSymbol(final Grammar grammar) {
-            final Object result = new Object();
+            final Object result = new GeneratedSymbol();
 
             for (final Regular regular : this.getRegulars()) {
                 grammar.addRule(result, regular.getOrCreateSymbol(grammar));
@@ -1057,7 +1072,7 @@ public final class Grammar implements Serializable {
 
         @Override
         public final Object getOrCreateSymbol(final Grammar grammar) {
-            final Object result = new Object();
+            final Object result = new GeneratedSymbol();
             final Object[] development = new Object[this.getCount()];
 
             Arrays.fill(development, this.getRepeatedRegular().getOrCreateSymbol(grammar));
@@ -1085,7 +1100,7 @@ public final class Grammar implements Serializable {
 
         @Override
         public final Object getOrCreateSymbol(final Grammar grammar) {
-            final Object result = new Object();
+            final Object result = new GeneratedSymbol();
 
             grammar.addRule(result, result, this.getRepeatedRegular().getOrCreateSymbol(grammar));
             grammar.addRule(result);

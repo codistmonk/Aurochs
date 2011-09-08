@@ -136,9 +136,13 @@ public final class LALR1ParserBuilder {
      * <br>Will be strong reference
      * @param development
      * <br>Not null
+     * @return
+     * <br>Not null
+     * <br>Maybe New
+     * <br>Reference
      */
-    public final void addRule(final Object nonterminal, final Object... development) {
-        this.getGrammar().addRule(nonterminal, development);
+    public final Rule addRule(final Object nonterminal, final Object... development) {
+        return this.getGrammar().addRule(nonterminal, development);
     }
 
     /**
@@ -147,9 +151,13 @@ public final class LALR1ParserBuilder {
      * <br>Will be strong reference
      * @param regularDevelopment
      * <br>Not null
+     * @return
+     * <br>Not null
+     * <br>Maybe New
+     * <br>Reference
      */
-    public final void addRule(final Object nonterminal, final Regular regularDevelopment) {
-        this.getGrammar().addRule(nonterminal, regularDevelopment);
+    public final Rule addRule(final Object nonterminal, final Regular regularDevelopment) {
+        return this.getGrammar().addRule(nonterminal, regularDevelopment);
     }
 
     /**
@@ -278,7 +286,8 @@ public final class LALR1ParserBuilder {
 
             if (this.getGrammar().getFirsts(nonterminal).isEmpty()) {
                 this.getGrammar().removeRule(rule);
-                this.getGrammar().addRule(rule.getNonterminal(), rule.newOriginalDevelopmentWithEpsilon(nonterminal));
+                this.getGrammar().addRule(rule.getNonterminal(), rule.newOriginalDevelopmentWithEpsilon(nonterminal))
+                        .getActions().addAll(rule.getActions());
             } else {
                 for (int i = 0; i < rule.getOriginalDevelopment().length; ++i) {
                     if (Tools.equals(nonterminal, rule.getOriginalDevelopment()[i])) {
@@ -302,6 +311,10 @@ public final class LALR1ParserBuilder {
                 // </editor-fold>
 
                 this.getGrammar().removeRule(rule);
+
+                if (!rule.getActions().isEmpty()) {
+                    getLoggerForThisMethod().log(Level.WARNING, "Removed rule with action: {0}", rule);
+                }
             }
         }
     }
@@ -320,8 +333,14 @@ public final class LALR1ParserBuilder {
             }
 
             while (initialRules.size() > 1) {
-                this.getGrammar().removeRule(initialRules.get(1));
-            }
+                final Rule rule = initialRules.get(1);
+
+                this.getGrammar().removeRule(rule);
+
+                if (!rule.getActions().isEmpty()) {
+                    getLoggerForThisMethod().log(Level.WARNING, "Removed rule with action: {0}", rule);
+                }
+           }
 
             initialRules.get(0).getDevelopment().set(0, nonterminal);
         }
