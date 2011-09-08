@@ -37,7 +37,7 @@ import java.util.Map;
 import java.util.Set;
 
 import net.sourceforge.aprog.tools.Tools;
-import net.sourceforge.aurochs.Grammar.Production;
+import net.sourceforge.aurochs.Grammar.Rule;
 import net.sourceforge.aurochs.Grammar.SpecialSymbol;
 
 /**
@@ -268,7 +268,7 @@ public final class LALR1ClosureTable implements Serializable {
      */
     public final class Item implements Serializable {
 
-        private final int productionIndex;
+        private final int ruleIndex;
 
         private final int cursorIndex;
 
@@ -276,16 +276,16 @@ public final class LALR1ClosureTable implements Serializable {
 
         /**
          *
-         * @param productionIndex
-         * <br>Range: {@code [0 .. LALR1Table.this.getGrammar().getProductions().size() - 1]}
+         * @param ruleIndex
+         * <br>Range: {@code [0 .. LALR1Table.this.getGrammar().getRules().size() - 1]}
          * @param cursorIndex
-         * <br>Range: {@code [0 .. LALR1Table.this.getGrammar().getProductions().get(productionIndex).getDevelopment().size()]}
+         * <br>Range: {@code [0 .. LALR1Table.this.getGrammar().getRules().get(ruleIndex).getDevelopment().size()]}
          * @param lookAheads
          * <br>Not null
          * <br>Shared
          */
-        Item(final int productionIndex, final int cursorIndex, final Set<?> lookAheads) {
-            this.productionIndex = productionIndex;
+        Item(final int ruleIndex, final int cursorIndex, final Set<?> lookAheads) {
+            this.ruleIndex = ruleIndex;
             this.cursorIndex = cursorIndex;
             this.lookAheads = lookAheads;
         }
@@ -315,11 +315,11 @@ public final class LALR1ClosureTable implements Serializable {
          * <br>New
          */
         public final Collection<Item> newShiftedItems() {
-            final List<Production> productionsForSymbolAfterCursor = this.getGrammar().getProductions(this.getSymbolAfterCursor());
-            final Collection<Item> result = new ArrayList<Item>(productionsForSymbolAfterCursor.size());
+            final List<Rule> rulesForSymbolAfterCursor = this.getGrammar().getRules(this.getSymbolAfterCursor());
+            final Collection<Item> result = new ArrayList<Item>(rulesForSymbolAfterCursor.size());
 
-            for (final Production production : productionsForSymbolAfterCursor) {
-                result.add(LALR1ClosureTable.this.new Item(production.getIndex(), 0, this.newAfterShiftLookAheads()));
+            for (final Rule rule : rulesForSymbolAfterCursor) {
+                result.add(LALR1ClosureTable.this.new Item(rule.getIndex(), 0, this.newAfterShiftLookAheads()));
             }
 
             return result;
@@ -336,7 +336,7 @@ public final class LALR1ClosureTable implements Serializable {
         /**
          *
          * @return
-         * <br>Range: {@code [0 .. LALR1Table.this.getProduction().getDevelopment().size()]}
+         * <br>Range: {@code [0 .. LALR1Table.this.getRule().getDevelopment().size()]}
          */
         public final int getCursorIndex() {
             return this.cursorIndex;
@@ -345,10 +345,10 @@ public final class LALR1ClosureTable implements Serializable {
         /**
          *
          * @return
-         * <br>Range: {@code [0 .. LALR1Table.this.getGrammar().getProductions().size() - 1]}
+         * <br>Range: {@code [0 .. LALR1Table.this.getGrammar().getRules().size() - 1]}
          */
-        public final int getProductionIndex() {
-            return this.productionIndex;
+        public final int getRuleIndex() {
+            return this.ruleIndex;
         }
 
         /**
@@ -378,8 +378,8 @@ public final class LALR1ClosureTable implements Serializable {
          * <br>Not null
          * <br>Shared
          */
-        public final Production getProduction() {
-            return this.getGrammar().getProduction(this.getProductionIndex());
+        public final Rule getRule() {
+            return this.getGrammar().getRule(this.getRuleIndex());
         }
 
         /**
@@ -389,7 +389,7 @@ public final class LALR1ClosureTable implements Serializable {
          * <br>Shared
          */
         public final Object getNonterminal() {
-            return this.getProduction().getNonterminal();
+            return this.getRule().getNonterminal();
         }
 
         /**
@@ -399,7 +399,7 @@ public final class LALR1ClosureTable implements Serializable {
          * <br>Shared
          */
         public final List<Object> getDevelopment() {
-            return this.getProduction().getDevelopment();
+            return this.getRule().getDevelopment();
         }
 
         /**
@@ -408,7 +408,7 @@ public final class LALR1ClosureTable implements Serializable {
          * <br>Range: { this.getDevelopment().size() }
          */
         public final int getDevelopmentSymbolCount() {
-            return this.getProduction().getDevelopmentSymbolCount();
+            return this.getRule().getDevelopmentSymbolCount();
         }
 
         /**
@@ -446,13 +446,13 @@ public final class LALR1ClosureTable implements Serializable {
         public final boolean equals(final Object object) {
             final Item that = cast(this.getClass(), object);
 
-            return that != null && this.getProductionIndex() == that.getProductionIndex() &&
+            return that != null && this.getRuleIndex() == that.getRuleIndex() &&
                     this.getCursorIndex() == that.getCursorIndex();
         }
 
         @Override
         public final int hashCode() {
-            return this.getProductionIndex() + this.getCursorIndex();
+            return this.getRuleIndex() + this.getCursorIndex();
         }
 
         @Override
@@ -519,7 +519,7 @@ public final class LALR1ClosureTable implements Serializable {
             short result = Short.MIN_VALUE;
 
             for (final Item item : this.getKernel().getItems()) {
-                result = (short) Math.max(result, item.getProduction().getPriority());
+                result = (short) Math.max(result, item.getRule().getPriority());
             }
 
             return result;
@@ -567,7 +567,7 @@ public final class LALR1ClosureTable implements Serializable {
             for (final Item item : this.getItems()) {
                 if (!item.isFinal()) {
                     getOrCreate(result, item.getSymbolAfterCursor(), LinkedHashSet.class).add(
-                            LALR1ClosureTable.this.new Item(item.getProductionIndex(), item.getCursorIndex() + 1,
+                            LALR1ClosureTable.this.new Item(item.getRuleIndex(), item.getCursorIndex() + 1,
                             new LinkedHashSet<Object>(item.getLookAheads())));
                 }
             }

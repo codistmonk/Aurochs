@@ -86,9 +86,9 @@ public final class LRParserTest {
     public final void testParse0() {
         final boolean debug = false;
 
-        this.parserBuilder.addProduction(INTEGER, DIGIT, INTEGER);
-        this.parserBuilder.addProduction(INTEGER);
-        this.parserBuilder.addProduction(DIGIT, '0');
+        this.parserBuilder.addRule(INTEGER, DIGIT, INTEGER);
+        this.parserBuilder.addRule(INTEGER);
+        this.parserBuilder.addRule(DIGIT, '0');
 
         // <editor-fold defaultstate="collapsed" desc="DEBUG">
         if (debug) {
@@ -113,11 +113,11 @@ public final class LRParserTest {
     public final void testParse0p5() {
         final boolean debug = false;
 
-        this.lexerBuilder.addTokenProduction(DIGIT, '0');
-        this.lexerBuilder.addNontokenProduction(WHITE_SPACE, ' ');
-        this.lexerBuilder.addNontokenProduction(WHITE_SPACE);
+        this.lexerBuilder.addTokenRule(DIGIT, '0');
+        this.lexerBuilder.addNontokenRule(WHITE_SPACE, ' ');
+        this.lexerBuilder.addNontokenRule(WHITE_SPACE);
 
-        this.parserBuilder.addProduction(PROGRAM, DIGIT);
+        this.parserBuilder.addRule(PROGRAM, DIGIT);
 
         // <editor-fold defaultstate="collapsed" desc="DEBUG">
         if (debug) {
@@ -142,18 +142,18 @@ public final class LRParserTest {
     public final void testParse1() {
         final boolean debug = false;
 
-        this.parserBuilder.addProduction(INTEGER, INTEGER, DIGIT);
-        this.parserBuilder.addProduction(INTEGER, DIGIT);
-        this.parserBuilder.addProduction(DIGIT, '0');
-        this.parserBuilder.addProduction(DIGIT, '1');
-        this.parserBuilder.addProduction(DIGIT, '2');
-        this.parserBuilder.addProduction(DIGIT, '3');
-        this.parserBuilder.addProduction(DIGIT, '4');
-        this.parserBuilder.addProduction(DIGIT, '5');
-        this.parserBuilder.addProduction(DIGIT, '6');
-        this.parserBuilder.addProduction(DIGIT, '7');
-        this.parserBuilder.addProduction(DIGIT, '8');
-        this.parserBuilder.addProduction(DIGIT, '9');
+        this.parserBuilder.addRule(INTEGER, INTEGER, DIGIT);
+        this.parserBuilder.addRule(INTEGER, DIGIT);
+        this.parserBuilder.addRule(DIGIT, '0');
+        this.parserBuilder.addRule(DIGIT, '1');
+        this.parserBuilder.addRule(DIGIT, '2');
+        this.parserBuilder.addRule(DIGIT, '3');
+        this.parserBuilder.addRule(DIGIT, '4');
+        this.parserBuilder.addRule(DIGIT, '5');
+        this.parserBuilder.addRule(DIGIT, '6');
+        this.parserBuilder.addRule(DIGIT, '7');
+        this.parserBuilder.addRule(DIGIT, '8');
+        this.parserBuilder.addRule(DIGIT, '9');
 
         // <editor-fold defaultstate="collapsed" desc="DEBUG">
         if (debug) {
@@ -177,12 +177,12 @@ public final class LRParserTest {
     public final void testParse2() {
         final boolean debug = false;
 
-        this.lexerBuilder.addVerbatimTokenProduction(A, 'a');
-        this.lexerBuilder.addNontokenProduction(WHITE_SPACE, WHITE_SPACE, ' ');
-        this.lexerBuilder.addNontokenProduction(WHITE_SPACE);
+        this.lexerBuilder.addVerbatimTokenRule(A, 'a');
+        this.lexerBuilder.addNontokenRule(WHITE_SPACE, WHITE_SPACE, ' ');
+        this.lexerBuilder.addNontokenRule(WHITE_SPACE);
 
-        this.parserBuilder.addProduction(LIST, 'a', LIST);
-        this.parserBuilder.addProduction(LIST, 'a');
+        this.parserBuilder.addRule(LIST, 'a', LIST);
+        this.parserBuilder.addRule(LIST, 'a');
 
         this.testErrors(0);
 
@@ -192,8 +192,8 @@ public final class LRParserTest {
 
             int index = 0;
 
-            for (final Grammar.Production production : this.getParser().getTable().getGrammar().getProductions()) {
-                debugPrint(index++, production);
+            for (final Grammar.Rule rule : this.getParser().getTable().getGrammar().getRules()) {
+                debugPrint(index++, rule);
             }
 
             index = 0;
@@ -216,13 +216,13 @@ public final class LRParserTest {
     public final void testParse2p5() {
         final boolean debug = false;
 
-        this.lexerBuilder.addNontokenProduction(WHITE_SPACE, WHITE_SPACE, ' ');
-        this.lexerBuilder.addNontokenProduction(WHITE_SPACE);
-        this.lexerBuilder.addTokenProduction(INTEGER, oneOrMore(DIGIT));
-        this.lexerBuilder.addHelperProduction(DIGIT, range('0', '9'));
+        this.lexerBuilder.addNontokenRule(WHITE_SPACE, WHITE_SPACE, ' ');
+        this.lexerBuilder.addNontokenRule(WHITE_SPACE);
+        this.lexerBuilder.addTokenRule(INTEGER, oneOrMore(DIGIT));
+        this.lexerBuilder.addHelperRule(DIGIT, range('0', '9'));
 
-        this.parserBuilder.addProduction(LIST, INTEGER, LIST);
-        this.parserBuilder.addProduction(LIST, INTEGER);
+        this.parserBuilder.addRule(LIST, INTEGER, LIST);
+        this.parserBuilder.addRule(LIST, INTEGER);
 
         // <editor-fold defaultstate="collapsed" desc="DEBUG">
         if (debug) {
@@ -230,8 +230,8 @@ public final class LRParserTest {
 
             int index = 0;
 
-            for (final Grammar.Production production : this.getParser().getTable().getGrammar().getProductions()) {
-                debugPrint(index++, production);
+            for (final Grammar.Rule rule : this.getParser().getTable().getGrammar().getRules()) {
+                debugPrint(index++, rule);
             }
 
             index = 0;
@@ -256,8 +256,8 @@ public final class LRParserTest {
 
         this.parserBuilder.addLeftAssociativeBinaryOperator('+');
 
-        this.parserBuilder.addProduction(EXPRESSION, EXPRESSION, '+', EXPRESSION);
-        this.parserBuilder.addProduction(EXPRESSION, 'a');
+        this.parserBuilder.addRule(EXPRESSION, EXPRESSION, '+', EXPRESSION);
+        this.parserBuilder.addRule(EXPRESSION, 'a');
 
         // <editor-fold defaultstate="collapsed" desc="DEBUG">
         if (debug) {
@@ -281,15 +281,15 @@ public final class LRParserTest {
     public final void testParse4() {
         final boolean debug = false;
 
-        this.lexerBuilder.addVerbatimTokenProduction(A, 'a');
-        this.lexerBuilder.addVerbatimTokenProduction(PLUS, '+');
-        this.lexerBuilder.addNontokenProduction(WHITE_SPACE, ' ');
-        this.lexerBuilder.addNontokenProduction(WHITE_SPACE);
+        this.lexerBuilder.addVerbatimTokenRule(A, 'a');
+        this.lexerBuilder.addVerbatimTokenRule(PLUS, '+');
+        this.lexerBuilder.addNontokenRule(WHITE_SPACE, ' ');
+        this.lexerBuilder.addNontokenRule(WHITE_SPACE);
 
         this.parserBuilder.addLeftAssociativeBinaryOperator('+');
 
-        this.parserBuilder.addProduction(EXPRESSION, EXPRESSION, '+', EXPRESSION);
-        this.parserBuilder.addProduction(EXPRESSION, 'a');
+        this.parserBuilder.addRule(EXPRESSION, EXPRESSION, '+', EXPRESSION);
+        this.parserBuilder.addRule(EXPRESSION, 'a');
 
         // <editor-fold defaultstate="collapsed" desc="DEBUG">
         if (debug) {
@@ -314,9 +314,9 @@ public final class LRParserTest {
     public final void testParse6() {
         final boolean debug = false;
 
-        this.parserBuilder.addProduction(A, 'b', C, 'd');
-        this.parserBuilder.addProduction(A, 'b', 'd', 'e');
-        this.parserBuilder.addProduction(C);
+        this.parserBuilder.addRule(A, 'b', C, 'd');
+        this.parserBuilder.addRule(A, 'b', 'd', 'e');
+        this.parserBuilder.addRule(C);
 
         // <editor-fold defaultstate="collapsed" desc="DEBUG">
         if (debug) {
@@ -338,17 +338,17 @@ public final class LRParserTest {
     public final void testParse7() {
         final boolean debug = false;
 
-        this.lexerBuilder.addTokenProduction(C, 'c');
-        this.lexerBuilder.addTokenProduction(E, 'e');
-        this.lexerBuilder.addTokenProduction(F, 'f');
-        this.lexerBuilder.addNontokenProduction(D, D, 'g');
-        this.lexerBuilder.addNontokenProduction(D);
+        this.lexerBuilder.addTokenRule(C, 'c');
+        this.lexerBuilder.addTokenRule(E, 'e');
+        this.lexerBuilder.addTokenRule(F, 'f');
+        this.lexerBuilder.addNontokenRule(D, D, 'g');
+        this.lexerBuilder.addNontokenRule(D);
 
-        this.parserBuilder.addProduction(A, B);
-        this.parserBuilder.addProduction(A, C, E);
+        this.parserBuilder.addRule(A, B);
+        this.parserBuilder.addRule(A, C, E);
 
-        this.parserBuilder.addProduction(B, B, F);
-        this.parserBuilder.addProduction(B, C);
+        this.parserBuilder.addRule(B, B, F);
+        this.parserBuilder.addRule(B, C);
 
 
         // <editor-fold defaultstate="collapsed" desc="DEBUG">
@@ -371,15 +371,15 @@ public final class LRParserTest {
     public final void testParse8() {
         final boolean debug = false;
 
-        this.lexerBuilder.addTokenProduction(PLUS, '+');
-        this.lexerBuilder.addTokenProduction(A, 'a');
-        this.lexerBuilder.addNontokenProduction(S, ' ', S);
-        this.lexerBuilder.addNontokenProduction(S);
+        this.lexerBuilder.addTokenRule(PLUS, '+');
+        this.lexerBuilder.addTokenRule(A, 'a');
+        this.lexerBuilder.addNontokenRule(S, ' ', S);
+        this.lexerBuilder.addNontokenRule(S);
 
         this.parserBuilder.addLeftAssociativeBinaryOperator(PLUS);
 
-        this.parserBuilder.addProduction(E, E, PLUS, E);
-        this.parserBuilder.addProduction(E, A);
+        this.parserBuilder.addRule(E, E, PLUS, E);
+        this.parserBuilder.addRule(E, A);
 
         // <editor-fold defaultstate="collapsed" desc="DEBUG">
         if (debug) {
@@ -401,16 +401,16 @@ public final class LRParserTest {
     public final void testParse9() {
         final boolean debug = false;
 
-        this.lexerBuilder.addVerbatimTokenProduction(A, 'a');
-        this.lexerBuilder.addVerbatimTokenProduction(PLUS, '+');
-        this.lexerBuilder.addNontokenProduction(_, S);
-        this.lexerBuilder.addNontokenProduction(S, ' ', S);
-        this.lexerBuilder.addNontokenProduction(S);
+        this.lexerBuilder.addVerbatimTokenRule(A, 'a');
+        this.lexerBuilder.addVerbatimTokenRule(PLUS, '+');
+        this.lexerBuilder.addNontokenRule(_, S);
+        this.lexerBuilder.addNontokenRule(S, ' ', S);
+        this.lexerBuilder.addNontokenRule(S);
 
         this.parserBuilder.addLeftAssociativeBinaryOperator('+');
 
-        this.parserBuilder.addProduction(E, E, '+', E);
-        this.parserBuilder.addProduction(E, 'a');
+        this.parserBuilder.addRule(E, E, '+', E);
+        this.parserBuilder.addRule(E, 'a');
 
         // <editor-fold defaultstate="collapsed" desc="DEBUG">
         if (debug) {
@@ -431,21 +431,21 @@ public final class LRParserTest {
     public final void testParse10() {
         final boolean debug = false;
 
-        this.lexerBuilder.addTokenProduction(A, 'a');
-        this.lexerBuilder.addTokenProduction(ZERO, '0');
-        this.lexerBuilder.addTokenProduction(EQUAL, '=');
-        this.lexerBuilder.addTokenProduction(PLUS, '+');
-        this.lexerBuilder.addNontokenProduction(_, S);
-        this.lexerBuilder.addNontokenProduction(S, ' ', S);
-        this.lexerBuilder.addNontokenProduction(S);
+        this.lexerBuilder.addTokenRule(A, 'a');
+        this.lexerBuilder.addTokenRule(ZERO, '0');
+        this.lexerBuilder.addTokenRule(EQUAL, '=');
+        this.lexerBuilder.addTokenRule(PLUS, '+');
+        this.lexerBuilder.addNontokenRule(_, S);
+        this.lexerBuilder.addNontokenRule(S, ' ', S);
+        this.lexerBuilder.addNontokenRule(S);
 
         this.parserBuilder.addLeftAssociativeBinaryOperator(PLUS);
 
-        this.parserBuilder.addProduction(I, E);
-        this.parserBuilder.addProduction(I, A, EQUAL, E);
-        this.parserBuilder.addProduction(E, E, PLUS, E);
-        this.parserBuilder.addProduction(E, A);
-        this.parserBuilder.addProduction(E, ZERO);
+        this.parserBuilder.addRule(I, E);
+        this.parserBuilder.addRule(I, A, EQUAL, E);
+        this.parserBuilder.addRule(E, E, PLUS, E);
+        this.parserBuilder.addRule(E, A);
+        this.parserBuilder.addRule(E, ZERO);
 
         // <editor-fold defaultstate="collapsed" desc="DEBUG">
         if (debug) {
@@ -472,10 +472,10 @@ public final class LRParserTest {
         this.parserBuilder.setPriority((Character) '+', (short) 100);
         this.parserBuilder.setPriority((Character) '*', (short) 200);
 
-        this.parserBuilder.addProduction(EXPRESSION, EXPRESSION, '+', EXPRESSION);
-        this.parserBuilder.addProduction(EXPRESSION, EXPRESSION, '*', EXPRESSION);
-        this.parserBuilder.addProduction(EXPRESSION, '1');
-        this.parserBuilder.addProduction(EXPRESSION, '2');
+        this.parserBuilder.addRule(EXPRESSION, EXPRESSION, '+', EXPRESSION);
+        this.parserBuilder.addRule(EXPRESSION, EXPRESSION, '*', EXPRESSION);
+        this.parserBuilder.addRule(EXPRESSION, '1');
+        this.parserBuilder.addRule(EXPRESSION, '2');
 
         // <editor-fold defaultstate="collapsed" desc="DEBUG">
         if (debug) {
@@ -514,20 +514,20 @@ public final class LRParserTest {
     public final void testParse12() {
         final boolean debug = false;
 
-        this.lexerBuilder.addTokenProduction(INTEGER, oneOrMore(DIGIT));
-        this.lexerBuilder.addTokenProduction(IDENTIFIER, oneOrMore(LETTER));
-        this.lexerBuilder.addTokenProduction(EQUAL, '=');
-        this.lexerBuilder.addTokenProduction(PLUS, '+');
-        this.lexerBuilder.addTokenProduction(MINUS, '-');
-        this.lexerBuilder.addTokenProduction(TIMES, '*');
-        this.lexerBuilder.addTokenProduction(DIVIDED, '/');
-        this.lexerBuilder.addTokenProduction(MODULO, '/');
-        this.lexerBuilder.addTokenProduction(POWER, '^');
-        this.lexerBuilder.addTokenProduction(LEFT_PARENTHESIS, '(');
-        this.lexerBuilder.addTokenProduction(RIGHT_PARENTHESIS, ')');
-        this.lexerBuilder.addNontokenProduction(WHITE_SPACE, zeroOrMore(' '));
-        this.lexerBuilder.addHelperProduction(DIGIT, range('0', '9'));
-        this.lexerBuilder.addHelperProduction(LETTER, range('a', 'z'));
+        this.lexerBuilder.addTokenRule(INTEGER, oneOrMore(DIGIT));
+        this.lexerBuilder.addTokenRule(IDENTIFIER, oneOrMore(LETTER));
+        this.lexerBuilder.addTokenRule(EQUAL, '=');
+        this.lexerBuilder.addTokenRule(PLUS, '+');
+        this.lexerBuilder.addTokenRule(MINUS, '-');
+        this.lexerBuilder.addTokenRule(TIMES, '*');
+        this.lexerBuilder.addTokenRule(DIVIDED, '/');
+        this.lexerBuilder.addTokenRule(MODULO, '/');
+        this.lexerBuilder.addTokenRule(POWER, '^');
+        this.lexerBuilder.addTokenRule(LEFT_PARENTHESIS, '(');
+        this.lexerBuilder.addTokenRule(RIGHT_PARENTHESIS, ')');
+        this.lexerBuilder.addNontokenRule(WHITE_SPACE, zeroOrMore(' '));
+        this.lexerBuilder.addHelperRule(DIGIT, range('0', '9'));
+        this.lexerBuilder.addHelperRule(LETTER, range('a', 'z'));
 
         this.parserBuilder.addLeftAssociativeBinaryOperator(PLUS);
         this.parserBuilder.addLeftAssociativeBinaryOperator(MINUS);
@@ -542,17 +542,17 @@ public final class LRParserTest {
         this.parserBuilder.setPriority(MODULO, (short) 200);
         this.parserBuilder.setPriority(POWER, (short) 300);
 
-        this.parserBuilder.addProduction(INSTRUCTION, EXPRESSION);
-        this.parserBuilder.addProduction(INSTRUCTION, IDENTIFIER, EQUAL, EXPRESSION);
-        this.parserBuilder.addProduction(EXPRESSION, LEFT_PARENTHESIS, EXPRESSION, RIGHT_PARENTHESIS);
-        this.parserBuilder.addProduction(EXPRESSION, EXPRESSION, PLUS, EXPRESSION);
-        this.parserBuilder.addProduction(EXPRESSION, EXPRESSION, MINUS, EXPRESSION);
-        this.parserBuilder.addProduction(EXPRESSION, EXPRESSION, TIMES, EXPRESSION);
-        this.parserBuilder.addProduction(EXPRESSION, EXPRESSION, DIVIDED, EXPRESSION);
-        this.parserBuilder.addProduction(EXPRESSION, EXPRESSION, MODULO, EXPRESSION);
-        this.parserBuilder.addProduction(EXPRESSION, EXPRESSION, POWER, EXPRESSION);
-        this.parserBuilder.addProduction(EXPRESSION, IDENTIFIER);
-        this.parserBuilder.addProduction(EXPRESSION, INTEGER);
+        this.parserBuilder.addRule(INSTRUCTION, EXPRESSION);
+        this.parserBuilder.addRule(INSTRUCTION, IDENTIFIER, EQUAL, EXPRESSION);
+        this.parserBuilder.addRule(EXPRESSION, LEFT_PARENTHESIS, EXPRESSION, RIGHT_PARENTHESIS);
+        this.parserBuilder.addRule(EXPRESSION, EXPRESSION, PLUS, EXPRESSION);
+        this.parserBuilder.addRule(EXPRESSION, EXPRESSION, MINUS, EXPRESSION);
+        this.parserBuilder.addRule(EXPRESSION, EXPRESSION, TIMES, EXPRESSION);
+        this.parserBuilder.addRule(EXPRESSION, EXPRESSION, DIVIDED, EXPRESSION);
+        this.parserBuilder.addRule(EXPRESSION, EXPRESSION, MODULO, EXPRESSION);
+        this.parserBuilder.addRule(EXPRESSION, EXPRESSION, POWER, EXPRESSION);
+        this.parserBuilder.addRule(EXPRESSION, IDENTIFIER);
+        this.parserBuilder.addRule(EXPRESSION, INTEGER);
 
         // <editor-fold defaultstate="collapsed" desc="DEBUG">
         if (debug) {
@@ -580,18 +580,18 @@ public final class LRParserTest {
 
     @Test(expected=Grammar.AmbiguousGrammarException.class)
     public final void testError0() {
-        this.parserBuilder.addProduction('A');
-        this.parserBuilder.addProduction('A', 'B');
-        this.parserBuilder.addProduction('B');
+        this.parserBuilder.addRule('A');
+        this.parserBuilder.addRule('A', 'B');
+        this.parserBuilder.addRule('B');
 
         this.testAmbiguousParserGrammar();
     }
 
     @Test(expected=Grammar.AmbiguousGrammarException.class)
     public final void testError1() {
-        this.parserBuilder.addProduction('A', 'b');
-        this.parserBuilder.addProduction('A', 'C');
-        this.parserBuilder.addProduction('C', 'b');
+        this.parserBuilder.addRule('A', 'b');
+        this.parserBuilder.addRule('A', 'C');
+        this.parserBuilder.addRule('C', 'b');
 
         this.testAmbiguousParserGrammar();
     }
@@ -897,7 +897,7 @@ public final class LRParserTest {
 
         @Override
         public final void reductionOccured(final ReductionEvent event) {
-            switch (event.getReduction().getProductionIndex()) {
+            switch (event.getReduction().getRuleIndex()) {
                 case 1: // E + E
                     this.getValueStack().add(0, this.getValueStack().remove(0) + this.getValueStack().remove(0));
                     break;

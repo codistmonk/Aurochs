@@ -57,9 +57,9 @@ public final class Grammar implements Serializable {
 
     private final Set<Object> terminals;
 
-    private final List<Production> productions;
+    private final List<Rule> rules;
 
-    private final Map<Object, List<Production>> productionMap;
+    private final Map<Object, List<Rule>> ruleMap;
 
     private final Set<Object> collapsables;
 
@@ -79,8 +79,8 @@ public final class Grammar implements Serializable {
         this.unmodifiables = new HashMap<Object, Object>();
         this.nonterminals = new LinkedHashSet<Object>();
         this.terminals = new LinkedHashSet<Object>();
-        this.productions = new ArrayList<Production>();
-        this.productionMap = new LinkedHashMap<Object, List<Production>>();
+        this.rules = new ArrayList<Rule>();
+        this.ruleMap = new LinkedHashMap<Object, List<Rule>>();
         this.collapsables = new LinkedHashSet<Object>();
         this.firstMap = new LinkedHashMap<Object, Set<Object>>();
         this.leftAssociativeBinaryOperators = new LinkedHashSet<Object>();
@@ -89,7 +89,7 @@ public final class Grammar implements Serializable {
 
         this.unmodifiables.put(NONTERMINALS, unmodifiableSet(this.nonterminals));
         this.unmodifiables.put(TERMINALS, unmodifiableSet(this.terminals));
-        this.unmodifiables.put(PRODUCTIONS, unmodifiableList(this.productions));
+        this.unmodifiables.put(PRODUCTIONS, unmodifiableList(this.rules));
     }
 
     /**
@@ -149,8 +149,8 @@ public final class Grammar implements Serializable {
      * <br>Maybe null
      * <br>Shared
      */
-    public final List<Production> getProductions(final Object symbol) {
-        return this.getProductionMap().get(symbol);
+    public final List<Rule> getRules(final Object symbol) {
+        return this.getRuleMap().get(symbol);
     }
 
     /**
@@ -266,8 +266,8 @@ public final class Grammar implements Serializable {
      * <br>Strong reference
      * @throws IllegalArgumentException if {@code nonterminal} is {@link SpecialSymbol#END_TERMINAL}
      */
-    public final Production addProduction(final Object nonterminal, final Object... development) {
-        return this.addProductionWithEpsilons(nonterminal, development);
+    public final Rule addRule(final Object nonterminal, final Object... development) {
+        return this.addRuleWithEpsilons(nonterminal, development);
     }
 
     /**
@@ -282,33 +282,33 @@ public final class Grammar implements Serializable {
      * <br>Strong reference
      * @throws IllegalArgumentException if {@code nonterminal} is {@link SpecialSymbol#END_TERMINAL}
      */
-    private final Production addProductionWithEpsilons(final Object nonterminal, final Object[] development) {
+    private final Rule addRuleWithEpsilons(final Object nonterminal, final Object[] development) {
         if (END_TERMINAL.equals(nonterminal)) {
             throw new IllegalArgumentException(END_TERMINAL + " cannot be used as nonterminal");
         }
 
-        this.maybeInitializeProductionMap(nonterminal);
+        this.maybeInitializeRuleMap(nonterminal);
 
-        final List<Production> productionsWithSameNonterminal = getOrCreate(this.getProductionMap(), nonterminal, ArrayList.class);
-        final Production newProduction = this.new Production(this.getProductions().size(), nonterminal, development);
+        final List<Rule> rulesWithSameNonterminal = getOrCreate(this.getRuleMap(), nonterminal, ArrayList.class);
+        final Rule newRule = this.new Rule(this.getRules().size(), nonterminal, development);
 
-        for (final Production existingProduction : productionsWithSameNonterminal) {
-            if (newProduction.getDevelopment().equals(existingProduction.getDevelopment())) {
-                if (!mergeEpsilons(development, existingProduction.getOriginalDevelopment())) {
-                    getLoggerForThisMethod().log(Level.WARNING, "Grammar is ambiguous because of productions {0} and {1}", array(existingProduction, newProduction));
+        for (final Rule existingRule : rulesWithSameNonterminal) {
+            if (newRule.getDevelopment().equals(existingRule.getDevelopment())) {
+                if (!mergeEpsilons(development, existingRule.getOriginalDevelopment())) {
+                    getLoggerForThisMethod().log(Level.WARNING, "Grammar is ambiguous because of rules {0} and {1}", array(existingRule, newRule));
                 }
 
-                return existingProduction;
+                return existingRule;
             }
         }
 
-        this.productions.add(newProduction);
+        this.rules.add(newRule);
         this.nonterminals.add(nonterminal);
-        this.terminals.addAll(newProduction.getDevelopment());
+        this.terminals.addAll(newRule.getDevelopment());
         this.terminals.removeAll(this.getNonterminals());
-        productionsWithSameNonterminal.add(newProduction);
+        rulesWithSameNonterminal.add(newRule);
 
-        return newProduction;
+        return newRule;
     }
 
     /**
@@ -420,8 +420,8 @@ public final class Grammar implements Serializable {
      * @param regularDevelopment
      * <br>Not null
      */
-    public final void addProduction(final Object nonterminal, final Regular regularDevelopment) {
-        this.addProduction(nonterminal, regularDevelopment.getOrCreateSymbol(this));
+    public final void addRule(final Object nonterminal, final Regular regularDevelopment) {
+        this.addRule(nonterminal, regularDevelopment.getOrCreateSymbol(this));
     }
 
     /**
@@ -431,20 +431,20 @@ public final class Grammar implements Serializable {
      * <br>Shared
      */
     @SuppressWarnings("unchecked")
-    public final List<Production> getProductions() {
-        return (List<Production>) this.unmodifiables.get(PRODUCTIONS);
+    public final List<Rule> getRules() {
+        return (List<Rule>) this.unmodifiables.get(PRODUCTIONS);
     }
 
     /**
      *
      * @param index
-     * <br>Range: {@code [0 .. this.getProductions().size() - 1]}
+     * <br>Range: {@code [0 .. this.getRules().size() - 1]}
      * @return
      * <br>Not null
      * <br>Shared
      */
-    public final Production getProduction(final int index) {
-        return this.getProductions().get(index);
+    public final Rule getRule(final int index) {
+        return this.getRules().get(index);
     }
 
     final void updatePriorities() {
@@ -460,15 +460,15 @@ public final class Grammar implements Serializable {
     }
 
     /**
-     * @param production
+     * @param rule
      * <br>Not null
      */
-    final void removeProduction(final Production production) {
-        this.getProductions(production.getNonterminal()).remove(production);
-        this.productions.remove(production);
+    final void removeRule(final Rule rule) {
+        this.getRules(rule.getNonterminal()).remove(rule);
+        this.rules.remove(rule);
 
-        for (int i = production.getIndex(); i < this.productions.size(); ++i) {
-            this.productions.get(i).setIndex(i);
+        for (int i = rule.getIndex(); i < this.rules.size(); ++i) {
+            this.rules.get(i).setIndex(i);
         }
     }
 
@@ -479,7 +479,7 @@ public final class Grammar implements Serializable {
 
         this.collapsablesUpdated = true;
 
-        final List<Production> todo = new LinkedList<Production>(this.getProductions());
+        final List<Rule> todo = new LinkedList<Rule>(this.getRules());
 
         while (this.findCollapsables(todo)) {
             // Deliberately left empty
@@ -493,15 +493,15 @@ public final class Grammar implements Serializable {
      * @return
      * <br>Range: any boolean
      */
-    private final boolean findCollapsables(final List<Production> todo) {
+    private final boolean findCollapsables(final List<Rule> todo) {
         boolean result = false;
-        final Iterator<Production> iterator = todo.iterator();
+        final Iterator<Rule> iterator = todo.iterator();
 
         while (iterator.hasNext()) {
-            final Production production = iterator.next();
+            final Rule rule = iterator.next();
 
-            if (this.canProductionCollapse(production)) {
-                this.collapsables.add(production.getNonterminal());
+            if (this.canRuleCollapse(rule)) {
+                this.collapsables.add(rule.getNonterminal());
 
                 iterator.remove();
 
@@ -513,14 +513,14 @@ public final class Grammar implements Serializable {
     }
 
     /**
-     * @param production
+     * @param rule
      * <br>Not null
      * @return
      * <br>Range: any boolean
      */
-    private final boolean canProductionCollapse(final Production production) {
-        return this.canCollapse(production.getNonterminal()) ||
-                this.countCollapsableSymbols(production.getDevelopment()) == production.getDevelopmentSymbolCount();
+    private final boolean canRuleCollapse(final Rule rule) {
+        return this.canCollapse(rule.getNonterminal()) ||
+                this.countCollapsableSymbols(rule.getDevelopment()) == rule.getDevelopmentSymbolCount();
     }
 
     /**
@@ -569,9 +569,9 @@ public final class Grammar implements Serializable {
     }
 
     private final void collectTerminalsAndNonterminalsAsFirsts() {
-        for (final Production production : this.getProductions()) {
-            for (final Object symbol : production.getDevelopment()) {
-                this.getOrCreateFirsts(production.getNonterminal()).add(symbol);
+        for (final Rule rule : this.getRules()) {
+            for (final Object symbol : rule.getDevelopment()) {
+                this.getOrCreateFirsts(rule.getNonterminal()).add(symbol);
 
                 if (!this.canCollapse(symbol)) {
                     break;
@@ -626,10 +626,10 @@ public final class Grammar implements Serializable {
      * <br>Maybe null
      * <br>May become strong reference
      */
-    private final void maybeInitializeProductionMap(final Object nonterminal) {
-        if (this.getProductionMap().isEmpty()) {
-            this.getProductionMap().put(INITIAL_NONTERMINAL, new ArrayList<Production>());
-            this.addProduction(INITIAL_NONTERMINAL, nonterminal);
+    private final void maybeInitializeRuleMap(final Object nonterminal) {
+        if (this.getRuleMap().isEmpty()) {
+            this.getRuleMap().put(INITIAL_NONTERMINAL, new ArrayList<Rule>());
+            this.addRule(INITIAL_NONTERMINAL, nonterminal);
         }
     }
 
@@ -645,10 +645,10 @@ public final class Grammar implements Serializable {
 //     * <br>New
 //     * <br>Strong reference
 //     */
-//    private final Production newProduction(final Object nonterminal, final List<Object> development) {
-//        final Production result = this.new Production(this.getProductions().size(), nonterminal, development);
+//    private final Rule newRule(final Object nonterminal, final List<Object> development) {
+//        final Rule result = this.new Rule(this.getRules().size(), nonterminal, development);
 //
-//        this.productions.add(result);
+//        this.rules.add(result);
 //        this.nonterminals.add(nonterminal);
 //        this.terminals.addAll(result.getDevelopment());
 //        this.terminals.removeAll(this.getNonterminals());
@@ -668,10 +668,10 @@ public final class Grammar implements Serializable {
      * <br>New
      * <br>Strong reference
      */
-    private final Production newProduction(final Object nonterminal, final Object[] development) {
-        final Production result = this.new Production(this.getProductions().size(), nonterminal, development);
+    private final Rule newRule(final Object nonterminal, final Object[] development) {
+        final Rule result = this.new Rule(this.getRules().size(), nonterminal, development);
 
-        this.productions.add(result);
+        this.rules.add(result);
         this.nonterminals.add(nonterminal);
         this.terminals.addAll(result.getDevelopment());
         this.terminals.removeAll(this.getNonterminals());
@@ -685,14 +685,14 @@ public final class Grammar implements Serializable {
      * <br>Not null
      * <br>Shared
      */
-    private final Map<Object, List<Production>> getProductionMap() {
-        return this.productionMap;
+    private final Map<Object, List<Rule>> getRuleMap() {
+        return this.ruleMap;
     }
 
     /**
      * @author codistmonk (creation 2010-10-04)
      */
-    public final class Production implements Serializable {
+    public final class Rule implements Serializable {
 
         private int index;
 
@@ -712,7 +712,7 @@ public final class Grammar implements Serializable {
          * @param originalDevelopment
          * <br>Not null
          */
-        public Production(final int index, final Object nonterminal, final Object[] originalDevelopment) {
+        public Rule(final int index, final Object nonterminal, final Object[] originalDevelopment) {
             this.index = index;
             this.nonterminal = nonterminal;
             this.originalDevelopment = originalDevelopment.clone();
@@ -967,7 +967,7 @@ public final class Grammar implements Serializable {
                 development[i] = this.getRegulars()[i].getOrCreateSymbol(grammar);
             }
 
-            grammar.addProduction(result, development);
+            grammar.addRule(result, development);
 
             return result;
         }
@@ -993,7 +993,7 @@ public final class Grammar implements Serializable {
             final Object result = new Object();
 
             for (final Regular regular : this.getRegulars()) {
-                grammar.addProduction(result, regular.getOrCreateSymbol(grammar));
+                grammar.addRule(result, regular.getOrCreateSymbol(grammar));
             }
 
             return result;
@@ -1062,7 +1062,7 @@ public final class Grammar implements Serializable {
 
             Arrays.fill(development, this.getRepeatedRegular().getOrCreateSymbol(grammar));
 
-            grammar.addProduction(result, development);
+            grammar.addRule(result, development);
 
             return result;
         }
@@ -1087,8 +1087,8 @@ public final class Grammar implements Serializable {
         public final Object getOrCreateSymbol(final Grammar grammar) {
             final Object result = new Object();
 
-            grammar.addProduction(result, result, this.getRepeatedRegular().getOrCreateSymbol(grammar));
-            grammar.addProduction(result);
+            grammar.addRule(result, result, this.getRepeatedRegular().getOrCreateSymbol(grammar));
+            grammar.addRule(result);
 
             return result;
         }

@@ -28,7 +28,7 @@ import static net.sourceforge.aprog.tools.Tools.*;
 
 import static org.junit.Assert.*;
 
-import net.sourceforge.aurochs.Grammar.Production;
+import net.sourceforge.aurochs.Grammar.Rule;
 import net.sourceforge.aurochs.Grammar.RegularSymbol;
 import net.sourceforge.aurochs.Grammar.RegularUnion;
 import net.sourceforge.aurochs.Grammar.RegularSequence;
@@ -55,7 +55,7 @@ public final class GrammarTest {
         // (1) A -> []
         this.setGrammar(
                 /*(0)   implicit*/
-                /*(1)*/ production(nonterminal("A"), development())
+                /*(1)*/ rule(nonterminal("A"), development())
         );
 
         this.testCanCollapseAndGetFirsts("A", CAN_COLLAPSE, firsts());
@@ -67,7 +67,7 @@ public final class GrammarTest {
         // (1) A -> b
         this.setGrammar(
                 /*(0)   implicit*/
-                /*(1)*/ production(nonterminal("A"), development("b"))
+                /*(1)*/ rule(nonterminal("A"), development("b"))
         );
 
         this.testCanCollapseAndGetFirsts("A", CANNOT_COLLAPSE, firsts("b"));
@@ -79,7 +79,7 @@ public final class GrammarTest {
         // (1) A -> bc
         this.setGrammar(
                 /*(0)   implicit*/
-                /*(1)*/ production(nonterminal("A"), development("b", "c"))
+                /*(1)*/ rule(nonterminal("A"), development("b", "c"))
         );
 
         this.testCanCollapseAndGetFirsts("A", CANNOT_COLLAPSE, firsts("b"));
@@ -92,8 +92,8 @@ public final class GrammarTest {
         // (2) A -> c
         this.setGrammar(
                 /*(0)   implicit*/
-                /*(1)*/ production(nonterminal("A"), development("b")),
-                /*(2)*/ production(nonterminal("A"), development("c"))
+                /*(1)*/ rule(nonterminal("A"), development("b")),
+                /*(2)*/ rule(nonterminal("A"), development("c"))
         );
 
         this.testCanCollapseAndGetFirsts("A", CANNOT_COLLAPSE, firsts("b", "c"));
@@ -106,8 +106,8 @@ public final class GrammarTest {
         // (2) A -> []
         this.setGrammar(
                 /*(0)   implicit*/
-                /*(1)*/ production(nonterminal("A"), development("A", "b")),
-                /*(2)*/ production(nonterminal("A"), development())
+                /*(1)*/ rule(nonterminal("A"), development("A", "b")),
+                /*(2)*/ rule(nonterminal("A"), development())
         );
 
         this.testCanCollapseAndGetFirsts("A", CAN_COLLAPSE, firsts("b"));
@@ -120,8 +120,8 @@ public final class GrammarTest {
         // (2) A -> []
         this.setGrammar(
                 /*(0)   implicit*/
-                /*(1)*/ production(nonterminal("A"), development("b", "A")),
-                /*(1)*/ production(nonterminal("A"), development())
+                /*(1)*/ rule(nonterminal("A"), development("b", "A")),
+                /*(1)*/ rule(nonterminal("A"), development())
         );
 
         this.testCanCollapseAndGetFirsts("A", CAN_COLLAPSE, firsts("b"));
@@ -134,8 +134,8 @@ public final class GrammarTest {
         // (2) A -> b
         this.setGrammar(
                 /*(0)   implicit*/
-                /*(1)*/ production(nonterminal("A"), development("A", "b")),
-                /*(2)*/ production(nonterminal("A"), development("b"))
+                /*(1)*/ rule(nonterminal("A"), development("A", "b")),
+                /*(2)*/ rule(nonterminal("A"), development("b"))
         );
 
         this.testCanCollapseAndGetFirsts("A", CANNOT_COLLAPSE, firsts("b"));
@@ -148,8 +148,8 @@ public final class GrammarTest {
         // (2) A -> b
         this.setGrammar(
                 /*(0)   implicit*/
-                /*(1)*/ production(nonterminal("A"), development("b", "A")),
-                /*(2)*/ production(nonterminal("A"), development("b"))
+                /*(1)*/ rule(nonterminal("A"), development("b", "A")),
+                /*(2)*/ rule(nonterminal("A"), development("b"))
         );
 
         this.testCanCollapseAndGetFirsts("A", CANNOT_COLLAPSE, firsts("b"));
@@ -162,8 +162,8 @@ public final class GrammarTest {
         // (2) B -> []
         this.setGrammar(
                 /*(0)   implicit*/
-                /*(1)*/ production(nonterminal("A"), development("B")),
-                /*(2)*/ production(nonterminal("B"), development())
+                /*(1)*/ rule(nonterminal("A"), development("B")),
+                /*(2)*/ rule(nonterminal("B"), development())
         );
 
         this.testCanCollapseAndGetFirsts("A", CAN_COLLAPSE, firsts());
@@ -177,8 +177,8 @@ public final class GrammarTest {
         // (2) B -> []
         this.setGrammar(
                 /*(0)   implicit*/
-                /*(1)*/ production(nonterminal("A"), development("B", "c")),
-                /*(2)*/ production(nonterminal("B"), development())
+                /*(1)*/ rule(nonterminal("A"), development("B", "c")),
+                /*(2)*/ rule(nonterminal("B"), development())
         );
 
         this.testCanCollapseAndGetFirsts("A", CANNOT_COLLAPSE, firsts("c"));
@@ -193,9 +193,9 @@ public final class GrammarTest {
         // (3) B -> []
         this.setGrammar(
                 /*(0)   implicit*/
-                /*(1)*/ production(nonterminal("A"), development("B", "c")),
-                /*(2)*/ production(nonterminal("B"), development("A")),
-                /*(3)*/ production(nonterminal("B"), development())
+                /*(1)*/ rule(nonterminal("A"), development("B", "c")),
+                /*(2)*/ rule(nonterminal("B"), development("A")),
+                /*(3)*/ rule(nonterminal("B"), development())
         );
 
         this.testCanCollapseAndGetFirsts("A", CANNOT_COLLAPSE, firsts("c"));
@@ -210,9 +210,9 @@ public final class GrammarTest {
         // (3) C -> []
         this.setGrammar(
                 /*(0)   implicit*/
-                /*(1)*/ production(nonterminal("A"), development("B", "C")),
-                /*(2)*/ production(nonterminal("B"), development()),
-                /*(3)*/ production(nonterminal("C"), development())
+                /*(1)*/ rule(nonterminal("A"), development("B", "C")),
+                /*(2)*/ rule(nonterminal("B"), development()),
+                /*(3)*/ rule(nonterminal("C"), development())
         );
 
         this.testCanCollapseAndGetFirsts("A", CAN_COLLAPSE, firsts());
@@ -228,9 +228,9 @@ public final class GrammarTest {
         // (3) C -> d
         this.setGrammar(
                 /*(0)   implicit*/
-                /*(1)*/ production(nonterminal("A"), development("B", "C")),
-                /*(2)*/ production(nonterminal("B"), development()),
-                /*(3)*/ production(nonterminal("C"), development("d"))
+                /*(1)*/ rule(nonterminal("A"), development("B", "C")),
+                /*(2)*/ rule(nonterminal("B"), development()),
+                /*(3)*/ rule(nonterminal("C"), development("d"))
         );
 
         this.testCanCollapseAndGetFirsts("A", CANNOT_COLLAPSE, firsts("d"));
@@ -248,11 +248,11 @@ public final class GrammarTest {
         // (5) C -> e
         this.setGrammar(
                 /*(0)   implicit*/
-                /*(1)*/ production(nonterminal("A"), development("A", "B", "C")),
-                /*(2)*/ production(nonterminal("A"), development()),
-                /*(3)*/ production(nonterminal("B"), development("B", "d")),
-                /*(4)*/ production(nonterminal("B"), development("A")),
-                /*(5)*/ production(nonterminal("C"), development("e"))
+                /*(1)*/ rule(nonterminal("A"), development("A", "B", "C")),
+                /*(2)*/ rule(nonterminal("A"), development()),
+                /*(3)*/ rule(nonterminal("B"), development("B", "d")),
+                /*(4)*/ rule(nonterminal("B"), development("A")),
+                /*(5)*/ rule(nonterminal("C"), development("e"))
         );
 
         this.testCanCollapseAndGetFirsts("A", CAN_COLLAPSE, firsts("d", "e"));
@@ -268,10 +268,10 @@ public final class GrammarTest {
         // (3) C -> A
         this.setGrammar(
                 /*(0)   implicit*/
-                /*(1)*/ production(nonterminal("A"), development("B")),
-                /*(2)*/ production(nonterminal("A"), development()),
-                /*(3)*/ production(nonterminal("B"), development("C", "d")),
-                /*(4)*/ production(nonterminal("C"), development("A"))
+                /*(1)*/ rule(nonterminal("A"), development("B")),
+                /*(2)*/ rule(nonterminal("A"), development()),
+                /*(3)*/ rule(nonterminal("B"), development("C", "d")),
+                /*(4)*/ rule(nonterminal("C"), development("A"))
         );
 
         this.testCanCollapseAndGetFirsts("A", CAN_COLLAPSE, firsts("d"));
@@ -286,8 +286,8 @@ public final class GrammarTest {
         // (2) B -> []
         this.setGrammar(
                 /*(0)   implicit*/
-                /*(1)*/ production(nonterminal("A"), development("B", "A")),
-                /*(2)*/ production(nonterminal("B"), development())
+                /*(1)*/ rule(nonterminal("A"), development("B", "A")),
+                /*(2)*/ rule(nonterminal("B"), development())
         );
 
         this.testCanCollapseAndGetFirsts("A", CAN_COLLAPSE, firsts());
@@ -301,8 +301,8 @@ public final class GrammarTest {
         // (2) B -> []
         this.setGrammar(
                 /*(0)   implicit*/
-                /*(1)*/ production(nonterminal("A"), development("A", "B")),
-                /*(2)*/ production(nonterminal("B"), development())
+                /*(1)*/ rule(nonterminal("A"), development("A", "B")),
+                /*(2)*/ rule(nonterminal("B"), development())
         );
 
         this.testCanCollapseAndGetFirsts("A", CAN_COLLAPSE, firsts());
@@ -310,8 +310,8 @@ public final class GrammarTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public final void testAddProductionFailure() {
-        this.setGrammar(production(Grammar.SpecialSymbol.END_TERMINAL, development()));
+    public final void testAddRuleFailure() {
+        this.setGrammar(rule(Grammar.SpecialSymbol.END_TERMINAL, development()));
     }
 
     @Test
@@ -319,13 +319,13 @@ public final class GrammarTest {
         final boolean debug = false;
         this.grammar = new Grammar();
 
-        this.grammar.addProduction('A', new RegularSequence(new RegularSymbol('b'), new RegularSymbol('A')));
-        this.grammar.addProduction('A', new RegularUnion(new RegularSymbol('c'), new RegularSequence()));
+        this.grammar.addRule('A', new RegularSequence(new RegularSymbol('b'), new RegularSymbol('A')));
+        this.grammar.addRule('A', new RegularUnion(new RegularSymbol('c'), new RegularSequence()));
 
         // <editor-fold defaultstate="collapsed" desc="DEBUG">
         if (debug) {
-            for (final Production production : this.grammar.getProductions()) {
-                debugPrint(production.getIndex(), production.getNonterminal(), production.getDevelopment());
+            for (final Rule rule : this.grammar.getRules()) {
+                debugPrint(rule.getIndex(), rule.getNonterminal(), rule.getDevelopment());
             }
         }
         // </editor-fold>
@@ -350,14 +350,14 @@ public final class GrammarTest {
 
     /**
      *
-     * @param productions
+     * @param rules
      * <br>Not null
      * @return
      * <br>Not null
      * <br>New
      */
-    private final void setGrammar(final Object[]... productions) {
-        this.grammar = newGrammar(productions);
+    private final void setGrammar(final Object[]... rules) {
+        this.grammar = newGrammar(rules);
     }
 
     /**
@@ -372,17 +372,17 @@ public final class GrammarTest {
 
     /**
      *
-     * @param productions
+     * @param rules
      * <br>Not null
      * @return
      * <br>Not null
      * <br>New
      */
-    static final Grammar newGrammar(final Object[]... productions) {
+    static final Grammar newGrammar(final Object[]... rules) {
         final Grammar result = new Grammar();
 
-        for (final Object[] production : productions) {
-            result.addProduction(production[0], (Object[]) production[1]);
+        for (final Object[] rule : rules) {
+            result.addRule(rule[0], (Object[]) rule[1]);
         }
 
         return result;
@@ -400,7 +400,7 @@ public final class GrammarTest {
      * <br>Not null
      * <br>New
      */
-    static final Object[] production(final Object nonterminal, final Object[] development) {
+    static final Object[] rule(final Object nonterminal, final Object[] development) {
         return array(nonterminal, development);
     }
 

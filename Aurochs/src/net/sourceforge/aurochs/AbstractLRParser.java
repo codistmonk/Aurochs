@@ -258,7 +258,7 @@ public abstract class AbstractLRParser extends AbstractObservable<AbstractLRPars
      * <br>Not null
      */
     private final void perform(final Reduction reduction) {
-        this.insertInputToken(new GeneratedToken(reduction.getProduction().getNonterminal()));
+        this.insertInputToken(new GeneratedToken(reduction.getRule().getNonterminal()));
 
         this.new ReductionEvent(reduction).fire();
     }
@@ -311,7 +311,7 @@ public abstract class AbstractLRParser extends AbstractObservable<AbstractLRPars
         public ReductionEvent(final Reduction reduction) {
             this.reduction = reduction;
             this.generatedToken = AbstractLRParser.this.getInputNonterminalToken();
-            this.tokens = AbstractLRParser.this.getStack().pop(reduction.getProduction().getDevelopmentSymbolCount());
+            this.tokens = AbstractLRParser.this.getStack().pop(reduction.getRule().getDevelopmentSymbolCount());
         }
 
         /**
