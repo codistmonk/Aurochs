@@ -37,8 +37,11 @@ public final class PerformanceTest {
     @Test
     public final void test() {
         final long time = System.nanoTime();
+        final LRParserTest parserTest = new LRParserTest();
 
-        new LRParserTest().testParse12();
+        parserTest.beforeEachTest();
+        parserTest.testParse12();
+        parserTest.afterEachTest();
 
         debugPrint("Test performed in " + (System.nanoTime() - time) + " ns");
     }
