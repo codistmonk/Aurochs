@@ -33,7 +33,6 @@ import java.util.Map;
 import java.util.Set;
 
 import net.sourceforge.aprog.tools.IllegalInstantiationException;
-import net.sourceforge.aprog.tools.Tools;
 
 /**
  *
@@ -101,9 +100,13 @@ public final class AurochsTools {
      * <br>Input-output
      * @param key
      * <br>Maybe null
-     * <br>Shared
+     * <br>May become reference
      * @param valueClass
      * <br>Not null
+     * @return
+     * <br>Not null
+     * <br>Maybe new
+     * <br>Reference
      * @throws RuntimeException if {@code valueClass} cannot be instantiated with a default constructor
      */
     @SuppressWarnings("unchecked")
