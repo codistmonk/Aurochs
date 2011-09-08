@@ -24,15 +24,15 @@
 
 package net.sourceforge.aurochs;
 
-import net.sourceforge.aurochs.Grammar.Regular;
 import static net.sourceforge.aprog.tools.Tools.*;
 
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import net.sourceforge.aurochs.LRParser.ReductionEvent;
-import net.sourceforge.aurochs.LRParser.UnexpectedSymbolErrorEvent;
+import net.sourceforge.aurochs.AbstractLRParser.ReductionEvent;
+import net.sourceforge.aurochs.AbstractLRParser.UnexpectedSymbolErrorEvent;
+import net.sourceforge.aurochs.Grammar.Regular;
 
 /**
  * @author codistmonk (creation 2011-09-06)
@@ -45,14 +45,15 @@ public final class LALR1LexerBuilder {
 
     private final Set<Object> nontokens;
 
+    private final Set<Object> verbatimTokenNonterminals;
+
     public LALR1LexerBuilder() {
         this.lexerTableBuilder = new LALR1ParserBuilder();
         this.tokens = new HashSet<Object>();
         this.nontokens = new HashSet<Object>();
+        this.verbatimTokenNonterminals = new HashSet<Object>();
 
-        this.lexerTableBuilder.addProduction(Special.GENERATED_SYMBOLS, Special.GENERATED_SYMBOLS, Special.TOKEN);
-        this.lexerTableBuilder.addProduction(Special.GENERATED_SYMBOLS, Special.GENERATED_SYMBOLS, Special.NONTOKEN);
-        this.lexerTableBuilder.addProduction(Special.GENERATED_SYMBOLS);
+        this.lexerTableBuilder.addProduction(Special.ROOT);
     }
 
     /**
@@ -86,6 +87,18 @@ public final class LALR1LexerBuilder {
      * @param nonterminal
      * <br>Maybe null
      * <br>Will become reference
+     * @param regularDevelopment
+     * <br>Not null
+     */
+    public final void addNontokenProduction(final Object nonterminal, final Regular regularDevelopment) {
+        this.addNontoken(nonterminal);
+        this.addHelperProduction(nonterminal, regularDevelopment);
+    }
+
+    /**
+     * @param nonterminal
+     * <br>Maybe null
+     * <br>Will become reference
      * @param development
      * <br>Not null
      * @throws IllegalArgumentException if {@code nonterminal} is {@link SpecialSymbol#END_TERMINAL}
@@ -93,6 +106,43 @@ public final class LALR1LexerBuilder {
     public final void addTokenProduction(final Object nonterminal, final Object... development) {
         this.addToken(nonterminal);
         this.addHelperProduction(nonterminal, development);
+    }
+
+    /**
+     * @param nonterminal
+     * <br>Maybe null
+     * <br>Will become reference
+     * @param regularDevelopment
+     * <br>Not null
+     */
+    public final void addTokenProduction(final Object nonterminal, final Regular regularDevelopment) {
+        this.addToken(nonterminal);
+        this.addHelperProduction(nonterminal, regularDevelopment);
+    }
+
+    /**
+     * @param nonterminal
+     * <br>Maybe null
+     * <br>Will become reference
+     * @param development
+     * <br>Not null
+     * @throws IllegalArgumentException if {@code nonterminal} is {@link SpecialSymbol#END_TERMINAL}
+     */
+    public final void addVerbatimTokenProduction(final Object nonterminal, final Object... development) {
+        this.addVerbatimToken(nonterminal);
+        this.addHelperProduction(nonterminal, development);
+    }
+
+    /**
+     * @param nonterminal
+     * <br>Maybe null
+     * <br>Will become reference
+     * @param regularDevelopment
+     * <br>Not null
+     */
+    public final void addVerbatimTokenProduction(final Object nonterminal, final Regular regularDevelopment) {
+        this.addVerbatimToken(nonterminal);
+        this.addHelperProduction(nonterminal, regularDevelopment);
     }
 
     /**
@@ -114,30 +164,6 @@ public final class LALR1LexerBuilder {
      * @param regularDevelopment
      * <br>Not null
      */
-    public final void addTokenProduction(final Object nonterminal, final Regular regularDevelopment) {
-        this.addToken(nonterminal);
-        this.addHelperProduction(nonterminal, regularDevelopment);
-    }
-
-    /**
-     * @param nonterminal
-     * <br>Maybe null
-     * <br>Will become reference
-     * @param regularDevelopment
-     * <br>Not null
-     */
-    public final void addNontokenProduction(final Object nonterminal, final Regular regularDevelopment) {
-        this.addNontoken(nonterminal);
-        this.addHelperProduction(nonterminal, regularDevelopment);
-    }
-
-    /**
-     * @param nonterminal
-     * <br>Maybe null
-     * <br>Will become reference
-     * @param regularDevelopment
-     * <br>Not null
-     */
     public final void addHelperProduction(final Object nonterminal, final Regular regularDevelopment) {
         this.lexerTableBuilder.addProduction(nonterminal, regularDevelopment);
     }
@@ -150,7 +176,7 @@ public final class LALR1LexerBuilder {
      */
     private final void addToken(final Object nonterminal) {
         if (!this.tokens.contains(nonterminal)) {
-            this.lexerTableBuilder.addProduction(Special.TOKEN, nonterminal);
+            this.lexerTableBuilder.addProduction(Special.ROOT, Special.ROOT, nonterminal);
             this.tokens.add(nonterminal);
         }
     }
@@ -163,8 +189,21 @@ public final class LALR1LexerBuilder {
      */
     private final void addNontoken(final Object nonterminal) {
         if (!this.nontokens.contains(nonterminal)) {
-            this.lexerTableBuilder.addProduction(Special.NONTOKEN, nonterminal);
+            this.lexerTableBuilder.addProduction(Special.ROOT, Special.ROOT, nonterminal);
             this.nontokens.add(nonterminal);
+        }
+    }
+
+    /**
+     * @param nonterminal
+     * <br>Maybe null
+     * <br>Will become reference
+     * @throws IllegalArgumentException if {@code nonterminal} is {@link SpecialSymbol#END_TERMINAL}
+     */
+    private final void addVerbatimToken(final Object nonterminal) {
+        if (!this.verbatimTokenNonterminals.contains(nonterminal)) {
+            this.lexerTableBuilder.addProduction(Special.ROOT, Special.ROOT, nonterminal);
+            this.verbatimTokenNonterminals.add(nonterminal);
         }
     }
 
@@ -173,8 +212,13 @@ public final class LALR1LexerBuilder {
      * <br>Not null
      * <br>New
      */
-    public final LRParser newLexer() {
-        return new LRParser(this.newTable());
+    public final LRLexer newLexer() {
+        final LRLexer result = new LRLexer(this.newTable());
+
+        result.getTokens().addAll(this.tokens);
+        result.getVerbatimTokenNonterminals().addAll(this.verbatimTokenNonterminals);
+
+        return result;
     }
 
     /**
@@ -200,7 +244,7 @@ public final class LALR1LexerBuilder {
      * <br>Not null
      * <br>New
      */
-    public static final Iterator<Object> tokenize(final LRParser lexer, final Iterator<?> input) {
+    public static final Iterator<Object> tokenize(final LRLexer lexer, final Iterator<?> input) {
         final Object[] token = new Object[1];
 
         lexer.addListener(new LRParser.Listener() {
@@ -215,8 +259,29 @@ public final class LALR1LexerBuilder {
                 }
                 // </editor-fold>
 
-                if (LALR1LexerBuilder.Special.TOKEN.equals(event.getGeneratedToken().getSymbol())) {
-                    token[0] = event.getTokens().get(0);
+                final Object symbol = event.getGeneratedToken().getSymbol();
+
+                if (lexer.getTokens().contains(symbol)) {
+                    token[0] = symbol;
+                } else if (lexer.getVerbatimTokenNonterminals().contains(symbol)) {
+                    switch (event.getTokens().size()) {
+                        case 0:
+                            break;
+                        case 1:
+                            token[0] = event.getTokens().get(0);
+
+                            break;
+                        default:
+                            final StringBuilder tokenBuilder = new StringBuilder();
+
+                            for (final Object developmentSymbol : event.getTokens()) {
+                                tokenBuilder.append(developmentSymbol);
+                            }
+
+                            token[0] = tokenBuilder.toString();
+
+                            break;
+                    }
                 }
             }
 
@@ -280,9 +345,53 @@ public final class LALR1LexerBuilder {
         };
     }
 
+    /**
+     * @author codistmonk (creation 2011-09-06)
+     */
     static enum Special {
 
-        TOKEN, NONTOKEN, GENERATED_SYMBOLS;
+        ROOT;
+
+    }
+
+    /**
+     * @author codistmonk (creation 2011-09-08)
+     */
+    public static final class LRLexer extends AbstractLRParser {
+
+        private final Set<Object> tokens;
+
+        private final Set<Object> verbatimTokenNonterminals;
+
+        /**
+         *
+         * @param table
+         * <br>Not null
+         * <br>Will become reference
+         */
+        LRLexer(final LRTable table) {
+            super(table);
+            this.tokens = new HashSet<Object>();
+            this.verbatimTokenNonterminals = new HashSet<Object>();
+        }
+
+        /**
+         * @return
+         * <br>Not null
+         * <br>Reference
+         */
+        final Set<Object> getTokens() {
+            return this.tokens;
+        }
+
+        /**
+         * @return
+         * <br>Not null
+         * <br>Reference
+         */
+        final Set<Object> getVerbatimTokenNonterminals() {
+            return this.verbatimTokenNonterminals;
+        }
 
     }
 

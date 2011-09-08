@@ -43,8 +43,9 @@ import net.sourceforge.aurochs.Grammar.RegularInfiniteRepetition;
 import net.sourceforge.aurochs.Grammar.RegularSequence;
 import net.sourceforge.aurochs.Grammar.RegularSymbol;
 import net.sourceforge.aurochs.Grammar.RegularUnion;
-import net.sourceforge.aurochs.LRParser.ReductionEvent;
-import net.sourceforge.aurochs.LRParser.UnexpectedSymbolErrorEvent;
+import net.sourceforge.aurochs.AbstractLRParser.ReductionEvent;
+import net.sourceforge.aurochs.AbstractLRParser.UnexpectedSymbolErrorEvent;
+import net.sourceforge.aurochs.LALR1LexerBuilder.LRLexer;
 import net.sourceforge.aurochs.LRTable.BeforeOperationAddedEvent;
 import net.sourceforge.aurochs.LRTable.Operation;
 import org.junit.After;
@@ -61,9 +62,9 @@ public final class LRParserTest {
 
     private LALR1ParserBuilder parserBuilder;
 
-    private LRParser lexer;
+    private LRLexer lexer;
 
-    private LRParser parser;
+    private AbstractLRParser parser;
 
     @Before
     public final void beforeEachTest() {
@@ -176,12 +177,12 @@ public final class LRParserTest {
     public final void testParse2() {
         final boolean debug = false;
 
-        this.lexerBuilder.addTokenProduction(A, 'a');
+        this.lexerBuilder.addVerbatimTokenProduction(A, 'a');
         this.lexerBuilder.addNontokenProduction(WHITE_SPACE, WHITE_SPACE, ' ');
         this.lexerBuilder.addNontokenProduction(WHITE_SPACE);
 
-        this.parserBuilder.addProduction(LIST, A, LIST);
-        this.parserBuilder.addProduction(LIST, A);
+        this.parserBuilder.addProduction(LIST, 'a', LIST);
+        this.parserBuilder.addProduction(LIST, 'a');
 
         this.testErrors(0);
 
@@ -280,15 +281,15 @@ public final class LRParserTest {
     public final void testParse4() {
         final boolean debug = false;
 
-        this.lexerBuilder.addTokenProduction(A, 'a');
-        this.lexerBuilder.addTokenProduction(PLUS, '+');
+        this.lexerBuilder.addVerbatimTokenProduction(A, 'a');
+        this.lexerBuilder.addVerbatimTokenProduction(PLUS, '+');
         this.lexerBuilder.addNontokenProduction(WHITE_SPACE, ' ');
         this.lexerBuilder.addNontokenProduction(WHITE_SPACE);
 
-        this.parserBuilder.addLeftAssociativeBinaryOperator(PLUS);
+        this.parserBuilder.addLeftAssociativeBinaryOperator('+');
 
-        this.parserBuilder.addProduction(EXPRESSION, EXPRESSION, PLUS, EXPRESSION);
-        this.parserBuilder.addProduction(EXPRESSION, A);
+        this.parserBuilder.addProduction(EXPRESSION, EXPRESSION, '+', EXPRESSION);
+        this.parserBuilder.addProduction(EXPRESSION, 'a');
 
         // <editor-fold defaultstate="collapsed" desc="DEBUG">
         if (debug) {
@@ -400,16 +401,16 @@ public final class LRParserTest {
     public final void testParse9() {
         final boolean debug = false;
 
-        this.lexerBuilder.addTokenProduction(A, 'a');
-        this.lexerBuilder.addTokenProduction(PLUS, '+');
+        this.lexerBuilder.addVerbatimTokenProduction(A, 'a');
+        this.lexerBuilder.addVerbatimTokenProduction(PLUS, '+');
         this.lexerBuilder.addNontokenProduction(_, S);
         this.lexerBuilder.addNontokenProduction(S, ' ', S);
         this.lexerBuilder.addNontokenProduction(S);
 
-        this.parserBuilder.addLeftAssociativeBinaryOperator(PLUS);
+        this.parserBuilder.addLeftAssociativeBinaryOperator('+');
 
-        this.parserBuilder.addProduction(E, E, PLUS, E);
-        this.parserBuilder.addProduction(E, A);
+        this.parserBuilder.addProduction(E, E, '+', E);
+        this.parserBuilder.addProduction(E, 'a');
 
         // <editor-fold defaultstate="collapsed" desc="DEBUG">
         if (debug) {
@@ -614,7 +615,7 @@ public final class LRParserTest {
      * <br>Reference
      * <br>Maybe new
      */
-    private final LRParser getLexer() {
+    private final LRLexer getLexer() {
         if (this.lexer == null) {
             this.lexer = this.lexerBuilder.newLexer();
         }
@@ -628,7 +629,7 @@ public final class LRParserTest {
      * <br>Reference
      * <br>Maybe new
      */
-    private final LRParser getParser() {
+    private final AbstractLRParser getParser() {
         if (this.parser == null) {
             this.parser = this.parserBuilder.newParser();
         }
@@ -712,7 +713,7 @@ public final class LRParserTest {
      * <br>Not null
      * <br>Input-output
      */
-    private final void addListenerTo(final LRParser parser) {
+    private final void addListenerTo(final AbstractLRParser parser) {
         parser.addListener(new LRParser.Listener() {
 
             @Override
