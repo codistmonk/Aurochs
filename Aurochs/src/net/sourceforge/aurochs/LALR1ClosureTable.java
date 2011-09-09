@@ -590,10 +590,10 @@ public final class LALR1ClosureTable implements Serializable {
                 this.getItems().add(item);
 
                 return AddOrMergeResult.ADDED;
-            } else {
-                return existingItem.getLookAheads().addAll(item.getLookAheads()) ?
-                    AddOrMergeResult.MERGED : AddOrMergeResult.NOTHING;
             }
+            
+            return existingItem.getLookAheads().addAll(item.getLookAheads()) ?
+                AddOrMergeResult.MERGED : AddOrMergeResult.NOTHING;
         }
 
         @Override

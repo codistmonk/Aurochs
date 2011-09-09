@@ -322,7 +322,7 @@ public final class LALR1LexerBuilder {
 
                             break;
                         default:
-                            token[0] = condense(event.getTokens());;
+                            token[0] = condense(event.getTokens());
 
                             break;
                     }

@@ -112,8 +112,8 @@ public final class AurochsTools {
 
     /**
      *
-     * @param <K>
-     * @param <V>
+     * @param <K> The map key type
+     * @param <V> The map value type
      * @param map
      * <br>Not null
      * <br>Input-output

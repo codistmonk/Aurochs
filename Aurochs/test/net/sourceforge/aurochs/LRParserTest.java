@@ -468,8 +468,8 @@ public final class LRParserTest {
 
         this.parserBuilder.addLeftAssociativeBinaryOperator('+');
         this.parserBuilder.addLeftAssociativeBinaryOperator('*');
-        this.parserBuilder.setPriority((Character) '+', (short) 100);
-        this.parserBuilder.setPriority((Character) '*', (short) 200);
+        this.parserBuilder.setPriority('+', (short) 100);
+        this.parserBuilder.setPriority('*', (short) 200);
 
         this.parserBuilder.addRule(EXPRESSION, EXPRESSION, '+', EXPRESSION);
         this.parserBuilder.addRule(EXPRESSION, EXPRESSION, '*', EXPRESSION);
@@ -823,9 +823,6 @@ public final class LRParserTest {
     // TODO testActionsXXX()
 
     /**
-     * @param this.parserBuilder
-     * <br>Not null
-     * <br>Input-output
      * @param expectedErrorCount
      * <br>Range: <code>[0 .. Integer.MAX_VALUE]</code>
      */

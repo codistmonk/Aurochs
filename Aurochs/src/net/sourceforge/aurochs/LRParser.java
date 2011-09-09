@@ -26,7 +26,6 @@ package net.sourceforge.aurochs;
 
 import java.util.Iterator;
 import net.sourceforge.aurochs.LALR1LexerBuilder.LRLexer;
-import net.sourceforge.aurochs.LRTable.*;
 
 /**
  * @author codistmonk (creation 2010-10-05)
