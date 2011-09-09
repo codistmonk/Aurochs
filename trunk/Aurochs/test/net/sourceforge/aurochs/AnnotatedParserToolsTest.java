@@ -47,7 +47,7 @@ public final class AnnotatedParserToolsTest {
 
     @Test
     public final void test2() {
-        assertTrue(AnnotatedParserTools.newParser(Parser2.class).parse(LALR1LexerBuilder.tokenize(AnnotatedParserTools.newLexer(Parser2.class), input("bb b"))));
+        assertTrue(AnnotatedParserTools.newParser(Parser2.class).parse(input("bb b")));
     }
 
     /**
