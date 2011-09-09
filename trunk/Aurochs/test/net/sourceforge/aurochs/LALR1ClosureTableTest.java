@@ -358,11 +358,8 @@ public final class LALR1ClosureTableTest {
     }
 
     /**
-     *
      * @param kernelMatcher
      * <br>Not null
-     * @return
-     * <br>Range: {@code [0 .. this.closureTable.getClosures().size() - 1]}
      */
     private final void testKernel(final KernelMatcher kernelMatcher) {
         final Map.Entry<Kernel, Closure> entry = find(this.closureTable.getClosures(), kernelMatcher);
@@ -373,11 +370,8 @@ public final class LALR1ClosureTableTest {
     }
 
     /**
-     *
      * @param closureMatcher
      * <br>Not null
-     * @return
-     * <br>Range: {@code [0 .. this.closureTable.getClosures().size() - 1]}
      */
     private final void testClosure(final ClosureMatcher closureMatcher) {
         assertEquals("Closure " + (this.kernelIndices.size() - 1),
@@ -408,21 +402,21 @@ public final class LALR1ClosureTableTest {
     }
 
     /**
-     *
      * @param index
-     * <br>Range: {@code [0 .. this.kernelIndices.size() - 1]}
+     * <br>Range: <code>[0 .. this.kernelIndices.size() - 1]</code>
+     * @return
+     * <br>Range: <code>[0 .. this.kernelIndices.size() - 1]</code>
      */
     private final int getKernelIndex(final int index) {
         return this.kernelIndices.get(index);
     }
 
     /**
-     *
      * @param kernelIndex
-     * <br>Range: {@code [0 .. this.closureTable.getClosures().size() - 1]}
+     * <br>Range: <code>[0 .. this.closureTable.getClosures().size() - 1]</code>
      * @return
      * <br>Not null
-     * <br>Shared
+     * <br>Reference
      */
     private final Closure getClosure(final int kernelIndex) {
         return this.closureTable.getClosures().get(this.closureTable.getKernel(this.getKernelIndex(kernelIndex)));
@@ -432,9 +426,6 @@ public final class LALR1ClosureTableTest {
      *
      * @param rules
      * <br>Not null
-     * @return
-     * <br>Not null
-     * <br>New
      */
     private final void setGrammar(final Object[]... rules) {
         this.grammar = newGrammar(rules);
@@ -442,8 +433,8 @@ public final class LALR1ClosureTableTest {
     }
 
     /**
-     * @param <K>
-     * @param <V>
+     * @param <K> The map key type
+     * @param <V> The map value type
      * @param map
      * <br>Not null
      * @param keyMatcher

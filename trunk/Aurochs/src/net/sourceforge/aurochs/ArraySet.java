@@ -103,7 +103,7 @@ public final class ArraySet<E> extends AbstractSet<E> {
     @Override
     @SuppressWarnings("unchecked")
     public final boolean contains(final Object key) {
-        return this.map.containsKey((E) key);
+        return ((Map<Object, ?>) this.map).containsKey(key);
     }
 
     @Override
@@ -115,7 +115,7 @@ public final class ArraySet<E> extends AbstractSet<E> {
     @Override
     public final boolean remove(final Object key) {
         @SuppressWarnings("unchecked")
-        final Integer index = this.map.remove((E) key);
+        final Integer index = ((Map<Object, Integer>) this.map).remove(key);
 
         if (index != null) {
             this.list.remove(index.intValue());

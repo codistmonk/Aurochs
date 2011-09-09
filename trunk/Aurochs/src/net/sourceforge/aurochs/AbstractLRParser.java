@@ -290,19 +290,21 @@ public abstract class AbstractLRParser extends AbstractObservable<AbstractLRPars
     }
 
     /**
-     *
+     * Used through reflection by {@link #dispatch(String, Operation)}.
      * @param shift
      * <br>Not null
      */
-    private final void perform(final Shift shift) {
+    @SuppressWarnings("unused")
+	private final void perform(final Shift shift) {
         this.getStack().push(this.takeInputToken(), shift.getNextStateIndex());
     }
 
     /**
-     *
-     * @param reduce
+     * Used through reflection by {@link #dispatch(String, Operation)}.
+     * @param reduction
      * <br>Not null
      */
+    @SuppressWarnings("unused")
     private final void perform(final Reduction reduction) {
         this.insertInputToken(new GeneratedToken(reduction.getRule().getNonterminal()));
 

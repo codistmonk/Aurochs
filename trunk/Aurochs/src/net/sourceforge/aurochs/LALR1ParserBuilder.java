@@ -255,27 +255,11 @@ public final class LALR1ParserBuilder {
     private final void normalizeEpsilonNonterminalUses() {
         for (final Object nonterminal : this.getGrammar().getNonterminals()) {
             if (this.getGrammar().canCollapse(nonterminal)) {
-//                if (this.getGrammar().getFirsts(nonterminal).isEmpty()) {
-//                    this.removeAllUses(nonterminal);
-//                } else {
-                    this.addAlternativeUses(nonterminal);
-//                }
+                this.addAlternativeUses(nonterminal);
             }
         }
 
         this.removeAllEpsilonRules();
-    }
-
-    /**
-     * @param nonterminal
-     * <br>Maybe null
-     */
-    private final void removeAllUses(final Object nonterminal) {
-        for (final Rule rule : this.getGrammar().getRules()) {
-            while (rule.getDevelopment().remove(nonterminal)) {
-                // Deliberately left empty
-            }
-        }
     }
 
     /**

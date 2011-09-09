@@ -27,7 +27,6 @@ package net.sourceforge.aurochs;
 import static java.util.Arrays.*;
 
 import static net.sourceforge.aprog.tools.Tools.*;
-import static net.sourceforge.aurochs.LRParserTools.*;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -421,9 +420,9 @@ public final class LRParserTools {
         public final Rule addTo(final LALR1LexerBuilder lexerBuilder) {
             if (this.getDevelopment() != null) {
                 return this.addNonregularTo(lexerBuilder);
-            } else {
-                return this.addRegularTo(lexerBuilder);
             }
+
+            return this.addRegularTo(lexerBuilder);
         }
 
         /**
@@ -599,9 +598,9 @@ public final class LRParserTools {
         public final Rule addTo(final LALR1ParserBuilder lexerBuilder) {
             if (this.getDevelopment() != null) {
                 return lexerBuilder.addRule(this.getNonterminal(), this.getDevelopment());
-            } else {
-                return lexerBuilder.addRule(this.getNonterminal(), this.getRegular());
             }
+
+            return lexerBuilder.addRule(this.getNonterminal(), this.getRegular());
         }
 
     }

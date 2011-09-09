@@ -31,6 +31,7 @@ import java.util.List;
 /**
  *
  * @author codistmonk (creation 2010-10-07)
+ * @param <T> The element type
  */
 public abstract class AbstractIterator<T> implements Iterator<T> {
 

@@ -337,7 +337,7 @@ public final class GrammarTest {
      *
      * @param nonterminal
      * <br>Maybe null
-     * @param expectedCanBeDerivedIntoAnEmptySequence
+     * @param expectedCanCollapse
      * <br>Range: any boolean
      * @param expectedFirsts
      * <br>Not null
@@ -352,9 +352,6 @@ public final class GrammarTest {
      *
      * @param rules
      * <br>Not null
-     * @return
-     * <br>Not null
-     * <br>New
      */
     private final void setGrammar(final Object[]... rules) {
         this.grammar = newGrammar(rules);
