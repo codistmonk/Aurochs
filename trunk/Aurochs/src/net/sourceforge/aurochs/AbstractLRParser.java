@@ -120,17 +120,7 @@ public abstract class AbstractLRParser extends AbstractObservable<AbstractLRPars
      * <br>Range: any boolean
      */
     public final boolean parse(final Iterator<?> input) {
-        final boolean debug = false;
-
-        this.prepareToPerformFirstOperation(input);
-
-        do {
-            // <editor-fold defaultstate="collapsed" desc="DEBUG">
-            if (debug) {
-                debugPrint("stack:", this.getStack(), "stateIndex:", this.getStateIndex(), "inputSymbol:", this.getInputSymbol());
-            }
-            // </editor-fold>
-        } while (this.performNextOperation());// && !this.isDone());
+        this.doParse(input);
 
         return this.isMatchFound();
     }
@@ -254,6 +244,26 @@ public abstract class AbstractLRParser extends AbstractObservable<AbstractLRPars
         }
 
         return this.dispatch("perform", operation);
+    }
+
+    /**
+     * @param input
+     * <br>Not null
+     * <br>Input-output
+     * <br>Will become reference
+     */
+    protected void doParse(final Iterator<?> input) {
+        final boolean debug = false;
+
+        this.prepareToPerformFirstOperation(input);
+
+        do {
+            // <editor-fold defaultstate="collapsed" desc="DEBUG">
+            if (debug) {
+                debugPrint("stack:", this.getStack(), "stateIndex:", this.getStateIndex(), "inputSymbol:", this.getInputSymbol());
+            }
+            // </editor-fold>
+        } while (this.performNextOperation());// && !this.isDone());
     }
 
     /**

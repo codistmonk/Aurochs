@@ -57,56 +57,22 @@ public final class AnnotatedParserTools {
      * @param annotatedLexerClass
      * <br>Not null
      * @return
-     * <br>Not null
+     * <br>Maybe null
      * <br>New
      */
     public static final LRLexer newLexer(final Class<?> annotatedLexerClass) {
         final LALR1LexerBuilder parserBuilder = new LALR1LexerBuilder();
+        boolean lexerRulesExist = false;
 
         for (final Method method : annotatedLexerClass.getDeclaredMethods()) {
             // TODO add actions
-            {
-                final LexerTokenRule ruleAnnotation = method.getAnnotation(LexerTokenRule.class);
-
-                if (ruleAnnotation != null) {
-                    final int[] symbols = ruleAnnotation.value();
-
-                    parserBuilder.addTokenRule(symbols[0], getDevelopment(symbols));
-                }
-            }
-
-            {
-                final LexerVerbatimTokenRule ruleAnnotation = method.getAnnotation(LexerVerbatimTokenRule.class);
-
-                if (ruleAnnotation != null) {
-                    final int[] symbols = ruleAnnotation.value();
-
-                    parserBuilder.addVerbatimTokenRule(symbols[0], getDevelopment(symbols));
-                }
-            }
-
-            {
-                final LexerNontokenRule ruleAnnotation = method.getAnnotation(LexerNontokenRule.class);
-
-                if (ruleAnnotation != null) {
-                    final int[] symbols = ruleAnnotation.value();
-
-                    parserBuilder.addNontokenRule(symbols[0], getDevelopment(symbols));
-                }
-            }
-
-            {
-                final LexerHelperRule ruleAnnotation = method.getAnnotation(LexerHelperRule.class);
-
-                if (ruleAnnotation != null) {
-                    final int[] symbols = ruleAnnotation.value();
-
-                    parserBuilder.addHelperRule(symbols[0], getDevelopment(symbols));
-                }
-            }
+            lexerRulesExist |= addTokenRule(parserBuilder, method);
+            lexerRulesExist |= addVerbatimTokenRule(parserBuilder, method);
+            lexerRulesExist |= addNontokenRule(parserBuilder, method);
+            lexerRulesExist |= addHelperRule(parserBuilder, method);
         }
 
-        return parserBuilder.newLexer();
+        return lexerRulesExist ? parserBuilder.newLexer() : null;
     }
 
     /**
@@ -130,7 +96,7 @@ public final class AnnotatedParserTools {
             }
         }
 
-        return parserBuilder.newParser();
+        return parserBuilder.newParser(newLexer(annotatedParserClass));
     }
 
     /**
@@ -148,6 +114,98 @@ public final class AnnotatedParserTools {
         }
 
         return result;
+    }
+
+    /**
+     * @param parserBuilder
+     * <br>Not null
+     * <br>Input-output
+     * @param method
+     * <br>Not null
+     * @return <code>true</code> if an instance of {@link LexerTokenRule} is attached to <code>method</code>
+     * <br>Range: any boolean
+     */
+    private static final boolean addTokenRule(final LALR1LexerBuilder parserBuilder, final Method method) {
+        final LexerTokenRule ruleAnnotation = method.getAnnotation(LexerTokenRule.class);
+
+        if (ruleAnnotation != null) {
+            final int[] symbols = ruleAnnotation.value();
+
+            parserBuilder.addTokenRule(symbols[0], getDevelopment(symbols));
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param parserBuilder
+     * <br>Not null
+     * <br>Input-output
+     * @param method
+     * <br>Not null
+     * @return <code>true</code> if an instance of {@link LexerVerbatimTokenRule} is attached to <code>method</code>
+     * <br>Range: any boolean
+     */
+    private static final boolean addVerbatimTokenRule(final LALR1LexerBuilder parserBuilder, final Method method) {
+        final LexerVerbatimTokenRule ruleAnnotation = method.getAnnotation(LexerVerbatimTokenRule.class);
+
+        if (ruleAnnotation != null) {
+            final int[] symbols = ruleAnnotation.value();
+
+            parserBuilder.addVerbatimTokenRule(symbols[0], getDevelopment(symbols));
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param parserBuilder
+     * <br>Not null
+     * <br>Input-output
+     * @param method
+     * <br>Not null
+     * @return <code>true</code> if an instance of {@link LexerNontokenRule} is attached to <code>method</code>
+     * <br>Range: any boolean
+     */
+    private static final boolean addNontokenRule(final LALR1LexerBuilder parserBuilder, final Method method) {
+        final LexerNontokenRule ruleAnnotation = method.getAnnotation(LexerNontokenRule.class);
+
+        if (ruleAnnotation != null) {
+            final int[] symbols = ruleAnnotation.value();
+
+            parserBuilder.addNontokenRule(symbols[0], getDevelopment(symbols));
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param parserBuilder
+     * <br>Not null
+     * <br>Input-output
+     * @param method
+     * <br>Not null
+     * @return <code>true</code> if an instance of {@link LexerHelperRule} is attached to <code>method</code>
+     * <br>Range: any boolean
+     */
+    private static final boolean addHelperRule(final LALR1LexerBuilder parserBuilder, final Method method) {
+        final LexerHelperRule ruleAnnotation = method.getAnnotation(LexerHelperRule.class);
+
+        if (ruleAnnotation != null) {
+            final int[] symbols = ruleAnnotation.value();
+
+            parserBuilder.addHelperRule(symbols[0], getDevelopment(symbols));
+
+            return true;
+        }
+
+        return false;
     }
 
     /**
