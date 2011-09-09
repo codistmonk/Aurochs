@@ -24,10 +24,7 @@
 
 package net.sourceforge.aurochs;
 
-import java.util.logging.LogRecord;
 import static net.sourceforge.aprog.tools.Tools.*;
-import net.sourceforge.aurochs.AbstractLRParser.GeneratedToken;
-import net.sourceforge.aurochs.Grammar.Rule;
 import static net.sourceforge.aurochs.LRParserTest.Nonterminal.*;
 
 import static org.junit.Assert.*;
@@ -40,20 +37,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Handler;
 import java.util.logging.Logger;
+import java.util.logging.LogRecord;
 
+import net.sourceforge.aurochs.AbstractLRParser.GeneratedToken;
 import net.sourceforge.aurochs.Grammar.Regular;
 import net.sourceforge.aurochs.Grammar.RegularInfiniteRepetition;
 import net.sourceforge.aurochs.Grammar.RegularSequence;
 import net.sourceforge.aurochs.Grammar.RegularSymbol;
 import net.sourceforge.aurochs.Grammar.RegularUnion;
+import net.sourceforge.aurochs.Grammar.Rule;
 import net.sourceforge.aurochs.AbstractLRParser.ReductionEvent;
 import net.sourceforge.aurochs.AbstractLRParser.UnexpectedSymbolErrorEvent;
 import net.sourceforge.aurochs.LALR1LexerBuilder.LRLexer;
 import net.sourceforge.aurochs.LRTable.BeforeOperationAddedEvent;
 import net.sourceforge.aurochs.LRTable.Operation;
+
 import org.junit.After;
 import org.junit.Before;
-
 import org.junit.Test;
 
 /**
