@@ -28,7 +28,6 @@ import static net.sourceforge.aprog.tools.Tools.*;
 import static net.sourceforge.aurochs.Grammar.SpecialSymbol.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
