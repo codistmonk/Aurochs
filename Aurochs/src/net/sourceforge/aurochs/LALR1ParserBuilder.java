@@ -38,6 +38,7 @@ import net.sourceforge.aurochs.Grammar.Regular;
 import net.sourceforge.aurochs.LALR1ClosureTable.Closure;
 import net.sourceforge.aurochs.LALR1ClosureTable.Item;
 import net.sourceforge.aurochs.LALR1ClosureTable.Kernel;
+import net.sourceforge.aurochs.LALR1LexerBuilder.LRLexer;
 import net.sourceforge.aurochs.LRTable.BeforeOperationAddedEvent;
 
 /**
@@ -203,6 +204,18 @@ public final class LALR1ParserBuilder {
      */
     public final LRParser newParser() {
         return new LRParser(this.newTable());
+    }
+
+    /**
+     * @param lexer
+     * <br>Maybe null
+     * <br>Will become reference
+     * @return
+     * <br>Not null
+     * <br>New
+     */
+    public final LRParser newParser(final LRLexer lexer) {
+        return new LRParser(this.newTable(), lexer);
     }
 
     /**

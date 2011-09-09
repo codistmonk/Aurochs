@@ -24,6 +24,8 @@
 
 package net.sourceforge.aurochs;
 
+import java.util.Iterator;
+import net.sourceforge.aurochs.LALR1LexerBuilder.LRLexer;
 import net.sourceforge.aurochs.LRTable.*;
 
 /**
@@ -31,14 +33,46 @@ import net.sourceforge.aurochs.LRTable.*;
  */
 public final class LRParser extends AbstractLRParser {
 
+    private final LRLexer lexer;
+
     /**
-     *
      * @param table
      * <br>Not null
      * <br>Will become reference
      */
     public LRParser(final LRTable table) {
+        this(table, null);
+    }
+
+    /**
+     * @param table
+     * <br>Not null
+     * <br>Will become reference
+     * @param lexer
+     * <br>Maybe null
+     * <br>Will become reference
+     */
+    public LRParser(final LRTable table, final LRLexer lexer) {
         super(table);
+        this.lexer = lexer;
+    }
+
+    /**
+     * @return
+     * <br>Maybe null
+     * <br>Reference
+     */
+    public final LRLexer getLexer() {
+        return this.lexer;
+    }
+
+    @Override
+    protected final void doParse(final Iterator<?> input) {
+        if (this.getLexer() != null) {
+            super.doParse(LALR1LexerBuilder.tokenize(this.getLexer(), input));
+        } else {
+            super.doParse(input);
+        }
     }
 
 }
