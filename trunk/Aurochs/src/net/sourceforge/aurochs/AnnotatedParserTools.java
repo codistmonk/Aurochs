@@ -27,6 +27,9 @@ package net.sourceforge.aurochs;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.Map;
 
 import net.sourceforge.aprog.tools.IllegalInstantiationException;
 import net.sourceforge.aurochs.LALR1LexerBuilder.LRLexer;
@@ -43,6 +46,10 @@ public final class AnnotatedParserTools {
         throw new IllegalInstantiationException();
     }
 
+    private static final Map<Integer, Object> tokenSymbols = new HashMap<Integer, Object>();
+
+    private static final Map<Object, Integer> symbolTokens = new IdentityHashMap<Object, Integer>();
+
     private static int newToken = Character.MAX_VALUE + 1;
 
     /**
@@ -51,6 +58,26 @@ public final class AnnotatedParserTools {
      */
     public static final synchronized int newToken() {
         return newToken++;
+    }
+
+    /**
+     * @param symbol
+     * <br>Maybe null
+     * <br>May become reference
+     * @return
+     * <br>Range: <code>[Character.MAX_VALUE + 1 .. Integer.MAX_VALUE]</code>
+     */
+    public static final int symbol(final Object symbol) {
+        Integer result = symbolTokens.get(symbol);
+
+        if (result == null) {
+            result = newToken();
+
+            tokenSymbols.put(result, symbol);
+            symbolTokens.put(symbol, result);
+        }
+
+        return result;
     }
 
     /**
@@ -109,8 +136,10 @@ public final class AnnotatedParserTools {
     private static final Object[] getDevelopment(final int[] symbols) {
         final Object[] result = new Object[symbols.length - 1];
 
-        for (int i = 0; i < result.length;) {
-            result[i] = symbols[++i];
+        for (int i = 0; i < result.length; ++i) {
+            final int token = symbols[i + 1];
+
+            result[i] = tokenSymbols.containsKey(token) ? tokenSymbols.get(token) : token;
         }
 
         return result;
