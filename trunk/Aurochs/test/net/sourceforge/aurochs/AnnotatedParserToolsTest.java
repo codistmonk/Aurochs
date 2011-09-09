@@ -82,12 +82,12 @@ public final class AnnotatedParserToolsTest {
      */
     public static final class Parser1 {
 
-        @ParserRule({ 'A', /* -> */ 'A', 'b' })
+        @net.sourceforge.aurochs.AnnotatedParserTools.ParserRule({ 'A', /* -> */ 'A', 'b' })
         Object action1(final Object[] tokens) {
             return tokens[0].toString() + tokens[1];
         }
 
-        @ParserRule({ 'A', /* -> */ 'b' })
+        @net.sourceforge.aurochs.AnnotatedParserTools.ParserRule({ 'A', /* -> */ 'b' })
         Object action2(final Object[] tokens) {
             return tokens[0];
         }
@@ -99,27 +99,27 @@ public final class AnnotatedParserToolsTest {
      */
     public static final class Parser2 {
 
-        @LexerVerbatimTokenRule({ 'B', 'b' })
+        @net.sourceforge.aurochs.AnnotatedParserTools.LexerVerbatimTokenRule({ 'B', 'b' })
         void lexerAction1() {
             // Deliberately left empty
         }
 
-        @LexerNontokenRule({ '_', '_', ' ' })
+        @net.sourceforge.aurochs.AnnotatedParserTools.LexerNontokenRule({ '_', '_', ' ' })
         void lexerAction2() {
             // Deliberately left empty
         }
 
-        @LexerNontokenRule({ '_', ' ' })
+        @net.sourceforge.aurochs.AnnotatedParserTools.LexerNontokenRule({ '_', ' ' })
         void lexerAction3() {
             // Deliberately left empty
         }
 
-        @ParserRule({ 'A', /* -> */ 'A', 'b' })
+        @net.sourceforge.aurochs.AnnotatedParserTools.ParserRule({ 'A', /* -> */ 'A', 'b' })
         Object action1(final Object[] tokens) {
             return tokens[0].toString() + tokens[1];
         }
 
-        @ParserRule({ 'A', /* -> */ 'b' })
+        @net.sourceforge.aurochs.AnnotatedParserTools.ParserRule({ 'A', /* -> */ 'b' })
         Object action2(final Object[] tokens) {
             return tokens[0];
         }
