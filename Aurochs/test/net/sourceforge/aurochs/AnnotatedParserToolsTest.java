@@ -25,13 +25,13 @@
 package net.sourceforge.aurochs;
 
 import static net.sourceforge.aprog.tools.Tools.*;
+import static net.sourceforge.aurochs.AnnotatedParserTools.*;
 
 import static org.junit.Assert.*;
 
 import java.util.Iterator;
 
 import net.sourceforge.aprog.tools.AbstractIterator;
-import net.sourceforge.aurochs.AnnotatedParserTools.*;
 
 import org.junit.Test;
 
@@ -42,12 +42,12 @@ public final class AnnotatedParserToolsTest {
 
     @Test
     public final void test1() {
-        assertTrue(AnnotatedParserTools.newParser(Parser1.class).parse(input("bbb")));
+        assertTrue(newParser(Parser1.class).parse(input("bbb")));
     }
 
     @Test
     public final void test2() {
-        assertTrue(AnnotatedParserTools.newParser(Parser2.class).parse(input("bb b")));
+        assertTrue(newParser(Parser2.class).parse(input("bb b")));
     }
 
     /**

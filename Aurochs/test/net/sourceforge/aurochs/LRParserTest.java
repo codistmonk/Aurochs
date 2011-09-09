@@ -26,6 +26,7 @@ package net.sourceforge.aurochs;
 
 import static net.sourceforge.aprog.tools.Tools.*;
 import static net.sourceforge.aurochs.LRParserTest.Nonterminal.*;
+import static net.sourceforge.aurochs.RegularTools.*;
 
 import static org.junit.Assert.*;
 
@@ -40,11 +41,6 @@ import java.util.logging.Logger;
 import java.util.logging.LogRecord;
 
 import net.sourceforge.aurochs.AbstractLRParser.GeneratedToken;
-import net.sourceforge.aurochs.Grammar.Regular;
-import net.sourceforge.aurochs.Grammar.RegularInfiniteRepetition;
-import net.sourceforge.aurochs.Grammar.RegularSequence;
-import net.sourceforge.aurochs.Grammar.RegularSymbol;
-import net.sourceforge.aurochs.Grammar.RegularUnion;
 import net.sourceforge.aurochs.Grammar.Rule;
 import net.sourceforge.aurochs.AbstractLRParser.ReductionEvent;
 import net.sourceforge.aurochs.AbstractLRParser.UnexpectedSymbolErrorEvent;
@@ -939,68 +935,6 @@ public final class LRParserTest {
         }
 
         return result;
-    }
-
-    /**
-     * @param begin
-     * <br>Range: any char
-     * @param end
-     * <br>Range: any char
-     * @return
-     * <br>Not null
-     * <br>New
-     */
-    public static final RegularUnion range(final char begin, final char end) {
-        final Regular[] regulars = new Regular[end - begin + 1];
-
-        for (char c = begin; c <= end; ++c) {
-            regulars[c - begin] = new RegularSymbol(c);
-        }
-
-        return new RegularUnion(regulars);
-    }
-
-    /**
-     * @param symbol
-     * <br>Maybe null
-     * <br>Will be strong reference
-     * @return
-     * <br>Not null
-     * <br>New
-     */
-    public static final RegularInfiniteRepetition zeroOrMore(final Object symbol) {
-        return new RegularInfiniteRepetition(new RegularSymbol(symbol));
-    }
-
-    /**
-     * @param symbol
-     * <br>Maybe null
-     * <br>Will be strong reference
-     * @return
-     * <br>Not null
-     * <br>New
-     */
-    public static final RegularSequence oneOrMore(final Object symbol) {
-        final RegularSymbol regular = new RegularSymbol(symbol);
-
-        return new RegularSequence(regular, new RegularInfiniteRepetition(regular));
-    }
-
-    /**
-     * @param symbols
-     * <br>Not null
-     * @return
-     * <br>Not null
-     * <br>New
-     */
-    public static final RegularUnion union(final Object... symbols) {
-        final RegularSymbol[] regulars = new RegularSymbol[symbols.length];
-
-        for (int i = 0; i < regulars.length; ++i) {
-            regulars[i] = new RegularSymbol(symbols[i]);
-        }
-
-        return new RegularUnion(regulars);
     }
 
     /**
