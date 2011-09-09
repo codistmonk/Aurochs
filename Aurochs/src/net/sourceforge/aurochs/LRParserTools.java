@@ -29,11 +29,24 @@ import static java.util.Arrays.*;
 import static net.sourceforge.aprog.tools.Tools.*;
 import static net.sourceforge.aurochs.LRParserTools.*;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import net.sourceforge.aurochs.AbstractLRParser.GeneratedToken;
+
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import net.sourceforge.aprog.tools.IllegalInstantiationException;
+import net.sourceforge.aurochs.Grammar.Action;
 import net.sourceforge.aurochs.Grammar.Regular;
+import net.sourceforge.aurochs.Grammar.Rule;
 import net.sourceforge.aurochs.LALR1LexerBuilder.LRLexer;
 
 /**
@@ -62,13 +75,13 @@ public final class LRParserTools {
             final Field lexerRulesField = getField(parserClass, LEXER_RULES_FIELD_NAME);
             final Field parserRulesField = getField(parserClass, PARSER_RULES_FIELD_NAME);
             final LRLexer lexer;
+            final Object[] parser = new Object[1];
 
             if (lexerRulesField != null) {
                 final LALR1LexerBuilder lexerBuilder = new LALR1LexerBuilder();
 
                 for (final AbstractLexerRule lexerRule : (AbstractLexerRule[]) lexerRulesField.get(null)) {
-                    lexerRule.addTo(lexerBuilder);
-                    // TODO add action
+                    lexerRule.addTo(lexerBuilder).getActions().addAll(getActions(parserClass, lexerRule.getName(), parser));
                 }
 
                 lexer = lexerBuilder.newLexer();
@@ -79,8 +92,7 @@ public final class LRParserTools {
             final LALR1ParserBuilder parserBuilder = new LALR1ParserBuilder();
 
             for (final ParserRule parserRule : (ParserRule[]) parserRulesField.get(null)) {
-                parserRule.addTo(parserBuilder);
-                // TODO add action
+                parserRule.addTo(parserBuilder).getActions().addAll(getActions(parserClass, parserRule.getName(), parser));
             }
 
             return parserBuilder.newParser(lexer);
@@ -88,6 +100,58 @@ public final class LRParserTools {
             throw unchecked(exception);
         }
     }
+
+    private static final List<Action> getActions(final Class<?> parserClass, final String ruleName, final Object[] parser) {
+        final List<Action> result = new ArrayList<Action>();
+
+        for (final Method method : parserClass.getDeclaredMethods()) {
+            if (method.getName().equals(ruleName)) {
+                result.add(new Action() {
+
+                    @Override
+                    public final void perform(final Rule rule, final GeneratedToken generatedToken, final List<Object> developmentTokens) {
+                        final List<Object> neededArguments = new ArrayList<Object>(3);
+                        final Map<Class<?>, Object> availableArguments = new HashMap<Class<?>, Object>();
+
+                        extractValues(developmentTokens);
+
+                        availableArguments.put(Rule.class, rule);
+                        availableArguments.put(GeneratedToken.class, generatedToken);
+                        availableArguments.put(List.class, developmentTokens);
+                        availableArguments.put(Object[].class, developmentTokens.toArray());
+
+                        for (final Class<?> neededArgumentType : method.getParameterTypes()) {
+                            neededArguments.add(availableArguments.get(neededArgumentType));
+                        }
+
+                        method.setAccessible(true);
+
+                        try {
+                            if (!Modifier.isStatic(method.getModifiers()) && parser[0] == null) {
+                                parser[0] = parserClass.newInstance();
+                            }
+
+                            generatedToken.setValue(method.invoke(parser[0], neededArguments.toArray()));
+                        } catch (final Exception exception) {
+                            Logger.getLogger(LRParserTools.class.getName()).log(Level.SEVERE, null, exception);
+                        }
+                    }
+
+                });
+            }
+        }
+
+        return result;
+    }
+
+    static final void extractValues(final List<Object> tokens) {
+        for (int i = 0; i < tokens.size(); ++i) {
+            if (tokens.get(i) instanceof GeneratedToken) {
+                tokens.set(i, ((GeneratedToken) tokens.get(i)).getValue());
+            }
+        }
+    }
+
 
     /**
      * @param cls
@@ -270,6 +334,7 @@ public final class LRParserTools {
          * <br>Will become reference
          */
         protected AbstractRule(final String name, final Object[] nonterminalAndDevelopment) {
+            final boolean debug = false;
             this.name = name;
             this.nonterminal = nonterminalAndDevelopment[0];
 
@@ -281,8 +346,12 @@ public final class LRParserTools {
                 this.regular = null;
             }
 
-            debugPrint(this, "name:", this.getName(), "nonterminal:", this.getNonterminal(),
-                    "regular:", this.getRegular(), "development:", Arrays.toString(this.getDevelopment()));
+            // <editor-fold defaultstate="collapsed" desc="DEBUG">
+            if (debug) {
+                debugPrint(this, "name:", this.getName(), "nonterminal:", this.getNonterminal(),
+                        "regular:", this.getRegular(), "development:", Arrays.toString(this.getDevelopment()));
+            }
+            // </editor-fold>
         }
 
         /**
@@ -344,12 +413,16 @@ public final class LRParserTools {
          * @param lexerBuilder
          * <br>Not null
          * <br>Input-output
+         * @return
+         * <br>Not null
+         * <br>Maybe New
+         * <br>Reference
          */
-        public final void addTo(final LALR1LexerBuilder lexerBuilder) {
+        public final Rule addTo(final LALR1LexerBuilder lexerBuilder) {
             if (this.getDevelopment() != null) {
-                this.addNonregularTo(lexerBuilder);
+                return this.addNonregularTo(lexerBuilder);
             } else {
-                this.addRegularTo(lexerBuilder);
+                return this.addRegularTo(lexerBuilder);
             }
         }
 
@@ -357,15 +430,23 @@ public final class LRParserTools {
          * @param lexerBuilder
          * <br>Not null
          * <br>Input-output
+         * @return
+         * <br>Not null
+         * <br>Maybe New
+         * <br>Reference
          */
-        protected abstract void addNonregularTo(final LALR1LexerBuilder lexerBuilder);
+        protected abstract Rule addNonregularTo(final LALR1LexerBuilder lexerBuilder);
 
         /**
          * @param lexerBuilder
          * <br>Not null
          * <br>Input-output
+         * @return
+         * <br>Not null
+         * <br>Maybe New
+         * <br>Reference
          */
-        protected abstract void addRegularTo(final LALR1LexerBuilder lexerBuilder);
+        protected abstract Rule addRegularTo(final LALR1LexerBuilder lexerBuilder);
 
     }
 
@@ -387,13 +468,13 @@ public final class LRParserTools {
         }
 
         @Override
-        protected final void addNonregularTo(final LALR1LexerBuilder lexerBuilder) {
-            lexerBuilder.addTokenRule(this.getNonterminal(), this.getDevelopment());
+        protected final Rule addNonregularTo(final LALR1LexerBuilder lexerBuilder) {
+            return lexerBuilder.addTokenRule(this.getNonterminal(), this.getDevelopment());
         }
 
         @Override
-        protected final void addRegularTo(final LALR1LexerBuilder lexerBuilder) {
-            lexerBuilder.addTokenRule(this.getNonterminal(), this.getRegular());
+        protected final Rule addRegularTo(final LALR1LexerBuilder lexerBuilder) {
+            return lexerBuilder.addTokenRule(this.getNonterminal(), this.getRegular());
         }
 
     }
@@ -416,14 +497,13 @@ public final class LRParserTools {
         }
 
         @Override
-        protected final void addNonregularTo(final LALR1LexerBuilder lexerBuilder) {
-            lexerBuilder.addVerbatimTokenRule(this.getNonterminal(), this.getDevelopment());
+        protected final Rule addNonregularTo(final LALR1LexerBuilder lexerBuilder) {
+            return lexerBuilder.addVerbatimTokenRule(this.getNonterminal(), this.getDevelopment());
         }
 
         @Override
-        protected final void addRegularTo(final LALR1LexerBuilder lexerBuilder) {
-            debugPrint(this.getNonterminal(), this.getRegular());
-            lexerBuilder.addVerbatimTokenRule(this.getNonterminal(), this.getRegular());
+        protected final Rule addRegularTo(final LALR1LexerBuilder lexerBuilder) {
+            return lexerBuilder.addVerbatimTokenRule(this.getNonterminal(), this.getRegular());
         }
 
     }
@@ -448,13 +528,13 @@ public final class LRParserTools {
         }
 
         @Override
-        protected final void addNonregularTo(final LALR1LexerBuilder lexerBuilder) {
-            lexerBuilder.addNontokenRule(this.getNonterminal(), this.getDevelopment());
+        protected final Rule addNonregularTo(final LALR1LexerBuilder lexerBuilder) {
+            return lexerBuilder.addNontokenRule(this.getNonterminal(), this.getDevelopment());
         }
 
         @Override
-        protected final void addRegularTo(final LALR1LexerBuilder lexerBuilder) {
-            lexerBuilder.addNontokenRule(this.getNonterminal(), this.getRegular());
+        protected final Rule addRegularTo(final LALR1LexerBuilder lexerBuilder) {
+            return lexerBuilder.addNontokenRule(this.getNonterminal(), this.getRegular());
         }
 
     }
@@ -479,13 +559,13 @@ public final class LRParserTools {
         }
 
         @Override
-        protected final void addNonregularTo(final LALR1LexerBuilder lexerBuilder) {
-            lexerBuilder.addHelperRule(this.getNonterminal(), this.getDevelopment());
+        protected final Rule addNonregularTo(final LALR1LexerBuilder lexerBuilder) {
+            return lexerBuilder.addHelperRule(this.getNonterminal(), this.getDevelopment());
         }
 
         @Override
-        protected final void addRegularTo(final LALR1LexerBuilder lexerBuilder) {
-            lexerBuilder.addHelperRule(this.getNonterminal(), this.getRegular());
+        protected final Rule addRegularTo(final LALR1LexerBuilder lexerBuilder) {
+            return lexerBuilder.addHelperRule(this.getNonterminal(), this.getRegular());
         }
 
     }
@@ -511,12 +591,16 @@ public final class LRParserTools {
          * @param lexerBuilder
          * <br>Not null
          * <br>Input-output
+         * @return
+         * <br>Not null
+         * <br>Maybe New
+         * <br>Reference
          */
-        public final void addTo(final LALR1ParserBuilder lexerBuilder) {
+        public final Rule addTo(final LALR1ParserBuilder lexerBuilder) {
             if (this.getDevelopment() != null) {
-                lexerBuilder.addRule(this.getNonterminal(), this.getDevelopment());
+                return lexerBuilder.addRule(this.getNonterminal(), this.getDevelopment());
             } else {
-                lexerBuilder.addRule(this.getNonterminal(), this.getRegular());
+                return lexerBuilder.addRule(this.getNonterminal(), this.getRegular());
             }
         }
 

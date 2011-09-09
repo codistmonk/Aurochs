@@ -25,6 +25,8 @@
 package net.sourceforge.aurochs;
 
 import static net.sourceforge.aprog.tools.Tools.*;
+import net.sourceforge.aurochs.AbstractLRParser.ReductionEvent;
+import net.sourceforge.aurochs.AbstractLRParser.UnexpectedSymbolErrorEvent;
 import static net.sourceforge.aurochs.LRParserTools.*;
 import static net.sourceforge.aurochs.RegularTools.*;
 
@@ -39,7 +41,27 @@ public final class LRParserToolsTest {
 
     @Test
     public final void test1() {
-        assertTrue(newParser(Parser1.class).parse(LRParserTest.input("bb b")));
+        final LRParser parser = newParser(Parser1.class);
+        final Object[] result = new Object[1];
+
+        parser.addListener(new AbstractLRParser.Listener() {
+
+            @Override
+            public final void reductionOccured(final ReductionEvent event) {
+                if (event.getGeneratedToken().getSymbol().equals('A')) {
+                    result[0] = event.getGeneratedToken().getValue();
+                }
+            }
+
+            @Override
+            public final void unexpectedSymbolErrorOccured(final UnexpectedSymbolErrorEvent event) {
+                ignore(event);
+            }
+
+        });
+
+        assertTrue(parser.parse(LRParserTest.input("bb b")));
+        assertEquals("bbb", result[0]);
     }
 
     /**
@@ -73,7 +95,7 @@ public final class LRParserToolsTest {
          * @return
          * <br>Not null
          */
-        final Object a1Action(final Object[] values) {
+        final Object a1(final Object[] values) {
             return values[0].toString() + values[1];
         }
 
@@ -83,7 +105,7 @@ public final class LRParserToolsTest {
          * @return
          * <br>Not null
          */
-        final Object a2Action(final Object[] values) {
+        final Object a2(final Object[] values) {
             return values[0];
         }
 
