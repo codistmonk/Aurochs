@@ -30,6 +30,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -169,5 +170,35 @@ public final class AurochsTools {
 
 		return result.toString();
 	}
+
+    /**
+     *
+     * @param string
+     * <br>Not null
+     * @return
+     * <br>Not null
+     * <br>New
+     */
+    public static final Iterator<Character> input(final CharSequence string) {
+        return toList(string).iterator();
+    }
+
+    /**
+     *
+     * @param string
+     * <br>Not null
+     * @return
+     * <br>Not null
+     * <br>New
+     */
+    public static final List<Character> toList(final CharSequence string) {
+        final List<Character> result = new ArrayList<Character>();
+
+        for (int i = 0; i < string.length(); ++i) {
+            result.add(string.charAt(i));
+        }
+
+        return result;
+    }
 
 }
