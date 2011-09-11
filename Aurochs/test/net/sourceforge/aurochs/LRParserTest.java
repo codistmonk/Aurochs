@@ -25,12 +25,12 @@
 package net.sourceforge.aurochs;
 
 import static net.sourceforge.aprog.tools.Tools.*;
+import static net.sourceforge.aurochs.AurochsTools.*;
 import static net.sourceforge.aurochs.LRParserTest.Nonterminal.*;
 import static net.sourceforge.aurochs.RegularTools.*;
 
 import static org.junit.Assert.*;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -903,36 +903,6 @@ public final class LRParserTest {
         }
 
     };
-
-    /**
-     *
-     * @param string
-     * <br>Not null
-     * @return
-     * <br>Not null
-     * <br>New
-     */
-    public static final Iterator<Character> input(final String string) {
-        return toList(string).iterator();
-    }
-
-    /**
-     *
-     * @param string
-     * <br>Not null
-     * @return
-     * <br>Not null
-     * <br>New
-     */
-    public static final List<Character> toList(final String string) {
-        final List<Character> result = new ArrayList<Character>();
-
-        for (int i = 0; i < string.length(); ++i) {
-            result.add(string.charAt(i));
-        }
-
-        return result;
-    }
 
     /**
      * @author codistmonk (creation 2010-10-06)

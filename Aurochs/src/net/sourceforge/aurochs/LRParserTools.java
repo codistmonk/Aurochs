@@ -79,7 +79,9 @@ public final class LRParserTools {
             if (lexerRulesField != null) {
                 final LALR1LexerBuilder lexerBuilder = new LALR1LexerBuilder();
 
-                for (final AbstractLexerRule lexerRule : (AbstractLexerRule[]) lexerRulesField.get(null)) {
+                lexerRulesField.setAccessible(true);
+
+                for (final LexerRule lexerRule : (LexerRule[]) lexerRulesField.get(null)) {
                     lexerRule.addTo(lexerBuilder).getActions().addAll(getActions(parserClass, lexerRule.getName(), parser));
                 }
 
@@ -90,8 +92,14 @@ public final class LRParserTools {
 
             final LALR1ParserBuilder parserBuilder = new LALR1ParserBuilder();
 
+            parserRulesField.setAccessible(true);
+
             for (final ParserRule parserRule : (ParserRule[]) parserRulesField.get(null)) {
-                parserRule.addTo(parserBuilder).getActions().addAll(getActions(parserClass, parserRule.getName(), parser));
+                if (parserRule instanceof AssociativityAndPriorityRule) {
+                    ((AssociativityAndPriorityRule) parserRule).addTo(parserBuilder);
+                } else {
+                    ((NormalRule) parserRule).addTo(parserBuilder).getActions().addAll(getActions(parserClass, ((NormalRule) parserRule).getName(), parser));
+                }
             }
 
             return parserBuilder.newParser(lexer);
@@ -292,7 +300,7 @@ public final class LRParserTools {
      * <br>Not null
      * <br>New
      */
-    public static final ParserRule rule(final Object... nonterminalAndDevelopment) {
+    public static final NormalRule rule(final Object... nonterminalAndDevelopment) {
         return namedRule(null, nonterminalAndDevelopment);
     }
 
@@ -307,14 +315,51 @@ public final class LRParserTools {
      * <br>Not null
      * <br>New
      */
-    public static final ParserRule namedRule(final String name, final Object... nonterminalAndDevelopment) {
-        return new ParserRule(name, nonterminalAndDevelopment);
+    public static final NormalRule namedRule(final String name, final Object... nonterminalAndDevelopment) {
+        return new NormalRule(name, nonterminalAndDevelopment);
+    }
+
+    /**
+     * @param symbol
+     * <br>Maybe null
+     * <br>Will become reference
+     * @param priority
+     * <br>Range: <code>[Short.MIN_VALUE .. Short.MAX_VALUE]</code>
+     * @return
+     * <br>Not null
+     * <br>New
+     */
+    public static final AssociativityAndPriorityRule leftAssociative(final Object symbol, final int priority) {
+        return new AssociativityAndPriorityRule(true, (short) priority, symbol);
+    }
+
+    /**
+     * @param symbol
+     * <br>Maybe null
+     * <br>Will become reference
+     * @param priority
+     * <br>Range: <code>[Short.MIN_VALUE .. Short.MAX_VALUE]</code>
+     * @return
+     * <br>Not null
+     * <br>New
+     */
+    public static final AssociativityAndPriorityRule rightAssociative(final Object symbol, final int priority) {
+        return new AssociativityAndPriorityRule(false, (short) priority, symbol);
+    }
+
+    /**
+     * @author codistmonk (creation 2011-09-11)
+     */
+    public static interface ParserRule {
+
+        // Deliberately left empty
+
     }
 
     /**
      * @author codistmonk (creation 2011-09-09)
      */
-    public static abstract class AbstractRule {
+    public static abstract class ProductionRule implements ParserRule {
 
         private final String name;
 
@@ -332,7 +377,7 @@ public final class LRParserTools {
          * <br>Not null
          * <br>Will become reference
          */
-        protected AbstractRule(final String name, final Object[] nonterminalAndDevelopment) {
+        protected ProductionRule(final String name, final Object[] nonterminalAndDevelopment) {
             final boolean debug = false;
             this.name = name;
             this.nonterminal = nonterminalAndDevelopment[0];
@@ -394,7 +439,7 @@ public final class LRParserTools {
     /**
      * @author codistmonk (creation 2011-09-09)
      */
-    public static abstract class AbstractLexerRule extends AbstractRule {
+    public static abstract class LexerRule extends ProductionRule {
 
         /**
          * @param name
@@ -404,7 +449,7 @@ public final class LRParserTools {
          * <br>Not null
          * <br>Will become reference
          */
-        public AbstractLexerRule(final String name, final Object[] nonterminalAndDevelopment) {
+        public LexerRule(final String name, final Object[] nonterminalAndDevelopment) {
             super(name, nonterminalAndDevelopment);
         }
 
@@ -452,7 +497,7 @@ public final class LRParserTools {
     /**
      * @author codistmonk (creation 2011-09-09)
      */
-    public static final class LexerTokenRule extends AbstractLexerRule {
+    public static final class LexerTokenRule extends LexerRule {
 
         /**
          * @param name
@@ -481,7 +526,7 @@ public final class LRParserTools {
     /**
      * @author codistmonk (creation 2011-09-09)
      */
-    public static final class LexerVerbatimTokenRule extends AbstractLexerRule {
+    public static final class LexerVerbatimTokenRule extends LexerRule {
 
         /**
          * @param name
@@ -510,7 +555,7 @@ public final class LRParserTools {
     /**
      * @author codistmonk (creation 2011-09-09)
      */
-    public static final class LexerNontokenRule extends AbstractLexerRule {
+    public static final class LexerNontokenRule extends LexerRule {
 
         // TODO rename nontoken into custom? (so that the user can return their own token in an action)
 
@@ -541,9 +586,9 @@ public final class LRParserTools {
     /**
      * @author codistmonk (creation 2011-09-09)
      */
-    public static final class LexerHelperRule extends AbstractLexerRule {
+    public static final class LexerHelperRule extends LexerRule {
 
-        // TODO remove helper rules and replace them with normal rules (currently "parser rules")
+        // TODO remove helper rules and replace them with normal rules
 
         /**
          * @param name
@@ -570,9 +615,77 @@ public final class LRParserTools {
     }
 
     /**
+     * @author codistmonk (creation 2011-09-11)
+     */
+    public static final class AssociativityAndPriorityRule implements ParserRule {
+
+        private final boolean leftAssociative;
+
+        private final short priority;
+
+        private final Object symbol;
+
+        /**
+         * @param leftAssociative
+         * <br>Range: any boolean
+         * @param priority
+         * <br>Range: any short
+         * @param symbol
+         * <br>Maybe null
+         * <br>Will become reference
+         */
+        public AssociativityAndPriorityRule(final boolean leftAssociative, final short priority, final Object symbol) {
+            this.leftAssociative = leftAssociative;
+            this.priority = priority;
+            this.symbol = symbol;
+        }
+
+        /**
+         * @return
+         * <br>Range: any boolean
+         */
+        public final boolean isLeftAssociative() {
+            return this.leftAssociative;
+        }
+
+        /**
+         * @return
+         * <br>Range: any short
+         */
+        public final short getPriority() {
+            return this.priority;
+        }
+
+        /**
+         * @return
+         * <br>Maybe null
+         * <br>Reference
+         */
+        public final Object getSymbol() {
+            return this.symbol;
+        }
+
+        /**
+         * @param parserBuilder
+         * <br>Not null
+         * <br>Input-output
+         */
+        public final void addTo(final LALR1ParserBuilder parserBuilder) {
+            if (this.isLeftAssociative()) {
+                parserBuilder.addLeftAssociativeBinaryOperator(this.getSymbol());
+            } else {
+                parserBuilder.addRightAssociativeBinaryOperator(this.getSymbol());
+            }
+
+            parserBuilder.setPriority(this.getSymbol(), this.getPriority());
+        }
+
+    }
+
+    /**
      * @author codistmonk (creation 2011-09-09)
      */
-    public static final class ParserRule extends AbstractRule {
+    public static final class NormalRule extends ProductionRule {
 
         /**
          * @param name
@@ -582,12 +695,12 @@ public final class LRParserTools {
          * <br>Not null
          * <br>Will become reference
          */
-        public ParserRule(final String name, final Object[] nonterminalAndDevelopment) {
+        public NormalRule(final String name, final Object[] nonterminalAndDevelopment) {
             super(name, nonterminalAndDevelopment);
         }
 
         /**
-         * @param lexerBuilder
+         * @param parserBuilder
          * <br>Not null
          * <br>Input-output
          * @return
@@ -595,12 +708,12 @@ public final class LRParserTools {
          * <br>Maybe New
          * <br>Reference
          */
-        public final Rule addTo(final LALR1ParserBuilder lexerBuilder) {
+        public final Rule addTo(final LALR1ParserBuilder parserBuilder) {
             if (this.getDevelopment() != null) {
-                return lexerBuilder.addRule(this.getNonterminal(), this.getDevelopment());
+                return parserBuilder.addRule(this.getNonterminal(), this.getDevelopment());
             }
 
-            return lexerBuilder.addRule(this.getNonterminal(), this.getRegular());
+            return parserBuilder.addRule(this.getNonterminal(), this.getRegular());
         }
 
     }

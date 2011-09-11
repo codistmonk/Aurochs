@@ -25,6 +25,7 @@
 package net.sourceforge.aurochs;
 
 import net.sourceforge.aprog.tools.IllegalInstantiationException;
+import net.sourceforge.aprog.tools.Tools;
 import net.sourceforge.aurochs.Grammar.Regular;
 import net.sourceforge.aurochs.Grammar.RegularInfiniteRepetition;
 import net.sourceforge.aurochs.Grammar.RegularSequence;
@@ -63,43 +64,45 @@ public final class RegularTools {
     }
 
     /**
-     * @param symbol
+     * @param symbolOrRegular
      * <br>Maybe null
      * <br>Will be strong reference
      * @return
      * <br>Not null
      * <br>New
      */
-    public static final RegularInfiniteRepetition zeroOrMore(final Object symbol) {
-        return new RegularInfiniteRepetition(new RegularSymbol(symbol));
+    public static final RegularInfiniteRepetition zeroOrMore(final Object symbolOrRegular) {
+        return new RegularInfiniteRepetition(symbolOrRegular instanceof Regular ? (Regular) symbolOrRegular : new RegularSymbol(symbolOrRegular));
     }
 
     /**
-     * @param symbol
+     * @param symbolOrRegular
      * <br>Maybe null
      * <br>Will be strong reference
      * @return
      * <br>Not null
      * <br>New
      */
-    public static final RegularSequence oneOrMore(final Object symbol) {
-        final RegularSymbol regular = new RegularSymbol(symbol);
+    public static final RegularSequence oneOrMore(final Object symbolOrRegular) {
+        final Regular regular = symbolOrRegular instanceof Regular ? (Regular) symbolOrRegular : new RegularSymbol(symbolOrRegular);
 
         return new RegularSequence(regular, new RegularInfiniteRepetition(regular));
     }
 
     /**
-     * @param symbols
+     * @param symbolOrRegulars
      * <br>Not null
      * @return
      * <br>Not null
      * <br>New
      */
-    public static final RegularUnion union(final Object... symbols) {
-        final RegularSymbol[] regulars = new RegularSymbol[symbols.length];
+    public static final RegularUnion union(final Object... symbolOrRegulars) {
+        final Regular[] regulars = new RegularSymbol[symbolOrRegulars.length];
+
+        Tools.debugPrint(symbolOrRegulars);
 
         for (int i = 0; i < regulars.length; ++i) {
-            regulars[i] = new RegularSymbol(symbols[i]);
+            regulars[i] = symbolOrRegulars[i] instanceof Regular ? (Regular) symbolOrRegulars[i] : new RegularSymbol(symbolOrRegulars[i]);
         }
 
         return new RegularUnion(regulars);

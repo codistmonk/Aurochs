@@ -352,6 +352,9 @@ public final class LALR1LexerBuilder {
 
                 // <editor-fold defaultstate="collapsed" desc="DEBUG">
                 if (debug) {
+                    debugPrint(lexer.getTable().getGrammar().getRules());
+                    debugPrint(lexer.getTable().getStates());
+                    debugPrint(lexer.getTable().getStates().get(lexer.getStateIndex()));
                     debugPrint("stack:", lexer.getStack(), "stateIndex:", lexer.getStateIndex(),
                             "inputSymbol:", lexer.getInputSymbol(), "token:", token[0]);
                 }

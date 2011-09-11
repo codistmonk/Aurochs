@@ -25,12 +25,14 @@
 package net.sourceforge.aurochs;
 
 import static net.sourceforge.aprog.tools.Tools.*;
-import net.sourceforge.aurochs.AbstractLRParser.ReductionEvent;
-import net.sourceforge.aurochs.AbstractLRParser.UnexpectedSymbolErrorEvent;
+import static net.sourceforge.aurochs.AurochsTools.*;
 import static net.sourceforge.aurochs.LRParserTools.*;
 import static net.sourceforge.aurochs.RegularTools.*;
 
 import static org.junit.Assert.*;
+
+import net.sourceforge.aurochs.AbstractLRParser.ReductionEvent;
+import net.sourceforge.aurochs.AbstractLRParser.UnexpectedSymbolErrorEvent;
 
 import org.junit.Test;
 
@@ -60,7 +62,7 @@ public final class LRParserToolsTest {
 
         });
 
-        assertTrue(parser.parse(LRParserTest.input("bb b")));
+        assertTrue(parser.parse(input("bb b")));
         assertEquals("bbb", result[0]);
     }
 
@@ -69,7 +71,7 @@ public final class LRParserToolsTest {
      */
     public static final class Parser1 {
 
-        static final AbstractLexerRule[] lexerRules = {
+        static final LexerRule[] lexerRules = {
 
             verbatimTokenRule('B', /* -> */ 'b'),
 
@@ -77,7 +79,7 @@ public final class LRParserToolsTest {
 
         };
 
-        static final ParserRule[] parserRules = {
+        static final NormalRule[] parserRules = {
 
             namedRule("a1",   'A', /* -> */  'A', 'b'),
 

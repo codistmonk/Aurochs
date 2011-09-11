@@ -72,4 +72,14 @@ public final class AurochsToolsTest {
 		assertEquals("42,33", AurochsTools.join(",", asList(42, 33)));
 	}
 
+    @Test
+    public final void testToList() {
+        assertEquals(Arrays.asList('a', 'b'), AurochsTools.toList("ab"));
+    }
+
+    @Test
+    public final void testInput() {
+        assertNotNull(AurochsTools.input("ab"));
+    }
+
 }
