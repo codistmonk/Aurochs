@@ -24,11 +24,12 @@
 
 package net.sourceforge.aurochs.demos.calculator;
 
-import java.util.Scanner;
 import static net.sourceforge.aprog.tools.Tools.*;
 import static net.sourceforge.aurochs.AurochsTools.*;
 import static net.sourceforge.aurochs.LRParserTools.*;
 import static net.sourceforge.aurochs.RegularTools.*;
+
+import java.util.Scanner;
 
 import net.sourceforge.aurochs.LRParser;
 import net.sourceforge.aurochs.LRParserTools;
@@ -36,7 +37,7 @@ import net.sourceforge.aurochs.LRParserTools;
 /**
  * @author codistmonk (creation 2011-09-11)
  */
-public final class Calculator {
+public final class CalculatorA {
 
     static final LexerRule[] lexerRules = {
 
@@ -150,7 +151,7 @@ public final class Calculator {
      * <br>Unused
      */
     public static final void main(final String[] commandLineArguments) {
-        final LRParser parser = LRParserTools.newParser(Calculator.class);
+        final LRParser parser = LRParserTools.newParser(CalculatorA.class);
 
         final Scanner scanner = new Scanner(System.in);
 

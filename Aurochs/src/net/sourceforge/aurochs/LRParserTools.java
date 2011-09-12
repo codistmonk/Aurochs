@@ -108,6 +108,17 @@ public final class LRParserTools {
         }
     }
 
+    /**
+     * @param parserClass
+     * <br>Not null
+     * @param ruleName
+     * <br>Not null
+     * @param parser
+     * <br>Not null
+     * @return
+     * <br>Not null
+     * <br>New
+     */
     private static final List<Action> getActions(final Class<?> parserClass, final String ruleName, final Object[] parser) {
         final List<Action> result = new ArrayList<Action>();
 
@@ -151,6 +162,11 @@ public final class LRParserTools {
         return result;
     }
 
+    /**
+     * @param tokens
+     * <br>Not null
+     * <br>Input-output
+     */
     static final void extractValues(final List<Object> tokens) {
         for (int i = 0; i < tokens.size(); ++i) {
             if (tokens.get(i) instanceof GeneratedToken) {
