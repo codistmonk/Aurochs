@@ -35,7 +35,7 @@ import net.sourceforge.aurochs.Grammar.SpecialSymbol;
 import net.sourceforge.aurochs.LALR1LexerBuilder.LRLexer;
 
 /**
- * To define a parser, implement {@link InlineParserBuilder#parser()} with instructions of the form:<code>
+ * To define a parser using inline action, implement {@link InlineParserBuilder#parser()} with instructions of the form:<code>
  * <br>if (this.rules()) {
  * <br>&nbsp;&nbsp;this.addXxx(...);
  * <br>&nbsp;&nbsp;...
@@ -45,7 +45,7 @@ import net.sourceforge.aurochs.LALR1LexerBuilder.LRLexer;
  * <br>}
  * </code>
  * <br>
- * <br>Example ("letter counter" program):<code>
+ * <br>Example ("letter counter" program using inline action):<code>
  * <br>@Override
  * <br>public final void parser() {
  * <br>&nbsp;&nbsp;// &lt;lexer-rules&gt;
@@ -100,8 +100,16 @@ public abstract class InlineParserBuilder {
     private InlineAction inlineAction;
 
     protected InlineParserBuilder() {
+        this(false);
+    }
+
+    /**
+     * @param useInlineAction
+     * <br>Range: any boolean
+     */
+    protected InlineParserBuilder(final boolean useInlineAction) {
         this.actionRules = new ArrayList<Rule>();
-        this.inlineAction = this.new InlineAction();
+        this.inlineAction = useInlineAction ? this.new InlineAction() : null;
     }
 
     final void resetActionRuleIndex() {
@@ -197,10 +205,14 @@ public abstract class InlineParserBuilder {
      * <br>Will become reference
      * @param development
      * <br>Not null
+     * @return
+     * <br>Not null
+     * <br>Maybe new
+     * <br>Reference
      * @throws IllegalArgumentException if {@code nonterminal} is {@link SpecialSymbol#END_TERMINAL}
      */
-    protected final void addTokenRule(final Object nonterminal, final Object... development) {
-        this.setActionRule(this.getLexerBuilder().addTokenRule(nonterminal, development));
+    protected final Rule addTokenRule(final Object nonterminal, final Object... development) {
+        return this.setActionRule(this.getLexerBuilder().addTokenRule(nonterminal, development));
     }
 
     /**
@@ -209,10 +221,14 @@ public abstract class InlineParserBuilder {
      * <br>Will become reference
      * @param regularDevelopment 
      * <br>Not null
+     * @return
+     * <br>Not null
+     * <br>Maybe new
+     * <br>Reference
      * @throws IllegalArgumentException if {@code nonterminal} is {@link SpecialSymbol#END_TERMINAL}
      */
-    protected final void addTokenRule(final Object nonterminal, final Regular regularDevelopment) {
-        this.setActionRule(this.getLexerBuilder().addTokenRule(nonterminal, regularDevelopment));
+    protected final Rule addTokenRule(final Object nonterminal, final Regular regularDevelopment) {
+        return this.setActionRule(this.getLexerBuilder().addTokenRule(nonterminal, regularDevelopment));
     }
 
     /**
@@ -221,10 +237,14 @@ public abstract class InlineParserBuilder {
      * <br>Will become reference
      * @param development
      * <br>Not null
+     * @return
+     * <br>Not null
+     * <br>Maybe new
+     * <br>Reference
      * @throws IllegalArgumentException if {@code nonterminal} is {@link SpecialSymbol#END_TERMINAL}
      */
-    protected final void addVerbatimTokenRule(final Object nonterminal, final Object... development) {
-        this.setActionRule(this.getLexerBuilder().addVerbatimTokenRule(nonterminal, development));
+    protected final Rule addVerbatimTokenRule(final Object nonterminal, final Object... development) {
+        return this.setActionRule(this.getLexerBuilder().addVerbatimTokenRule(nonterminal, development));
     }
 
     /**
@@ -233,10 +253,14 @@ public abstract class InlineParserBuilder {
      * <br>Will become reference
      * @param regularDevelopment
      * <br>Not null
+     * @return
+     * <br>Not null
+     * <br>Maybe new
+     * <br>Reference
      * @throws IllegalArgumentException if {@code nonterminal} is {@link SpecialSymbol#END_TERMINAL}
      */
-    protected final void addVerbatimTokenRule(final Object nonterminal, final Regular regularDevelopment) {
-        this.setActionRule(this.getLexerBuilder().addVerbatimTokenRule(nonterminal, regularDevelopment));
+    protected final Rule addVerbatimTokenRule(final Object nonterminal, final Regular regularDevelopment) {
+        return this.setActionRule(this.getLexerBuilder().addVerbatimTokenRule(nonterminal, regularDevelopment));
     }
 
     /**
@@ -245,10 +269,14 @@ public abstract class InlineParserBuilder {
      * <br>Will become reference
      * @param development
      * <br>Not null
+     * @return
+     * <br>Not null
+     * <br>Maybe new
+     * <br>Reference
      * @throws IllegalArgumentException if {@code nonterminal} is {@link SpecialSymbol#END_TERMINAL}
      */
-    protected final void addNontokenRule(final Object nonterminal, final Object... development) {
-        this.setActionRule(this.getLexerBuilder().addNontokenRule(nonterminal, development));
+    protected final Rule addNontokenRule(final Object nonterminal, final Object... development) {
+        return this.setActionRule(this.getLexerBuilder().addNontokenRule(nonterminal, development));
     }
 
     /**
@@ -257,10 +285,14 @@ public abstract class InlineParserBuilder {
      * <br>Will become reference
      * @param regularDevelopment
      * <br>Not null
+     * @return
+     * <br>Not null
+     * <br>Maybe new
+     * <br>Reference
      * @throws IllegalArgumentException if {@code nonterminal} is {@link SpecialSymbol#END_TERMINAL}
      */
-    protected final void addNontokenRule(final Object nonterminal, final Regular regularDevelopment) {
-        this.setActionRule(this.getLexerBuilder().addNontokenRule(nonterminal, regularDevelopment));
+    protected final Rule addNontokenRule(final Object nonterminal, final Regular regularDevelopment) {
+        return this.setActionRule(this.getLexerBuilder().addNontokenRule(nonterminal, regularDevelopment));
     }
 
     /**
@@ -269,10 +301,14 @@ public abstract class InlineParserBuilder {
      * <br>Will become reference
      * @param development
      * <br>Not null
+     * @return
+     * <br>Not null
+     * <br>Maybe new
+     * <br>Reference
      * @throws IllegalArgumentException if {@code nonterminal} is {@link SpecialSymbol#END_TERMINAL}
      */
-    protected final void addHelperRule(final Object nonterminal, final Object... development) {
-        this.setActionRule(this.getLexerBuilder().addHelperRule(nonterminal, development));
+    protected final Rule addHelperRule(final Object nonterminal, final Object... development) {
+        return this.setActionRule(this.getLexerBuilder().addHelperRule(nonterminal, development));
     }
 
     /**
@@ -281,10 +317,14 @@ public abstract class InlineParserBuilder {
      * <br>Will become reference
      * @param regularDevelopment
      * <br>Not null
+     * @return
+     * <br>Not null
+     * <br>Maybe new
+     * <br>Reference
      * @throws IllegalArgumentException if {@code nonterminal} is {@link SpecialSymbol#END_TERMINAL}
      */
-    protected final void addHelperRule(final Object nonterminal, final Regular regularDevelopment) {
-        this.setActionRule(this.getLexerBuilder().addHelperRule(nonterminal, regularDevelopment));
+    protected final Rule addHelperRule(final Object nonterminal, final Regular regularDevelopment) {
+        return this.setActionRule(this.getLexerBuilder().addHelperRule(nonterminal, regularDevelopment));
     }
 
     /**
@@ -298,30 +338,6 @@ public abstract class InlineParserBuilder {
     protected final void addLeftAssociativeBinaryOperator(final Object symbol, final int priority) {
         this.getParserBuilder().addLeftAssociativeBinaryOperator(symbol);
         this.getParserBuilder().setPriority(symbol, (short) priority);
-    }
-
-    /**
-     * @param nonterminal
-     * <br>Maybe null
-     * <br>Will become reference
-     * @param development
-     * <br>Not null
-     * @throws IllegalArgumentException if {@code nonterminal} is {@link SpecialSymbol#END_TERMINAL}
-     */
-    protected final void addRule(final Object nonterminal, final Object... development) {
-        this.setActionRule(this.getParserBuilder().addRule(nonterminal, development));
-    }
-
-    /**
-     * @param nonterminal
-     * <br>Maybe null
-     * <br>Will become reference
-     * @param regularDevelopment
-     * <br>Not null
-     * @throws IllegalArgumentException if {@code nonterminal} is {@link SpecialSymbol#END_TERMINAL}
-     */
-    protected final void addRule(final Object nonterminal, final Regular regularDevelopment) {
-        this.setActionRule(this.getParserBuilder().addRule(nonterminal, regularDevelopment));
     }
 
     /**
@@ -339,6 +355,38 @@ public abstract class InlineParserBuilder {
         this.getParserBuilder().setPriority(symbol, (short) priority);
 
         return false;
+    }
+
+    /**
+     * @param nonterminal
+     * <br>Maybe null
+     * <br>Will become reference
+     * @param development
+     * <br>Not null
+     * @return
+     * <br>Not null
+     * <br>Maybe new
+     * <br>Reference
+     * @throws IllegalArgumentException if {@code nonterminal} is {@link SpecialSymbol#END_TERMINAL}
+     */
+    protected final Rule addRule(final Object nonterminal, final Object... development) {
+        return this.setActionRule(this.getParserBuilder().addRule(nonterminal, development));
+    }
+
+    /**
+     * @param nonterminal
+     * <br>Maybe null
+     * <br>Will become reference
+     * @param regularDevelopment
+     * <br>Not null
+     * @return
+     * <br>Not null
+     * <br>Maybe new
+     * <br>Reference
+     * @throws IllegalArgumentException if {@code nonterminal} is {@link SpecialSymbol#END_TERMINAL}
+     */
+    protected final Rule addRule(final Object nonterminal, final Regular regularDevelopment) {
+        return this.setActionRule(this.getParserBuilder().addRule(nonterminal, regularDevelopment));
     }
 
     /**
@@ -372,11 +420,17 @@ public abstract class InlineParserBuilder {
      * @param rule
      * <br>Not null
      * <br>Will become reference
+     * @return <code>rule</code>
+     * <br>Not null
      */
-    private final void setActionRule(final Rule rule) {
-        rule.getActions().add(this.inlineAction);
+    private final Rule setActionRule(final Rule rule) {
+        if (this.inlineAction != null) {
+            rule.getActions().add(this.inlineAction);
+        }
 
         this.actionRules.set(this.actionRuleIndex, rule);
+
+        return rule;
     }
 
     /**
