@@ -164,6 +164,8 @@ public final class LALR1ParserBuilder {
     /**
      * @param symbol
      * <br>Maybe null
+     * <br>May become reference
+     * @throws IllegalStateException If <code>symbol</code> is already registered as right-associative
      */
     public final void addLeftAssociativeBinaryOperator(final Object symbol) {
         if (this.getGrammar().getRightAssociativeBinaryOperators().contains(symbol)) {
@@ -176,6 +178,8 @@ public final class LALR1ParserBuilder {
     /**
      * @param symbol
      * <br>Maybe null
+     * <br>May become reference
+     * @throws IllegalStateException If <code>symbol</code> is already registered as left-associative
      */
     public final void addRightAssociativeBinaryOperator(final Object symbol) {
         if (this.getGrammar().getLeftAssociativeBinaryOperators().contains(symbol)) {
