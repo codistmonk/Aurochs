@@ -37,6 +37,10 @@ import net.sourceforge.aurochs.LRParser;
  */
 public final class CalculatorB extends InlineParserBuilder {
 
+    public CalculatorB() {
+        super(true);
+    }
+
     @Override
     public final void parser() {
         // <lexer-rules>
@@ -60,13 +64,13 @@ public final class CalculatorB extends InlineParserBuilder {
             this.addLeftAssociativeBinaryOperator('*', 200);
 
             this.addRule("COMMAND",    /* -> */  "quit");
-        }else if (this.action()) {
+        } else if (this.action()) {
             System.exit(0);
         }
 
         if (this.rules()) {
             this.addRule("COMMAND",    /* -> */  "EXPRESSION");
-        }else if (this.action()) {
+        } else if (this.action()) {
             System.out.println(this.value(0));
 
             this.setValue(this.value(0));
@@ -74,19 +78,19 @@ public final class CalculatorB extends InlineParserBuilder {
 
         if (this.rules()) {
             this.addRule("EXPRESSION", /* -> */  "EXPRESSION", '+', "EXPRESSION");
-        }else if (this.action()) {
+        } else if (this.action()) {
             this.setValue((Integer) this.value(0) + (Integer) this.value(2));
         }
 
         if (this.rules()) {
             this.addRule("EXPRESSION", /* -> */  "EXPRESSION", '*', "EXPRESSION");
-        }else if (this.action()) {
+        } else if (this.action()) {
             this.setValue((Integer) this.value(0) * (Integer) this.value(2));
         }
 
         if (this.rules()) {
             this.addRule("EXPRESSION", /* -> */  '(', "EXPRESSION", ')');
-        }else if (this.action()) {
+        } else if (this.action()) {
             this.setValue(this.value(1));
         }
 
