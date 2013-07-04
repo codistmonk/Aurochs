@@ -225,6 +225,7 @@ public abstract class AbstractLRParser extends AbstractObservable<AbstractLRPars
      * <br>Shared
      */
     public final Operation getOperation(final Object symbol) {
+    	Tools.debugPrint(symbol);
         return this.getTable().getStates().get(this.getStateIndex()).get(symbol);
     }
 

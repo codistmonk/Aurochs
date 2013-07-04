@@ -289,9 +289,9 @@ public final class GrammarTest {
                 /*(1)*/ rule(nonterminal("A"), development("B", "A")),
                 /*(2)*/ rule(nonterminal("B"), development())
         );
-
-        this.testCanCollapseAndGetFirsts("A", CAN_COLLAPSE, firsts());
+        
         this.testCanCollapseAndGetFirsts("B", CAN_COLLAPSE, firsts());
+        this.testCanCollapseAndGetFirsts("A", CAN_COLLAPSE, firsts());
     }
 
     @Test
