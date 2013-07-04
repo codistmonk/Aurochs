@@ -258,6 +258,7 @@ public final class Grammar implements Serializable {
 	 * <br>Range: any boolean
 	 */
 	public final boolean hasTerminal(final Object symbol) {
+		new Object();
 		return this.getTerminals().contains(symbol);
 	}
 
@@ -359,10 +360,10 @@ public final class Grammar implements Serializable {
 	/**
 	 * @author codistmonk (creation 2011-06-08)
 	 */
-	static final class Epsilon {
-
+	static final class Epsilon implements Serializable {
+		
 		private final Object nonterminal;
-
+		
 		/**
 		 * @param nonterminal
 		 * <br>Maybe null
@@ -371,7 +372,7 @@ public final class Grammar implements Serializable {
 		Epsilon(final Object nonterminal) {
 			this.nonterminal = nonterminal;
 		}
-
+		
 		/**
 		 * @return
 		 * <br>Maybe null
@@ -380,29 +381,29 @@ public final class Grammar implements Serializable {
 		public final Object getNonterminal() {
 			return this.nonterminal;
 		}
-
+		
 		@Override
 		public final boolean equals(final Object object) {
 			final Epsilon that = cast(this.getClass(), object);
 
 			return that != null && Tools.equals(this.getNonterminal(), that.getNonterminal());
 		}
-
+		
 		@Override
 		public final int hashCode() {
 			return Tools.hashCode(this.getNonterminal());
 		}
-
+		
 		@Override
 		public final String toString() {
 			return "(" + this.getNonterminal() + ")";
 		}
-
+		
 		/**
 		 * {@value}.
 		 */
 		private static final long serialVersionUID = -5270159839679055118L;
-
+		
 		/**
 		 * @param symbolOrEpsilon
 		 * <br>Maybe null
@@ -414,10 +415,10 @@ public final class Grammar implements Serializable {
 			if (symbolOrEpsilon instanceof Epsilon) {
 				return (Epsilon) symbolOrEpsilon;
 			}
-
+			
 			return new Epsilon(symbolOrEpsilon);
 		}
-
+		
 	}
 
 	/**
@@ -841,7 +842,7 @@ public final class Grammar implements Serializable {
 	/**
 	 * @author codistmonk (creation 2011-09-08)
 	 */
-	public static interface Action {
+	public static interface Action extends Serializable {
 
 		/**
 		 * @param rule
@@ -870,7 +871,7 @@ public final class Grammar implements Serializable {
 	/**
 	 * @author codistmonk (creation 2011-05-25)
 	 */
-	public static interface Regular {
+	public static interface Regular extends Serializable {
 
 		/**
 		 * @param grammar
@@ -886,10 +887,13 @@ public final class Grammar implements Serializable {
 		/**
 		 * @author codistmonk (creation 2011-09-08)
 		 */
-		static final class GeneratedSymbol {
-
-			// Deliberately left empty
-
+		static final class GeneratedSymbol implements Serializable {
+			
+			/**
+			 * {@value}.
+			 */
+			private static final long serialVersionUID = -3606871660606321368L;
+			
 		}
 
 	}
@@ -898,9 +902,9 @@ public final class Grammar implements Serializable {
 	 * @author codistmonk (creation 2011-05-25)
 	 */
 	public static final class RegularSymbol implements Regular {
-
+		
 		private final Object symbol;
-
+		
 		/**
 		 * @param symbol
 		 * <br>Maybe null
@@ -909,7 +913,7 @@ public final class Grammar implements Serializable {
 		public RegularSymbol(final Object symbol) {
 			this.symbol = symbol;
 		}
-
+		
 		/**
 		 * @return
 		 * <br>Maybe null
@@ -918,23 +922,28 @@ public final class Grammar implements Serializable {
 		public final Object getSymbol() {
 			return this.symbol;
 		}
-
+		
 		@Override
 		public final Object getOrCreateSymbol(final Grammar grammar) {
 			ignore(grammar);
-
+			
 			return this.getSymbol();
 		}
-
+		
+		/**
+		 * {@value}.
+		 */
+		private static final long serialVersionUID = 1180243658527430489L;
+		
 	}
 
 	/**
 	 * @author codistmonk (creation 2011-05-25)
 	 */
 	public static abstract class AbstractRegularGroup implements Regular {
-
+		
 		private final Regular[] regulars;
-
+		
 		/**
 		 * @param regulars
 		 * <br>Not null
@@ -943,7 +952,7 @@ public final class Grammar implements Serializable {
 		public AbstractRegularGroup(final Regular... regulars) {
 			this.regulars = regulars;
 		}
-
+		
 		/**
 		 * @return
 		 * <br>Not null
@@ -952,13 +961,19 @@ public final class Grammar implements Serializable {
 		public final Regular[] getRegulars() {
 			return this.regulars;
 		}
+		
+		/**
+		 * {@value}.
+		 */
+		private static final long serialVersionUID = -8785581382422844256L;
+		
 	}
 
 	/**
 	 * @author codistmonk (creation 2011-05-25)
 	 */
 	public static final class RegularSequence extends AbstractRegularGroup {
-
+		
 		/**
 		 * @param regulars
 		 * <br>Not null
@@ -967,7 +982,7 @@ public final class Grammar implements Serializable {
 		public RegularSequence(final Regular... regulars) {
 			super(regulars);
 		}
-
+		
 		@Override
 		public final Object getOrCreateSymbol(final Grammar grammar) {
 			final Object result = new GeneratedSymbol();
@@ -981,14 +996,19 @@ public final class Grammar implements Serializable {
 
 			return result;
 		}
-
+		
+		/**
+		 * {@value}.
+		 */
+		private static final long serialVersionUID = -1445155682409571964L;
+		
 	}
 
 	/**
 	 * @author codistmonk (creation 2011-05-25)
 	 */
 	public static final class RegularUnion extends AbstractRegularGroup {
-
+		
 		/**
 		 * @param regulars
 		 * <br>Not null
@@ -997,7 +1017,7 @@ public final class Grammar implements Serializable {
 		public RegularUnion(final Regular... regulars) {
 			super(regulars);
 		}
-
+		
 		@Override
 		public final Object getOrCreateSymbol(final Grammar grammar) {
 			final Object result = new GeneratedSymbol();
@@ -1008,16 +1028,21 @@ public final class Grammar implements Serializable {
 
 			return result;
 		}
-
+		
+		/**
+		 * {@value}.
+		 */
+		private static final long serialVersionUID = -2858281236077102040L;
+		
 	}
 
 	/**
 	 * @author codistmonk (creation 2011-05-25)
 	 */
 	public static abstract class AbstractRegularRepetition implements Regular {
-
+		
 		private final Regular repeatedRegular;
-
+		
 		/**
 		 * @param repeatedRegular
 		 * <br>Not null
@@ -1026,7 +1051,7 @@ public final class Grammar implements Serializable {
 		public AbstractRegularRepetition(final Regular repeatedRegular) {
 			this.repeatedRegular = repeatedRegular;
 		}
-
+		
 		/**
 		 * @return
 		 * <br>Not null
@@ -1035,16 +1060,21 @@ public final class Grammar implements Serializable {
 		public final Regular getRepeatedRegular() {
 			return this.repeatedRegular;
 		}
-
+		
+		/**
+		 * {@value}.
+		 */
+		private static final long serialVersionUID = -7878813071576200665L;
+		
 	}
 
 	/**
 	 * @author codistmonk (creation 2011-05-25)
 	 */
 	public static final class RegularFiniteRepetition extends AbstractRegularRepetition {
-
+		
 		private final int count;
-
+		
 		/**
 		 * @param count
 		 * <br>Range: <code>[0 .. Integer.MAX_VALUE]</code>
@@ -1056,7 +1086,7 @@ public final class Grammar implements Serializable {
 			super(repeatedRegular);
 			this.count = count;
 		}
-
+		
 		/**
 		 * @return
 		 * <br>Range: <code>[0 .. Integer.MAX_VALUE]</code>
@@ -1064,7 +1094,7 @@ public final class Grammar implements Serializable {
 		public final int getCount() {
 			return this.count;
 		}
-
+		
 		@Override
 		public final Object getOrCreateSymbol(final Grammar grammar) {
 			final Object result = new GeneratedSymbol();
@@ -1076,14 +1106,19 @@ public final class Grammar implements Serializable {
 
 			return result;
 		}
-
+		
+		/**
+		 * {@value}.
+		 */
+		private static final long serialVersionUID = 6887067771039362042L;
+		
 	}
 
 	/**
 	 * @author codistmonk (creation 2011-05-25)
 	 */
 	public static final class RegularInfiniteRepetition extends AbstractRegularRepetition {
-
+		
 		/**
 		 * @param repeatedRegular
 		 * <br>Not null
@@ -1092,7 +1127,7 @@ public final class Grammar implements Serializable {
 		public RegularInfiniteRepetition(final Regular repeatedRegular) {
 			super(repeatedRegular);
 		}
-
+		
 		@Override
 		public final Object getOrCreateSymbol(final Grammar grammar) {
 			final Object result = new GeneratedSymbol();
@@ -1102,7 +1137,12 @@ public final class Grammar implements Serializable {
 
 			return result;
 		}
-
+		
+		/**
+		 * {@value}.
+		 */
+		private static final long serialVersionUID = -7970152744029073300L;
+		
 	}
 
 	/**

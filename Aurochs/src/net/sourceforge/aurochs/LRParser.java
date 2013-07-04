@@ -24,17 +24,22 @@
 
 package net.sourceforge.aurochs;
 
+import java.io.Serializable;
 import java.util.Iterator;
-import net.sourceforge.aprog.tools.Tools;
+
 import net.sourceforge.aurochs.LALR1LexerBuilder.LRLexer;
 
 /**
  * @author codistmonk (creation 2010-10-05)
  */
-public final class LRParser extends AbstractLRParser {
-
-    private final LRLexer lexer;
-
+public final class LRParser extends AbstractLRParser implements Serializable {
+	
+	private final LRLexer lexer;
+	
+	private LRParser() {
+		this(null, null);
+	}
+	
     /**
      * @param table
      * <br>Not null
@@ -43,7 +48,7 @@ public final class LRParser extends AbstractLRParser {
     public LRParser(final LRTable table) {
         this(table, null);
     }
-
+    
     /**
      * @param table
      * <br>Not null
@@ -56,7 +61,7 @@ public final class LRParser extends AbstractLRParser {
         super(table);
         this.lexer = lexer;
     }
-
+    
     /**
      * @return
      * <br>Maybe null
@@ -65,7 +70,7 @@ public final class LRParser extends AbstractLRParser {
     public final LRLexer getLexer() {
         return this.lexer;
     }
-
+    
     @Override
     protected final void doParse(final Iterator<?> input) {
         if (this.getLexer() != null) {
@@ -74,5 +79,10 @@ public final class LRParser extends AbstractLRParser {
             super.doParse(input);
         }
     }
-
+	
+    /**
+	 * {@value}.
+	 */
+	private static final long serialVersionUID = -6470123182027946793L;
+	
 }

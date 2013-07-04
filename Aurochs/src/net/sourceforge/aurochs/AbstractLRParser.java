@@ -27,6 +27,7 @@ package net.sourceforge.aurochs;
 import static net.sourceforge.aprog.tools.Tools.*;
 import static net.sourceforge.aurochs.Grammar.SpecialSymbol.*;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.Iterator;
@@ -42,9 +43,9 @@ import net.sourceforge.aurochs.LRTable.*;
 /**
  * @author codistmonk (creation 2011-09-08)
  */
-public abstract class AbstractLRParser extends AbstractObservable<AbstractLRParser.Listener> {
-
-    private final LRTable table;
+public abstract class AbstractLRParser extends AbstractObservable<AbstractLRParser.Listener> implements Serializable {
+	
+	private final LRTable table;
 
     private final Deque<Object> inputTokens;
 
@@ -225,7 +226,6 @@ public abstract class AbstractLRParser extends AbstractObservable<AbstractLRPars
      * <br>Shared
      */
     public final Operation getOperation(final Object symbol) {
-    	Tools.debugPrint(symbol);
         return this.getTable().getStates().get(this.getStateIndex()).get(symbol);
     }
 
@@ -411,30 +411,35 @@ public abstract class AbstractLRParser extends AbstractObservable<AbstractLRPars
         }
 
     }
-
+	
+    /**
+	 * {@value}.
+	 */
+	private static final long serialVersionUID = 46802304178457724L;
+	
     /**
      * @author codistmonk (creation 2010-10-07)
      */
-    public static final class Stack {
-
-        private final List<Object> tokens;
-
+    public static final class Stack implements Serializable {
+    	
+		private final List<Object> tokens;
+		
         private final List<Integer> stateIndices;
-
+        
         public Stack() {
             this.tokens = new LinkedList<Object>();
             this.stateIndices = new LinkedList<Integer>();
 
             this.reset();
         }
-
+        
         public final void reset() {
             this.tokens.clear();
             this.stateIndices.clear();
 
             this.push(null, 0);
         }
-
+        
         /**
          *
          * @param token
@@ -447,7 +452,7 @@ public abstract class AbstractLRParser extends AbstractObservable<AbstractLRPars
             this.tokens.add(token);
             this.stateIndices.add(stateIndex);
         }
-
+        
         /**
          *
          * @param elementCount
@@ -467,7 +472,7 @@ public abstract class AbstractLRParser extends AbstractObservable<AbstractLRPars
 
             return result;
         }
-
+        
         /**
          *
          * @return The top state index
@@ -476,7 +481,7 @@ public abstract class AbstractLRParser extends AbstractObservable<AbstractLRPars
         public final int peek() {
             return this.stateIndices.get(this.getElementCount() - 1);
         }
-
+        
         /**
          *
          * @return
@@ -485,23 +490,28 @@ public abstract class AbstractLRParser extends AbstractObservable<AbstractLRPars
         public final int getElementCount() {
             return this.tokens.size();
         }
-
+        
         @Override
         public final String toString() {
             return this.tokens.toString();
         }
-
+    	
+        /**
+		 * {@value}.
+		 */
+		private static final long serialVersionUID = 2306373600825026148L;
+		
     }
 
     /**
      * @author codistmonk (2010-10-07)
      */
-    public static final class GeneratedToken {
-
-        private final Object symbol;
-
+    public static final class GeneratedToken implements Serializable {
+    	
+		private final Object symbol;
+		
         private Object value;
-
+        
         /**
          *
          * @param symbol
@@ -511,19 +521,19 @@ public abstract class AbstractLRParser extends AbstractObservable<AbstractLRPars
         public GeneratedToken(final Object symbol) {
             this.symbol = symbol;
         }
-
+        
         @Override
         public final boolean equals(final Object object) {
             final GeneratedToken that = cast(this.getClass(), object);
 
             return that != null && Tools.equals(this.getSymbol(), that.getSymbol()) || Tools.equals(this.getSymbol(), object);
         }
-
+        
         @Override
         public final int hashCode() {
             return Tools.hashCode(this.getSymbol());
         }
-
+        
         /**
          *
          * @return
@@ -533,7 +543,7 @@ public abstract class AbstractLRParser extends AbstractObservable<AbstractLRPars
         public final Object getSymbol() {
             return this.symbol;
         }
-
+        
         /**
          *
          * @param <T> The expected user object type
@@ -545,7 +555,7 @@ public abstract class AbstractLRParser extends AbstractObservable<AbstractLRPars
         public final <T> T getValue() {
             return (T) this.value;
         }
-
+        
         /**
          *
          * @param value
@@ -555,12 +565,17 @@ public abstract class AbstractLRParser extends AbstractObservable<AbstractLRPars
         public final void setValue(final Object value) {
             this.value = value;
         }
-
+        
         @Override
         public String toString() {
             return this.getSymbol() + "(" + this.getValue() + ")";
         }
-
+    	
+        /**
+		 * {@value}.
+		 */
+		private static final long serialVersionUID = -1854161626510416556L;
+		
         /**
          *
          * @param token
@@ -570,10 +585,10 @@ public abstract class AbstractLRParser extends AbstractObservable<AbstractLRPars
          */
         public static final Object getSymbol(final Object token) {
             final GeneratedToken generatedToken = cast(GeneratedToken.class, token);
-
+            
             return generatedToken != null ? generatedToken.getSymbol() : token;
         }
-
+        
     }
 
 }

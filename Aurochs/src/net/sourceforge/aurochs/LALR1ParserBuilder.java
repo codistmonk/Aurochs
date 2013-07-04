@@ -24,8 +24,11 @@
 
 package net.sourceforge.aurochs;
 
-import static net.sourceforge.aprog.tools.Tools.*;
+import static net.sourceforge.aprog.tools.Tools.array;
+import static net.sourceforge.aprog.tools.Tools.debugPrint;
+import static net.sourceforge.aprog.tools.Tools.getLoggerForThisMethod;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -33,8 +36,8 @@ import java.util.Map;
 import java.util.logging.Level;
 
 import net.sourceforge.aprog.tools.Tools;
-import net.sourceforge.aurochs.Grammar.Rule;
 import net.sourceforge.aurochs.Grammar.Regular;
+import net.sourceforge.aurochs.Grammar.Rule;
 import net.sourceforge.aurochs.LALR1ClosureTable.Closure;
 import net.sourceforge.aurochs.LALR1ClosureTable.Item;
 import net.sourceforge.aurochs.LALR1ClosureTable.Kernel;
@@ -44,36 +47,41 @@ import net.sourceforge.aurochs.LRTable.BeforeOperationAddedEvent;
 /**
  * @author codistmonk (creation 2010-10-06)
  */
-public final class LALR1ParserBuilder {
-
+public final class LALR1ParserBuilder implements Serializable {
+	
 	private final Grammar grammar;
-
+	
 	private boolean epsilonProdutionsAllowed;
-
+	
 	private final List<LRTable.Listener> listeners;
-
+	
 	public LALR1ParserBuilder() {
 		this.grammar = new Grammar();
 		this.listeners = new ArrayList<LRTable.Listener>();
-
+		
 		this.addListener(new LRTable.Listener() {
-
+			
 			@Override
 			public final void beforeOperationAdded(final BeforeOperationAddedEvent event) {
 				if (event.getResolution() == null) {
 					final String message = "Conflict " + event.getOldOperation() + "/" + event.getNewOperation() +
 							" in state " + event.getStateIndex() + " on symbol " + event.getSymbol() +
 							" for paths " + event.getPathsToState();
-
+					
 					event.setResolution(event.getOldOperation());
-
+					
 					getLoggerForThisMethod().log(Level.WARNING, "{0} resolved in favor of {1}", array(message, event.getResolution()));
 				}
 			}
-
+			
+			/**
+			 * {@value}.
+			 */
+			private static final long serialVersionUID = 1677924585453891200L;
+			
 		});
 	}
-
+	
 	/**
 	 * @param listener
 	 * <br>Not null
@@ -82,7 +90,7 @@ public final class LALR1ParserBuilder {
 	public final void addListener(final LRTable.Listener listener) {
 		this.listeners.add(listener);
 	}
-
+	
 	/**
 	 * @param listener
 	 * <br>Maybe null
@@ -90,7 +98,7 @@ public final class LALR1ParserBuilder {
 	public final void removeListener(final LRTable.Listener listener) {
 		this.listeners.remove(listener);
 	}
-
+	
 	/**
 	 * @return
 	 * <br>Not null
@@ -99,7 +107,7 @@ public final class LALR1ParserBuilder {
 	public final LRTable.Listener[] getListeners() {
 		return this.listeners.toArray(new LRTable.Listener[this.listeners.size()]);
 	}
-
+	
 	/**
 	 * @param symbol
 	 * <br>Maybe null
@@ -113,7 +121,7 @@ public final class LALR1ParserBuilder {
 			throw new IllegalStateException("Priority already defined for symbol " + symbol);
 		}
 	}
-
+	
 	/**
 	 * @return
 	 * <br>Range: any boolean
@@ -121,7 +129,7 @@ public final class LALR1ParserBuilder {
 	public final boolean isEpsilonProdutionsAllowed() {
 		return this.epsilonProdutionsAllowed;
 	}
-
+	
 	/**
 	 * @param epsilonProdutionsAllowed
 	 * <br>Range: any boolean
@@ -129,7 +137,7 @@ public final class LALR1ParserBuilder {
 	public void setEpsilonProdutionsAllowed(final boolean epsilonProdutionsAllowed) {
 		this.epsilonProdutionsAllowed = epsilonProdutionsAllowed;
 	}
-
+	
 	/**
 	 *
 	 * @param nonterminal
@@ -145,7 +153,7 @@ public final class LALR1ParserBuilder {
 	public final Rule addRule(final Object nonterminal, final Object... development) {
 		return this.getGrammar().addRule(nonterminal, development);
 	}
-
+	
 	/**
 	 * @param nonterminal
 	 * <br>Maybe null
@@ -160,7 +168,7 @@ public final class LALR1ParserBuilder {
 	public final Rule addRule(final Object nonterminal, final Regular regularDevelopment) {
 		return this.getGrammar().addRule(nonterminal, regularDevelopment);
 	}
-
+	
 	/**
 	 * @param symbol
 	 * <br>Maybe null
@@ -171,10 +179,10 @@ public final class LALR1ParserBuilder {
 		if (this.getGrammar().getRightAssociativeBinaryOperators().contains(symbol)) {
 			throw new IllegalStateException(symbol + " is right-associative");
 		}
-
+		
 		this.getGrammar().getLeftAssociativeBinaryOperators().add(symbol);
 	}
-
+	
 	/**
 	 * @param symbol
 	 * <br>Maybe null
@@ -185,10 +193,10 @@ public final class LALR1ParserBuilder {
 		if (this.getGrammar().getLeftAssociativeBinaryOperators().contains(symbol)) {
 			throw new IllegalStateException(symbol + " is left-associative");
 		}
-
+		
 		this.getGrammar().getRightAssociativeBinaryOperators().add(symbol);
 	}
-
+	
 	/**
 	 *
 	 * @return
@@ -197,10 +205,10 @@ public final class LALR1ParserBuilder {
 	 */
 	public final LRTable newTable() {
 		this.maybeRemoveEpsilonRules();
-
+		
 		return newTable(new LALR1ClosureTable(this.getGrammar()), this.getListeners());
 	}
-
+	
 	/**
 	 * @return
 	 * <br>Not null
@@ -209,7 +217,7 @@ public final class LALR1ParserBuilder {
 	public final LRParser newParser() {
 		return new LRParser(this.newTable());
 	}
-
+	
 	/**
 	 * @param lexer
 	 * <br>Maybe null
@@ -221,7 +229,7 @@ public final class LALR1ParserBuilder {
 	public final LRParser newParser(final LRLexer lexer) {
 		return new LRParser(this.newTable(), lexer);
 	}
-
+	
 	/**
 	 * @return
 	 * <br>Not null
@@ -230,10 +238,10 @@ public final class LALR1ParserBuilder {
 	final Grammar getGrammar() {
 		return this.grammar;
 	}
-
+	
 	private final void maybeRemoveEpsilonRules() {
 		final boolean debug = false;
-
+		
 		// <editor-fold defaultstate="collapsed" desc="DEBUG">
 		if (debug) {
 			for (final Rule rule : this.getGrammar().getRules()) {
@@ -241,12 +249,12 @@ public final class LALR1ParserBuilder {
 			}
 		}
 		// </editor-fold>
-
+		
 		if (!this.isEpsilonProdutionsAllowed()) {
 			this.normalizeEpsilonNonterminalUses();
 			this.normalizeInitialRule();
 		}
-
+		
 		// <editor-fold defaultstate="collapsed" desc="DEBUG">
 		if (debug) {
 			for (final Rule rule : this.getGrammar().getRules()) {
@@ -255,7 +263,7 @@ public final class LALR1ParserBuilder {
 		}
 		// </editor-fold>
 	}
-
+	
 	private final void normalizeEpsilonNonterminalUses() {
 		for (final Object nonterminal : this.getGrammar().getNonterminals()) {
 			if (this.getGrammar().canCollapse(nonterminal)) {
@@ -327,7 +335,7 @@ public final class LALR1ParserBuilder {
 		final List<Rule> initialRules = this.getGrammar().getRules(Grammar.SpecialSymbol.INITIAL_NONTERMINAL);
 
 		if (initialRules.size() > 1) {
-			final Object nonterminal = new Object();
+			final Object nonterminal = new Nonterminal();
 
 			for (final Rule rule : initialRules) {
 				this.getGrammar().addRule(nonterminal, rule.getDevelopment().toArray());
@@ -346,7 +354,12 @@ public final class LALR1ParserBuilder {
 			initialRules.get(0).getDevelopment().set(0, nonterminal);
 		}
 	}
-
+	
+	/**
+	 * {@value}.
+	 */
+	private static final long serialVersionUID = -5781411624462849929L;
+	
 	/**
 	 * @param list
 	 * <br>Not null
@@ -413,5 +426,17 @@ public final class LALR1ParserBuilder {
 
 		return result;
 	}
-
+	
+	/**
+	 * @author codistmonk (creation 2013-07-04)
+	 */
+	private static final class Nonterminal implements Serializable {
+		
+		/**
+		 * {@value}.
+		 */
+		private static final long serialVersionUID = 4213757632605780965L;
+		
+	}
+	
 }
