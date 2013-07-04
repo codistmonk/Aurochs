@@ -527,7 +527,7 @@ public final class LRTable extends AbstractObservable<LRTable.Listener> implemen
     /**
      * @author codistmonk (creation 2011-06-08)
      */
-    public static interface Listener {
+    public static interface Listener extends Serializable {
 
         /**
          * @param event

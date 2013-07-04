@@ -26,6 +26,7 @@ package net.sourceforge.aurochs;
 
 import static net.sourceforge.aprog.tools.Tools.*;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -41,16 +42,16 @@ import net.sourceforge.aurochs.Grammar.SpecialSymbol;
 /**
  * @author codistmonk (creation 2011-09-06)
  */
-public final class LALR1LexerBuilder {
-
+public final class LALR1LexerBuilder implements Serializable {
+	
     private final LALR1ParserBuilder lexerTableBuilder;
-
+    
     private final Set<Object> tokens;
-
+    
     private final Set<Object> nontokens;
-
+    
     private final Set<Object> verbatimTokenNonterminals;
-
+    
     public LALR1LexerBuilder() {
         this.lexerTableBuilder = new LALR1ParserBuilder();
         this.tokens = new HashSet<Object>();
@@ -59,7 +60,7 @@ public final class LALR1LexerBuilder {
 
         this.lexerTableBuilder.addRule(Special.ROOT);
     }
-
+    
     /**
      * @return
      * <br>Not null
@@ -73,7 +74,7 @@ public final class LALR1LexerBuilder {
 
         return this.lexerTableBuilder.newTable();
     }
-
+    
     /**
      * @param nonterminal
      * <br>Maybe null
@@ -91,7 +92,7 @@ public final class LALR1LexerBuilder {
 
         return this.addHelperRule(nonterminal, development);
     }
-
+    
     /**
      * @param nonterminal
      * <br>Maybe null
@@ -108,7 +109,7 @@ public final class LALR1LexerBuilder {
 
         return this.addHelperRule(nonterminal, regularDevelopment);
     }
-
+    
     /**
      * @param nonterminal
      * <br>Maybe null
@@ -126,7 +127,7 @@ public final class LALR1LexerBuilder {
 
         return this.addHelperRule(nonterminal, development);
     }
-
+    
     /**
      * @param nonterminal
      * <br>Maybe null
@@ -143,7 +144,7 @@ public final class LALR1LexerBuilder {
 
         return this.addHelperRule(nonterminal, regularDevelopment);
     }
-
+    
     /**
      * @param nonterminal
      * <br>Maybe null
@@ -161,7 +162,7 @@ public final class LALR1LexerBuilder {
 
         return this.addHelperRule(nonterminal, development);
     }
-
+    
     /**
      * @param nonterminal
      * <br>Maybe null
@@ -178,7 +179,7 @@ public final class LALR1LexerBuilder {
 
         return this.addHelperRule(nonterminal, regularDevelopment);
     }
-
+    
     /**
      * @param nonterminal
      * <br>Maybe null
@@ -194,7 +195,7 @@ public final class LALR1LexerBuilder {
     public final Rule addHelperRule(final Object nonterminal, final Object... development) {
         return this.lexerTableBuilder.addRule(nonterminal, development);
     }
-
+    
     /**
      * @param nonterminal
      * <br>Maybe null
@@ -209,7 +210,7 @@ public final class LALR1LexerBuilder {
     public final Rule addHelperRule(final Object nonterminal, final Regular regularDevelopment) {
         return this.lexerTableBuilder.addRule(nonterminal, regularDevelopment);
     }
-
+    
     /**
      * @param nonterminal
      * <br>Maybe null
@@ -222,7 +223,7 @@ public final class LALR1LexerBuilder {
             this.tokens.add(nonterminal);
         }
     }
-
+    
     /**
      * @param nonterminal
      * <br>Maybe null
@@ -235,7 +236,7 @@ public final class LALR1LexerBuilder {
             this.nontokens.add(nonterminal);
         }
     }
-
+    
     /**
      * @param nonterminal
      * <br>Maybe null
@@ -248,7 +249,7 @@ public final class LALR1LexerBuilder {
             this.verbatimTokenNonterminals.add(nonterminal);
         }
     }
-
+    
     /**
      * @return
      * <br>Not null
@@ -262,7 +263,7 @@ public final class LALR1LexerBuilder {
 
         return result;
     }
-
+    
     /**
      * @param input
      * <br>Not null
@@ -274,7 +275,12 @@ public final class LALR1LexerBuilder {
     public final Iterator<Object> tokenize(final Iterator<?> input) {
         return tokenize(this.newLexer(), input);
     }
-
+	
+	/**
+	 * {@value}.
+	 */
+	private static final long serialVersionUID = -8641712690017409809L;
+    
     /**
      * @param lexer
      * <br>Not null
@@ -391,7 +397,7 @@ public final class LALR1LexerBuilder {
 
         };
     }
-
+    
     /**
      * @param token
      * <br>Maybe null
@@ -418,7 +424,7 @@ public final class LALR1LexerBuilder {
 
         return token;
     }
-
+    
     /**
      * @param token
      * <br>Maybe null
@@ -438,7 +444,7 @@ public final class LALR1LexerBuilder {
 
         return false;
     }
-
+    
     /**
      * @param tokens
      * <br>Not null
@@ -453,7 +459,7 @@ public final class LALR1LexerBuilder {
             }
         }
     }
-
+    
     /**
      * @author codistmonk (creation 2011-09-06)
      */
@@ -462,16 +468,20 @@ public final class LALR1LexerBuilder {
         ROOT;
 
     }
-
+    
     /**
      * @author codistmonk (creation 2011-09-08)
      */
-    public static final class LRLexer extends AbstractLRParser {
-
-        private final Set<Object> tokens;
-
+    public static final class LRLexer extends AbstractLRParser implements Serializable {
+    	
+		private final Set<Object> tokens;
+		
         private final Set<Object> verbatimTokenNonterminals;
-
+        
+        private LRLexer() {
+        	this(null);
+        }
+        
         /**
          *
          * @param table
@@ -483,7 +493,7 @@ public final class LALR1LexerBuilder {
             this.tokens = new HashSet<Object>();
             this.verbatimTokenNonterminals = new HashSet<Object>();
         }
-
+        
         /**
          * @return
          * <br>Not null
@@ -492,7 +502,7 @@ public final class LALR1LexerBuilder {
         final Set<Object> getTokens() {
             return this.tokens;
         }
-
+        
         /**
          * @return
          * <br>Not null
@@ -501,7 +511,12 @@ public final class LALR1LexerBuilder {
         final Set<Object> getVerbatimTokenNonterminals() {
             return this.verbatimTokenNonterminals;
         }
-
+    	
+        /**
+		 * {@value}.
+		 */
+		private static final long serialVersionUID = -5286285558542183142L;
+        
     }
-
+    
 }

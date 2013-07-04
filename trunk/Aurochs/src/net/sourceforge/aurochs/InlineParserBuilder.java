@@ -24,6 +24,7 @@
 
 package net.sourceforge.aurochs;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -79,9 +80,9 @@ import net.sourceforge.aurochs.LALR1LexerBuilder.LRLexer;
  * </code>
  * @author codistmonk (creation 2011-09-12)
  */
-public abstract class InlineParserBuilder {
-
-    private final List<Rule> actionRules;
+public abstract class InlineParserBuilder implements Serializable {
+	
+	private final List<Rule> actionRules;
 
     private int actionRuleIndex;
 
@@ -465,26 +466,36 @@ public abstract class InlineParserBuilder {
      * @author codistmonk (creation 2011-09-12)
      */
     private final class InlineAction implements Action {
-
-        /**
+    	
+		/**
          * Package-private default constructor to suppress visibility warnings.
          */
         InlineAction() {
             // Deliberately left empty
         }
-
+        
         @Override
         public final void perform(final Rule rule, final GeneratedToken generatedToken, final List<Object> developmentTokens) {
             LRParserTools.extractValues(developmentTokens);
-
+            
             InlineParserBuilder.this.setCurrentRule(rule);
             InlineParserBuilder.this.setCurrentGeneratedToken(generatedToken);
             InlineParserBuilder.this.setCurrentValues(developmentTokens);
-
+            
             InlineParserBuilder.this.resetActionRuleIndex();
             InlineParserBuilder.this.parser();
         }
-
+    	
+        /**
+		 * {@value}.
+		 */
+		private static final long serialVersionUID = -5029287312265060325L;
+		
     }
-
+	
+    /**
+	 * {@value}.
+	 */
+	private static final long serialVersionUID = 3996216590554725502L;
+	
 }
