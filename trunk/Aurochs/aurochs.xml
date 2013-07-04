@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="create_aurochs_jar" name="Create Jar for Project Aurochs">
+	<!--ANT 1.7 is required										-->
+	<target name="create_aurochs_jar">
+		<jar destfile="aurochs-all.jar" filesetmanifest="mergewithoutmain">
+			<manifest>
+                <!-- <attribute name="Main-Class" value=""/> -->
+				<attribute name="Class-Path" value="."/>
+			</manifest>
+			<fileset file="aurochs_license.txt"/>
+			<fileset file="readme.txt"/>
+			<fileset dir="bin" excludes="**/*Test*.*">
+				<present present="srconly" targetdir="test"/>
+			</fileset>
+			<fileset dir="src"/>
+			<zipfileset excludes="META-INF/*.SF" src="lib/aprog.jar"/>
+		</jar>
+		<jar destfile="aurochs.jar" filesetmanifest="mergewithoutmain">
+			<manifest>
+				<attribute name="Class-Path" value="."/>
+			</manifest>
+			<fileset file="aurochs_license.txt"/>
+			<fileset file="readme.txt"/>
+			<fileset dir="bin" excludes="**/*Test*.*">
+				<present present="srconly" targetdir="test"/>
+			</fileset>
+			<fileset dir="src"/>
+		</jar>
+	</target>
+</project>
