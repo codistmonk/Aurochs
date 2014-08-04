@@ -97,7 +97,7 @@ public final class RegularTools {
      * <br>New
      */
     public static final RegularUnion union(final Object... symbolOrRegulars) {
-        final Regular[] regulars = new RegularSymbol[symbolOrRegulars.length];
+        final Regular[] regulars = new Regular[symbolOrRegulars.length];
 
         Tools.debugPrint(symbolOrRegulars);
 
