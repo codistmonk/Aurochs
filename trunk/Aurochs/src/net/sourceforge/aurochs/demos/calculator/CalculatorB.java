@@ -37,7 +37,7 @@ import net.sourceforge.aurochs.LRParser;
  */
 public final class CalculatorB extends InlineParserBuilder {
 
-    public CalculatorB() {
+	public CalculatorB() {
         super(true);
     }
 
@@ -104,17 +104,23 @@ public final class CalculatorB extends InlineParserBuilder {
     }
 
     /**
+	 * {@value}.
+	 */
+	private static final long serialVersionUID = 7967867136900478963L;
+
+    /**
      * @param commandLineArguments
      * <br>Unused
      */
     public static final void main(final String[] commandLineArguments) {
         final LRParser parser = new CalculatorB().newParser();
-        final Scanner scanner = new Scanner(System.in);
-
-        while (scanner.hasNext()) {
-            if (!parser.parse(input(scanner.next()))) {
-                System.err.println("Syntax error");
-            }
+        
+        try (final Scanner scanner = new Scanner(System.in)) {
+        	while (scanner.hasNext()) {
+        		if (!parser.parse(input(scanner.next()))) {
+        			System.err.println("Syntax error");
+        		}
+        	}
         }
     }
 
