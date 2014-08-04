@@ -24,7 +24,6 @@
 
 package net.sourceforge.aurochs.demos.calculator;
 
-import static net.sourceforge.aprog.tools.Tools.*;
 import static net.sourceforge.aurochs.AurochsTools.*;
 import static net.sourceforge.aurochs.LRParserTools.*;
 import static net.sourceforge.aurochs.RegularTools.*;
@@ -91,7 +90,6 @@ public final class CalculatorA {
         System.exit(0);
     }
 
-
     /**
      * @param values
      * <br>Not null
@@ -153,12 +151,12 @@ public final class CalculatorA {
     public static final void main(final String[] commandLineArguments) {
         final LRParser parser = LRParserTools.newParser(CalculatorA.class);
 
-        final Scanner scanner = new Scanner(System.in);
-
-        while (scanner.hasNext()) {
-            if (!parser.parse(input(scanner.next()))) {
-                System.err.println("Syntax error");
-            }
+        try (final Scanner scanner = new Scanner(System.in)) {
+        	while (scanner.hasNext()) {
+        		if (!parser.parse(input(scanner.next()))) {
+        			System.err.println("Syntax error");
+        		}
+        	}
         }
     }
 

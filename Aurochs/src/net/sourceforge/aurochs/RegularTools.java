@@ -25,7 +25,6 @@
 package net.sourceforge.aurochs;
 
 import net.sourceforge.aprog.tools.IllegalInstantiationException;
-import net.sourceforge.aprog.tools.Tools;
 import net.sourceforge.aurochs.Grammar.Regular;
 import net.sourceforge.aurochs.Grammar.RegularInfiniteRepetition;
 import net.sourceforge.aurochs.Grammar.RegularSequence;
@@ -98,8 +97,6 @@ public final class RegularTools {
      */
     public static final RegularUnion union(final Object... symbolOrRegulars) {
         final Regular[] regulars = new Regular[symbolOrRegulars.length];
-
-        Tools.debugPrint(symbolOrRegulars);
 
         for (int i = 0; i < regulars.length; ++i) {
             regulars[i] = symbolOrRegulars[i] instanceof Regular ? (Regular) symbolOrRegulars[i] : new RegularSymbol(symbolOrRegulars[i]);
