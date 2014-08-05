@@ -96,13 +96,57 @@ public final class RegularTools {
      * <br>New
      */
     public static final RegularUnion union(final Object... symbolOrRegulars) {
-        final Regular[] regulars = new Regular[symbolOrRegulars.length];
-
-        for (int i = 0; i < regulars.length; ++i) {
-            regulars[i] = symbolOrRegulars[i] instanceof Regular ? (Regular) symbolOrRegulars[i] : new RegularSymbol(symbolOrRegulars[i]);
-        }
+        final Regular[] regulars = regulars(symbolOrRegulars);
 
         return new RegularUnion(regulars);
     }
+    
+    /**
+     * @param symbolOrRegulars
+     * <br>Not null
+     * @return
+     * <br>Not null
+     * <br>New
+     */
+    public static final RegularSequence sequence(final Object... symbolOrRegulars) {
+    	final Regular[] regulars = regulars(symbolOrRegulars);
+    	
+    	return new RegularSequence(regulars);
+    }
+
+    /**
+     * @param charSequence
+     * <br>Not null
+     * @return
+     * <br>Not null
+     * <br>New
+     */
+    public static final RegularSequence string(final CharSequence charSequence) {
+    	final int n = charSequence.length();
+		final Regular[] regulars = new Regular[n];
+
+    	for (int i = 0; i < n; ++i) {
+    		regulars[i] = new RegularSymbol(charSequence.charAt(i));
+    	}
+
+    	return new RegularSequence(regulars);
+    }
+
+    /**
+     * @param symbolOrRegulars
+     * <br>Not null
+     * @return
+     * <br>Not null
+     * <br>New
+     */
+	public static final Regular[] regulars(final Object... symbolOrRegulars) {
+		final Regular[] result = new Regular[symbolOrRegulars.length];
+
+        for (int i = 0; i < result.length; ++i) {
+            result[i] = symbolOrRegulars[i] instanceof Regular ? (Regular) symbolOrRegulars[i] : new RegularSymbol(symbolOrRegulars[i]);
+        }
+        
+		return result;
+	}
 
 }
