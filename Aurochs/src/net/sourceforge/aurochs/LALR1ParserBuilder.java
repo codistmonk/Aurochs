@@ -432,6 +432,10 @@ public final class LALR1ParserBuilder implements Serializable {
 	 */
 	private static final class Nonterminal implements Serializable {
 		
+		Nonterminal() {
+			// NOP
+		}
+		
 		/**
 		 * {@value}.
 		 */

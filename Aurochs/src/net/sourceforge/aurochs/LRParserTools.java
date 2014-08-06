@@ -25,7 +25,6 @@
 package net.sourceforge.aurochs;
 
 import static java.util.Arrays.*;
-
 import static net.sourceforge.aprog.tools.Tools.*;
 
 import java.util.logging.Level;
@@ -122,38 +121,50 @@ public final class LRParserTools {
     private static final List<Action> getActions(final Class<?> parserClass, final String ruleName, final Object[] parser) {
         final List<Action> result = new ArrayList<Action>();
 
-        for (final Method method : parserClass.getDeclaredMethods()) {
-            if (method.getName().equals(ruleName)) {
+        for (final Method m : parserClass.getDeclaredMethods()) {
+            if (m.getName().equals(ruleName)) {
+            	final Class<?>[] parameterTypes = m.getParameterTypes();
+            	
                 result.add(new Action() {
 
-                    @Override
+					@Override
                     public final void perform(final Rule rule, final GeneratedToken generatedToken, final List<Object> developmentTokens) {
-                        final List<Object> neededArguments = new ArrayList<Object>(3);
-                        final Map<Class<?>, Object> availableArguments = new HashMap<Class<?>, Object>();
-
-                        extractValues(developmentTokens);
-
-                        availableArguments.put(Rule.class, rule);
-                        availableArguments.put(GeneratedToken.class, generatedToken);
-                        availableArguments.put(List.class, developmentTokens);
-                        availableArguments.put(Object[].class, developmentTokens.toArray());
-
-                        for (final Class<?> neededArgumentType : method.getParameterTypes()) {
-                            neededArguments.add(availableArguments.get(neededArgumentType));
-                        }
-
-                        method.setAccessible(true);
-
-                        try {
-                            if (!Modifier.isStatic(method.getModifiers()) && parser[0] == null) {
-                                parser[0] = parserClass.newInstance();
-                            }
-
-                            generatedToken.setValue(method.invoke(parser[0], neededArguments.toArray()));
-                        } catch (final Exception exception) {
-                            Logger.getLogger(LRParserTools.class.getName()).log(Level.SEVERE, null, exception);
-                        }
+						try {
+							final Method method = parserClass.getDeclaredMethod(ruleName, parameterTypes);
+							final List<Object> neededArguments = new ArrayList<Object>(3);
+							final Map<Class<?>, Object> availableArguments = new HashMap<Class<?>, Object>();
+							
+							extractValues(developmentTokens);
+							
+							availableArguments.put(Rule.class, rule);
+							availableArguments.put(GeneratedToken.class, generatedToken);
+							availableArguments.put(List.class, developmentTokens);
+							availableArguments.put(Object[].class, developmentTokens.toArray());
+							
+							for (final Class<?> neededArgumentType : method.getParameterTypes()) {
+								neededArguments.add(availableArguments.get(neededArgumentType));
+							}
+							
+							method.setAccessible(true);
+							
+							try {
+								if (!Modifier.isStatic(method.getModifiers()) && parser[0] == null) {
+									parser[0] = parserClass.newInstance();
+								}
+								
+								generatedToken.setValue(method.invoke(parser[0], neededArguments.toArray()));
+							} catch (final Exception exception) {
+								Logger.getLogger(LRParserTools.class.getName()).log(Level.SEVERE, null, exception);
+							}
+						} catch (final Exception exception) {
+							throw unchecked(exception);
+						}
                     }
+
+                    /**
+					 * {@value}.
+					 */
+					private static final long serialVersionUID = -4899332283370685664L;
 
                 });
             }
