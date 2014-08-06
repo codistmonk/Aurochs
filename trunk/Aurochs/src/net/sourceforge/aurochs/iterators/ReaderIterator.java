@@ -33,7 +33,7 @@ import java.io.Reader;
  *
  * @author codistmonk (creation 2010-10-07)
  */
-public final class ReaderIterator extends AbstractIterator<Character> {
+public final class ReaderIterator extends AbstractBufferedIterator<Character> {
 
     private final Reader input;
 

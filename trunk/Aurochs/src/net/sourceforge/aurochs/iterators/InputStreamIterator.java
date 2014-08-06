@@ -33,7 +33,7 @@ import java.io.InputStream;
  *
  * @author codistmonk (creation 2010-10-07)
  */
-public final class InputStreamIterator extends AbstractIterator<Integer> {
+public final class InputStreamIterator extends AbstractBufferedIterator<Integer> {
 
     private final InputStream input;
 
