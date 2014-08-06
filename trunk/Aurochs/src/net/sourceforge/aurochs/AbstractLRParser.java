@@ -51,7 +51,7 @@ public abstract class AbstractLRParser extends AbstractObservable<AbstractLRPars
 
     private final Stack stack;
 
-    private Iterator<Object> input;
+    private transient Iterator<Object> input;
 
     /**
      *
@@ -66,7 +66,7 @@ public abstract class AbstractLRParser extends AbstractObservable<AbstractLRPars
 
         this.addListener(new Listener() {
 
-            @Override
+			@Override
             public final void reductionOccured(final ReductionEvent event) {
                 final Rule rule = event.getReduction().getRule();
                 final List<Object> originalTokens;
@@ -95,6 +95,11 @@ public abstract class AbstractLRParser extends AbstractObservable<AbstractLRPars
             public final void unexpectedSymbolErrorOccured(final UnexpectedSymbolErrorEvent event) {
                 ignore(event);
             }
+
+            /**
+			 * {@value}.
+			 */
+			private static final long serialVersionUID = 5248635985757535015L;
 
         });
     }
@@ -315,7 +320,7 @@ public abstract class AbstractLRParser extends AbstractObservable<AbstractLRPars
     /**
      * @author codistmonk (creation 2010-10-05)
      */
-    public static interface Listener {
+    public static interface Listener extends Serializable {
 
         /**
          *

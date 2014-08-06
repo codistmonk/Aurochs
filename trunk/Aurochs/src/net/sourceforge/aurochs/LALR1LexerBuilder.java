@@ -31,8 +31,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import net.sourceforge.aurochs.AbstractLRParser.GeneratedToken;
 
+import net.sourceforge.aprog.tools.AbstractIterator;
+import net.sourceforge.aurochs.AbstractLRParser.GeneratedToken;
 import net.sourceforge.aurochs.AbstractLRParser.ReductionEvent;
 import net.sourceforge.aurochs.AbstractLRParser.UnexpectedSymbolErrorEvent;
 import net.sourceforge.aurochs.Grammar.Regular;
@@ -295,107 +296,9 @@ public final class LALR1LexerBuilder implements Serializable {
     public static final Iterator<Object> tokenize(final LRLexer lexer, final Iterator<?> input) {
         final Object[] token = new Object[1];
 
-        lexer.addListener(new LRParser.Listener() {
+        lexer.addListener(new ReductionListener(lexer, token));
 
-            @Override
-            public final void reductionOccured(final ReductionEvent event) {
-                final boolean debug = false;
-
-                // <editor-fold defaultstate="collapsed" desc="DEBUG">
-                if (debug) {
-                    debugPrint("generatedToken:", event.getGeneratedToken(), "tokens:", event.getTokens());
-                }
-                // </editor-fold>
-
-                final Object symbol = event.getGeneratedToken().getSymbol();
-
-                unwrapRegulars(event.getTokens());
-
-                if (symbol instanceof Regular.GeneratedSymbol) {
-                    event.getGeneratedToken().setValue(condense(event.getTokens()));
-                }
-
-                if (lexer.getTokens().contains(symbol)) {
-                    token[0] = new GeneratedToken(symbol);
-
-                    ((GeneratedToken) token[0]).setValue(condense(event.getTokens()));
-                } else if (lexer.getVerbatimTokenNonterminals().contains(symbol)) {
-                    switch (event.getTokens().size()) {
-                        case 0:
-                            break;
-                        case 1:
-                            token[0] = event.getTokens().get(0);
-
-                            break;
-                        default:
-                            token[0] = condense(event.getTokens());
-
-                            break;
-                    }
-                }
-            }
-
-            @Override
-            public final void unexpectedSymbolErrorOccured(final UnexpectedSymbolErrorEvent event) {
-                debugPrint(lexer.getStack(), lexer.getStateIndex(), lexer.getInputSymbol());
-            }
-
-        });
-
-        return new net.sourceforge.aprog.tools.AbstractIterator<Object>(null) {
-
-            private boolean lexerInitialized;
-
-            @Override
-            protected final boolean updateNextElement() {
-                final boolean debug = false;
-
-                if (!this.lexerInitialized) {
-                    lexer.prepareToPerformFirstOperation(input);
-
-                    this.lexerInitialized = true;
-                }
-
-                // <editor-fold defaultstate="collapsed" desc="DEBUG">
-                if (debug) {
-                    debugPrint(lexer.getTable().getGrammar().getRules());
-                    debugPrint(lexer.getTable().getStates());
-                    debugPrint(lexer.getTable().getStates().get(lexer.getStateIndex()));
-                    debugPrint("stack:", lexer.getStack(), "stateIndex:", lexer.getStateIndex(),
-                            "inputSymbol:", lexer.getInputSymbol(), "token:", token[0]);
-                }
-                // </editor-fold>
-
-                while (token[0] == null && !lexer.isDone()) {
-                    lexer.performNextOperation();
-
-                    // <editor-fold defaultstate="collapsed" desc="DEBUG">
-                    if (debug) {
-                        debugPrint("stack:", lexer.getStack(), "stateIndex:", lexer.getStateIndex(),
-                                "inputSymbol:", lexer.getInputSymbol(), "token:", token[0]);
-                    }
-                    // </editor-fold>
-                }
-
-                // <editor-fold defaultstate="collapsed" desc="DEBUG">
-                if (debug) {
-                    debugPrint("token:", token[0], "lexer.isDone():", lexer.isDone());
-                }
-                // </editor-fold>
-
-                this.setNextElement(token[0]);
-
-                token[0] = null;
-
-                return !lexer.isMatchFound();
-            }
-
-            @Override
-            public final void remove() {
-                throw new UnsupportedOperationException();
-            }
-
-        };
+        return new TokenSource(token, lexer, input);
     }
     
     /**
@@ -461,6 +364,146 @@ public final class LALR1LexerBuilder implements Serializable {
     }
     
     /**
+     * @author codistmonk (creation 2014-08-06)
+     */
+    static final class TokenSource extends AbstractIterator<Object> implements Serializable {
+    	
+		private final Object[] token;
+		
+		private final LRLexer lexer;
+		
+		private final Iterator<?> input;
+		
+		private boolean lexerInitialized;
+		
+		TokenSource(final Object[] token, final LRLexer lexer, final Iterator<?> input) {
+			super(null);
+			this.token = token;
+			this.lexer = lexer;
+			this.input = input;
+		}
+		
+		@Override
+		protected final boolean updateNextElement() {
+		    final boolean debug = false;
+
+		    if (!this.lexerInitialized) {
+		        this.lexer.prepareToPerformFirstOperation(this.input);
+
+		        this.lexerInitialized = true;
+		    }
+
+		    // <editor-fold defaultstate="collapsed" desc="DEBUG">
+		    if (debug) {
+		        debugPrint(this.lexer.getTable().getGrammar().getRules());
+		        debugPrint(this.lexer.getTable().getStates());
+		        debugPrint(this.lexer.getTable().getStates().get(this.lexer.getStateIndex()));
+		        debugPrint("stack:", this.lexer.getStack(), "stateIndex:", this.lexer.getStateIndex(),
+		                "inputSymbol:", this.lexer.getInputSymbol(), "token:", this.token[0]);
+		    }
+		    // </editor-fold>
+
+		    while (this.token[0] == null && !this.lexer.isDone()) {
+		        this.lexer.performNextOperation();
+
+		        // <editor-fold defaultstate="collapsed" desc="DEBUG">
+		        if (debug) {
+		            debugPrint("stack:", this.lexer.getStack(), "stateIndex:", this.lexer.getStateIndex(),
+		                    "inputSymbol:", this.lexer.getInputSymbol(), "token:", this.token[0]);
+		        }
+		        // </editor-fold>
+		    }
+
+		    // <editor-fold defaultstate="collapsed" desc="DEBUG">
+		    if (debug) {
+		        debugPrint("token:", this.token[0], "lexer.isDone():", this.lexer.isDone());
+		    }
+		    // </editor-fold>
+
+		    this.setNextElement(this.token[0]);
+
+		    this.token[0] = null;
+
+		    return !this.lexer.isMatchFound();
+		}
+
+		@Override
+		public final void remove() {
+		    throw new UnsupportedOperationException();
+		}
+		
+		/**
+		 * {@value}.
+		 */
+		private static final long serialVersionUID = 4861261710501138855L;
+		
+	}
+
+    /**
+     * @author codistmonk (creation 2014-08-06)
+     */
+	static final class ReductionListener implements LRParser.Listener {
+		
+		private final LRLexer lexer;
+		
+		private final Object[] token;
+
+		ReductionListener(final LRLexer lexer, final Object[] token) {
+			this.lexer = lexer;
+			this.token = token;
+		}
+
+		@Override
+		public final void reductionOccured(final ReductionEvent event) {
+		    final boolean debug = false;
+
+		    // <editor-fold defaultstate="collapsed" desc="DEBUG">
+		    if (debug) {
+		        debugPrint("generatedToken:", event.getGeneratedToken(), "tokens:", event.getTokens());
+		    }
+		    // </editor-fold>
+
+		    final Object symbol = event.getGeneratedToken().getSymbol();
+
+		    unwrapRegulars(event.getTokens());
+
+		    if (symbol instanceof Regular.GeneratedSymbol) {
+		        event.getGeneratedToken().setValue(condense(event.getTokens()));
+		    }
+
+		    if (this.lexer.getTokens().contains(symbol)) {
+		        this.token[0] = new GeneratedToken(symbol);
+
+		        ((GeneratedToken) this.token[0]).setValue(condense(event.getTokens()));
+		    } else if (this.lexer.getVerbatimTokenNonterminals().contains(symbol)) {
+		        switch (event.getTokens().size()) {
+		            case 0:
+		                break;
+		            case 1:
+		                this.token[0] = event.getTokens().get(0);
+
+		                break;
+		            default:
+		                this.token[0] = condense(event.getTokens());
+
+		                break;
+		        }
+		    }
+		}
+
+		@Override
+		public final void unexpectedSymbolErrorOccured(final UnexpectedSymbolErrorEvent event) {
+		    debugPrint(this.lexer.getStack(), this.lexer.getStateIndex(), this.lexer.getInputSymbol());
+		}
+		
+		/**
+		 * {@value}.
+		 */
+		private static final long serialVersionUID = 5249788461251321361L;
+		
+	}
+
+	/**
      * @author codistmonk (creation 2011-09-06)
      */
     static enum Special {
@@ -477,10 +520,6 @@ public final class LALR1LexerBuilder implements Serializable {
 		private final Set<Object> tokens;
 		
         private final Set<Object> verbatimTokenNonterminals;
-        
-        private LRLexer() {
-        	this(null);
-        }
         
         /**
          *

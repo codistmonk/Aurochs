@@ -144,7 +144,7 @@ public final class LRTable extends AbstractObservable<LRTable.Listener> implemen
         while (this.paths.size() <= stateIndex) {
             final ArraySet<List<Object>> pathsForState = new ArraySet<List<Object>>();
 
-            pathsForState.add(new ArrayList<Object>());
+//            pathsForState.add(new ArrayList<Object>());
 
             this.paths.add(pathsForState);
         }
@@ -172,7 +172,7 @@ public final class LRTable extends AbstractObservable<LRTable.Listener> implemen
                 addNewPath(destinationPaths, originPaths.get(i), symbol);
             }
         } else if (destinationPaths.isEmpty()) {
-            Tools.debugPrint(originStateIndex, symbol, destinationStateIndex);
+//            Tools.debugPrint(originStateIndex, symbol, destinationStateIndex);
             addNewPath(destinationPaths, this.getOrCreatePaths(originStateIndex).iterator().next(), symbol);
         }
     }
@@ -336,7 +336,7 @@ public final class LRTable extends AbstractObservable<LRTable.Listener> implemen
 
         @Override
         public final String toString() {
-            return "r" + this.getRuleIndex() + "(" + this.getPriority() + ")";
+            return "r" + this.getRuleIndex() + "(" + this.getRule() + ", " + this.getPriority() + ")";
         }
 
         /**
