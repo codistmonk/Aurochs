@@ -33,7 +33,7 @@ import java.util.List;
  * @author codistmonk (creation 2010-10-07)
  * @param <T> The element type
  */
-public abstract class AbstractIterator<T> implements Iterator<T> {
+public abstract class AbstractBufferedIterator<T> implements Iterator<T> {
 
     private final List<T> buffer;
 
@@ -41,7 +41,7 @@ public abstract class AbstractIterator<T> implements Iterator<T> {
 
     private boolean initialized;
 
-    protected AbstractIterator() {
+    protected AbstractBufferedIterator() {
         this.buffer = new LinkedList<T>();
     }
 
