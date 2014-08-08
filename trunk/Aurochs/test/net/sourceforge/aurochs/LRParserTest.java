@@ -724,6 +724,59 @@ public final class LRParserTest {
 		assertEquals(21, result[0]);
 		assertEquals(4, integerDerivationCount[0]);
 	}
+	
+	@Test
+	public final void testActions3() {
+		final boolean debug = false;
+		final Object[] result = new Integer[1];
+		
+		this.lexerBuilder.addTokenRule(INTEGER, range('0', '9'));
+		this.lexerBuilder.addVerbatimTokenRule(PLUS, '-');
+		this.lexerBuilder.addNontokenRule(_, zeroOrMore(' '));
+		
+		this.parserBuilder.addRule(PROGRAM, 'E').getActions().add(new Grammar.Action() {
+			
+			@Override
+			public final void perform(final Rule rule, final GeneratedToken generatedToken, final List<Object> developmentTokens) {
+				result[0] = ((GeneratedToken) developmentTokens.get(0)).getValue();
+			}
+			
+		});
+		this.parserBuilder.addRule('E', 'E', '-', 'E').getActions().add(new Grammar.Action() {
+			
+			@Override
+			public final void perform(final Rule rule, final GeneratedToken generatedToken, final List<Object> developmentTokens) {
+				// <editor-fold defaultstate="collapsed" desc="DEBUG">
+				if (debug) {
+					debugPrint("Derivation found:", generatedToken, "->", developmentTokens);
+				}
+				// </editor-fold>
+				
+				generatedToken.setValue((Integer) ((GeneratedToken) developmentTokens.get(0)).getValue() - (Integer) ((GeneratedToken) developmentTokens.get(2)).getValue());
+			}
+			
+		});
+		this.parserBuilder.addRule('E', INTEGER).getActions().add(new Grammar.Action() {
+			
+			@Override
+			public final void perform(final Rule rule, final GeneratedToken generatedToken, final List<Object> developmentTokens) {
+				// <editor-fold defaultstate="collapsed" desc="DEBUG">
+				if (debug) {
+					debugPrint("Derivation found:", generatedToken, "->", developmentTokens);
+				}
+				// </editor-fold>
+				
+				generatedToken.setValue(Integer.parseInt(((GeneratedToken) developmentTokens.get(0)).getValue().toString()));
+			}
+			
+		});
+		
+		this.parserBuilder.addLeftAssociativeBinaryOperator('-');
+		this.parserBuilder.setPriority('-', (short) 100);
+		
+		assertTrue(this.tokenizeAndParse(input("1 - 2 - 3")));
+		assertEquals(-4, result[0]);
+	}
 
 	@Test(expected=Grammar.AmbiguousGrammarException.class)
 	public final void testError0() {

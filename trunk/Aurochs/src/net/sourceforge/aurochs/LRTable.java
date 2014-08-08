@@ -482,9 +482,9 @@ public final class LRTable extends AbstractObservable<LRTable.Listener> {
 
             if (this.getOldOperation() != null) {
                 if (this.getOldOperation().getPriority() == this.getNewOperation().getPriority()) {
-                    if (this.isLeftAssociativeBinaryOperator(this.getSymbol())) {
+                    if (this.isRightAssociativeBinaryOperator(this.getSymbol())) {
                         this.setResolution(this.getOldOperation());
-                    } else if (this.isRightAssociativeBinaryOperator(this.getSymbol())) {
+                    } else if (this.isLeftAssociativeBinaryOperator(this.getSymbol())) {
                         // Do nothing because the new transition is correct
                     } else {
                         this.setResolution(null);
