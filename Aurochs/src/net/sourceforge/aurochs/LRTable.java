@@ -38,7 +38,7 @@ import net.sourceforge.aurochs.Grammar.Rule;
 /**
  * @author codistmonk (creation 2010-10-05)
  */
-public final class LRTable extends AbstractObservable<LRTable.Listener> implements Serializable {
+public final class LRTable extends AbstractObservable<LRTable.Listener> {
 
     private final Grammar grammar;
 
@@ -357,7 +357,7 @@ public final class LRTable extends AbstractObservable<LRTable.Listener> implemen
      */
     public final class BeforeOperationAddedEvent extends AbstractEvent<LRTable, Listener> {
 
-        private final int stateIndex;
+		private final int stateIndex;
 
         private final Object symbol;
 
@@ -516,6 +516,11 @@ public final class LRTable extends AbstractObservable<LRTable.Listener> implemen
         private final boolean isRightAssociativeBinaryOperator(final Object symbol) {
             return this.getTable().getGrammar().getRightAssociativeBinaryOperators().contains(symbol);
         }
+
+        /**
+		 * {@value}.
+		 */
+		private static final long serialVersionUID = 4711786080956716940L;
 
     }
 

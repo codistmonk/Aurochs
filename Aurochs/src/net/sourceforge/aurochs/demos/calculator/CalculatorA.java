@@ -153,7 +153,7 @@ public final class CalculatorA {
 
         try (final Scanner scanner = new Scanner(System.in)) {
         	while (scanner.hasNext()) {
-        		if (!parser.parse(input(scanner.next()))) {
+        		if (!parser.parse(input(scanner.nextLine()))) {
         			System.err.println("Syntax error");
         		}
         	}
