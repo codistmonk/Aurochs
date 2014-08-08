@@ -24,7 +24,6 @@
 
 package net.sourceforge.aurochs;
 
-import java.io.Serializable;
 import java.util.Iterator;
 
 import net.sourceforge.aurochs.LALR1LexerBuilder.LRLexer;
@@ -32,11 +31,11 @@ import net.sourceforge.aurochs.LALR1LexerBuilder.LRLexer;
 /**
  * @author codistmonk (creation 2010-10-05)
  */
-public final class LRParser extends AbstractLRParser implements Serializable {
+public final class LRParser extends AbstractLRParser {
 	
 	private final LRLexer lexer;
 	
-	private LRParser() {
+	LRParser() {
 		this(null, null);
 	}
 	

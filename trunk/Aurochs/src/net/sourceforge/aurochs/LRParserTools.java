@@ -101,7 +101,7 @@ public final class LRParserTools {
                 }
             }
 
-            return parserBuilder.newParser(lexer);
+			return parserBuilder.newParser(lexer);
         } catch (final Exception exception) {
             throw unchecked(exception);
         }

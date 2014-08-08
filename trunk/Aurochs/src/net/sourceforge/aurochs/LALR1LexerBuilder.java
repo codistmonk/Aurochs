@@ -107,7 +107,7 @@ public final class LALR1LexerBuilder implements Serializable {
      */
     public final Rule addNontokenRule(final Object nonterminal, final Regular regularDevelopment) {
         this.addNontoken(nonterminal);
-
+        
         return this.addHelperRule(nonterminal, regularDevelopment);
     }
     
@@ -366,7 +366,7 @@ public final class LALR1LexerBuilder implements Serializable {
     /**
      * @author codistmonk (creation 2014-08-06)
      */
-    static final class TokenSource extends AbstractIterator<Object> implements Serializable {
+    static final class TokenSource extends AbstractIterator<Object> {
     	
 		private final Object[] token;
 		
@@ -515,7 +515,7 @@ public final class LALR1LexerBuilder implements Serializable {
     /**
      * @author codistmonk (creation 2011-09-08)
      */
-    public static final class LRLexer extends AbstractLRParser implements Serializable {
+    public static final class LRLexer extends AbstractLRParser {
     	
 		private final Set<Object> tokens;
 		

@@ -43,7 +43,7 @@ import net.sourceforge.aurochs.LRTable.*;
 /**
  * @author codistmonk (creation 2011-09-08)
  */
-public abstract class AbstractLRParser extends AbstractObservable<AbstractLRParser.Listener> implements Serializable {
+public abstract class AbstractLRParser extends AbstractObservable<AbstractLRParser.Listener> {
 	
 	private final LRTable table;
 
@@ -342,7 +342,12 @@ public abstract class AbstractLRParser extends AbstractObservable<AbstractLRPars
      * @author codistmonk (creation 2010-10-05)
      */
     public abstract class AbstractEvent extends AbstractObservable<Listener>.AbstractEvent<AbstractLRParser, Listener> {
-        // Deliberately left empty
+
+		/**
+		 * {@value}.
+		 */
+		private static final long serialVersionUID = -3849002840909335576L;
+		
     }
 
     /**
@@ -350,7 +355,7 @@ public abstract class AbstractLRParser extends AbstractObservable<AbstractLRPars
      */
     public final class ReductionEvent extends AbstractEvent {
 
-        private final Reduction reduction;
+		private final Reduction reduction;
 
         private final GeneratedToken generatedToken;
 
@@ -403,6 +408,11 @@ public abstract class AbstractLRParser extends AbstractObservable<AbstractLRPars
             listener.reductionOccured(this);
         }
 
+        /**
+		 * {@value}.
+		 */
+		private static final long serialVersionUID = -5570573618074554967L;
+
     }
 
     /**
@@ -410,10 +420,15 @@ public abstract class AbstractLRParser extends AbstractObservable<AbstractLRPars
      */
     public final class UnexpectedSymbolErrorEvent extends AbstractEvent {
 
-        @Override
+		@Override
         protected final void notifyListener(final Listener listener) {
             listener.unexpectedSymbolErrorOccured(this);
         }
+
+        /**
+		 * {@value}.
+		 */
+		private static final long serialVersionUID = -754240450208880113L;
 
     }
 	
