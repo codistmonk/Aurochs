@@ -61,7 +61,43 @@ public final class LALR1Test {
 			
 			this.states.add(new State(grammar, set(new Item(grammar.getRules().get(0), 0, set(Special.END_TERMINAL)))));
 			
-			Tools.debugPrint(this.states.get(0).getKernel(), this.states.get(0).getClosure());
+			for (int i = 0; i < this.states.size(); ++i) {
+				final State state = this.states.get(i);
+				final Map<Object, Collection<Item>> nextKernels = new HashMap<>();
+				
+				for (final Item item : state.getClosure()) {
+					if (item.hasNextSymbol()) {
+						nextKernels.compute(item.getNextSymbol(), (k, v) -> v == null ? new HashSet<>() : v).add(
+								new Item(item.getRule(), item.getCursorIndex() + 1, item.getLookAheads()));
+					}
+				}
+				
+				for (final Map.Entry<Object, Collection<Item>> entry : nextKernels.entrySet()) {
+					boolean addNewState = true;
+					
+					Tools.debugPrint();
+					Tools.debugPrint(entry.getValue());
+					
+					for (int j = 0; j < this.states.size(); ++j) {
+						Tools.debugPrint(entry.getValue().equals(this.states.get(j).getKernel()), this.states.get(j).getKernel());
+						if (entry.getValue().equals(this.states.get(j).getKernel())) {
+							addNewState = false;
+							
+							if (state.getTransitions().put(entry.getKey(), j) != null) {
+								throw new IllegalStateException();
+							}
+						}
+					}
+					
+					if (addNewState) {
+						this.states.add(new State(grammar, entry.getValue()));
+					}
+				}
+			}
+			
+			for (final State state : this.states) {
+				Tools.debugPrint(state.getKernel());
+			}
 		}
 		
 		public final List<State> getStates() {
@@ -82,9 +118,12 @@ public final class LALR1Test {
 			
 			private final Set<Item> closure;
 			
+			private final Map<Object, Integer> transitions;
+			
 			public State(final Grammar grammar, final Collection<Item> kernel) {
 				this.kernel = kernel;
 				this.closure = new HashSet<>();
+				this.transitions = new HashMap<>();
 				
 				final List<Item> todo = new ArrayList<>(kernel);
 				
@@ -93,8 +132,7 @@ public final class LALR1Test {
 					boolean addItemToClosure = true;
 					
 					for (final Item existingItem : this.closure) {
-						if (item.getRule().getIndex() == existingItem.getRule().getIndex()
-								&& item.getCursorIndex() == existingItem.getCursorIndex()) {
+						if (item.equals(existingItem)) {
 							existingItem.getLookAheads().addAll(item.getLookAheads());
 							addItemToClosure = false;
 							break;
@@ -124,6 +162,10 @@ public final class LALR1Test {
 			
 			public final Collection<Item> getClosure() {
 				return this.closure;
+			}
+			
+			public final Map<Object, Integer> getTransitions() {
+				return this.transitions;
 			}
 			
 			/**
@@ -214,7 +256,7 @@ public final class LALR1Test {
 			
 			@Override
 			public final int hashCode() {
-				return this.getRule().getIndex() + this.getCursorIndex() + this.getLookAheads().hashCode();
+				return this.getRule().getIndex() + this.getCursorIndex();
 			}
 			
 			@Override
@@ -223,8 +265,7 @@ public final class LALR1Test {
 				
 				return that != null
 						&& this.getRule().getIndex() == that.getRule().getIndex()
-						&& this.getCursorIndex() == that.getCursorIndex() &&
-						this.getLookAheads().equals(that.getLookAheads());
+						&& this.getCursorIndex() == that.getCursorIndex();
 			}
 			
 			@Override
@@ -237,6 +278,10 @@ public final class LALR1Test {
 				
 				for (int i = 0; i < n; ++i) {
 					resultBuilder.append(i == this.getCursorIndex() ? '.' : ' ').append(development[i]);
+				}
+				
+				if (this.getCursorIndex() == n) {
+					resultBuilder.append('.');
 				}
 				
 				resultBuilder.append(", ").append(Tools.join("/", this.getLookAheads().toArray())).append(']');
