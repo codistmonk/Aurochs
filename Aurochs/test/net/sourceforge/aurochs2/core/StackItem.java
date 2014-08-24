@@ -31,7 +31,7 @@ public final class StackItem implements Serializable {
 	public final StackItem setToken(final Object token) {
 		this.token = token;
 		
-		return this;
+		return this.setDatum(token);
 	}
 	
 	public final Object getDatum() {

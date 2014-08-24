@@ -3,6 +3,7 @@ package net.sourceforge.aurochs2.core;
 import static net.sourceforge.aprog.tools.Tools.set;
 import static org.junit.Assert.*;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -10,6 +11,7 @@ import java.util.Map;
 
 import net.sourceforge.aprog.tools.Tools;
 import net.sourceforge.aurochs2.core.Grammar.Rule;
+import net.sourceforge.aurochs2.core.LRParser.ConflictResolver;
 
 import org.junit.Test;
 
@@ -61,6 +63,19 @@ public final class LALR1Test {
 		assertTrue(parser.parseAll(tokens("(1)")));
 		assertTrue(parser.parseAll(tokens("1(1)")));
 		assertTrue(parser.parseAll(tokens("1(-1)")));
+		assertTrue(parser.parseAll(tokens("-1")));
+		assertFalse(parser.parseAll(tokens("1-")));
+		
+		ConflictResolver.setup(grammar);
+		
+		{
+			final ConflictResolver resolver = new ConflictResolver();
+			
+			Tools.debugPrint(Arrays.deepToString((Object[]) parser.parseAll(tokens("1+1+1"), resolver)));
+			Tools.debugPrint(resolver.getActionChoices());
+			Tools.debugPrint(Arrays.deepToString((Object[]) parser.parseAll(tokens("1+1+1"), resolver)));
+			Tools.debugPrint(resolver.getActionChoices());
+		}
 	}
 	
 	public final TokenSource tokens(final String string) {
