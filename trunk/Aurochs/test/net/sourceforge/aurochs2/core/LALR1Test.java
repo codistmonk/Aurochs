@@ -2,6 +2,7 @@ package net.sourceforge.aurochs2.core;
 
 import static net.sourceforge.aprog.tools.Tools.cast;
 import static net.sourceforge.aprog.tools.Tools.set;
+import static net.sourceforge.aurochs2.core.StackItem.last;
 import static org.junit.Assert.*;
 
 import java.io.Serializable;
@@ -9,12 +10,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import net.sourceforge.aprog.tools.Tools;
 import net.sourceforge.aurochs2.core.Grammar.Rule;
+import net.sourceforge.aurochs2.core.Grammar.Special;
+import net.sourceforge.aurochs2.core.LRTable.Action;
 
 import org.junit.Test;
 
@@ -56,6 +60,118 @@ public final class LALR1Test {
 				Tools.debugPrint(i, lrTable.getActions().get(i));
 			}
 		}
+		
+		final LRParser parser = new LRParser(lrTable);
+		
+//		assertTrue(parser.parseAll(tokens("1")));
+//		assertTrue(parser.parseAll(tokens("11")));
+//		assertTrue(parser.parseAll(tokens("1+1")));
+//		assertTrue(parser.parseAll(tokens("1-1")));
+		assertTrue(parser.parseAll(tokens("(1)")));
+	}
+	
+	public final TokenSource tokens(final String string) {
+		return new TokenSource(new Iterator<Object>() {
+			
+			private final int n = string.length();
+			
+			private int i = 0;
+			
+			@Override
+			public final boolean hasNext() {
+				return this.i < this.n;
+			}
+			
+			@Override
+			public final Object next() {
+				return string.charAt(this.i++);
+			}
+			
+		});
+	}
+	
+	/**
+	 * @author codistmonk (creation 2014-08-24)
+	 */
+	public static final class LRParser implements Serializable {
+		
+		private final Grammar grammar;
+		
+		private final LRTable table;
+		
+		public LRParser(final LRTable table) {
+			this.grammar = table.getGrammar();
+			this.table = table;
+		}
+		
+		public final Grammar getGrammar() {
+			return this.grammar;
+		}
+		
+		public final LRTable getTable() {
+			return this.table;
+		}
+		
+		public final boolean parseAll(final TokenSource tokens) {
+			final Object initialNonterminal = this.getGrammar().getRules().get(0).getNonterminal();
+			final List<StackItem> stack = new ArrayList<>();
+			
+			stack.add(new StackItem().setStateIndex(0).setToken(tokens.read().get()));
+			
+			while (1 <= stack.size() && last(stack).getToken() != initialNonterminal) {
+				final Action action = this.getAction(last(stack));
+				
+				if (action == null) {
+					Tools.debugPrint();
+					return false;
+				}
+				
+				action.perform(stack, tokens);
+				Tools.debugPrint(action, stack);
+			}
+			
+			Tools.debugPrint(tokens.get());
+			
+			return tokens.get() == Special.END_TERMINAL;
+		}
+		
+		
+		
+//		public final boolean parsePrefix(final TokenSource tokens) {
+//			final LRTable.Reduce r0 = new LRTable.Reduce(this.getGrammar().getRules().get(0));
+//			final List<Object> stack = new ArrayList<>();
+//			int stateIndex = 0;
+//			Action action;
+//			Object token;
+//			
+//			do {
+//				token = tokens.read().get();
+//				action = this.getAction(last(stack));
+//				
+//				if (action != null) {
+//					stateIndex = action.perform(stateIndex, tokens, stack);
+//				}
+//			} while (action != null && !r0.equals(action));
+//			
+//			return action != null;
+//		}
+		
+		public final Action getAction(final StackItem stackItem) {
+			final Collection<Action> actions = this.getTable().getActions()
+					.get(stackItem.getStateIndex()).get(stackItem.getToken());
+			
+			if (actions == null || actions.isEmpty()) {
+				return null;
+			}
+			
+			return actions.iterator().next();
+		}
+		
+		/**
+		 * {@value}.
+		 */
+		private static final long serialVersionUID = -7182999842019515805L;
+		
 	}
 	
 	/**
@@ -71,11 +187,14 @@ public final class LALR1Test {
 			this.grammar = grammar;
 			this.states = new ArrayList<State>();
 			
-			this.states.add(new State(grammar, set(new Item(grammar.getRules().get(0), 0, set(Special.END_TERMINAL)))));
+			this.states.add(new State(grammar, set(new Item(
+					grammar.getRules().get(0), 0, set(Grammar.Special.END_TERMINAL)))));
 			
 			for (int i = 0; i < this.states.size(); ++i) {
 				final State state = this.states.get(i);
 				final Map<Object, Collection<Item>> nextKernels = state.computeNextKernels();
+				
+				Tools.debugPrint(i, nextKernels);
 				
 				for (final Map.Entry<Object, Collection<Item>> entry : nextKernels.entrySet()) {
 					final Collection<Item> entryKernel = entry.getValue();
@@ -202,7 +321,7 @@ public final class LALR1Test {
 			
 			public final Map<Object, Collection<Item>> computeNextKernels() {
 				final Map<Object, Collection<Item>> result = new HashMap<>();
-				
+				Tools.debugPrint(this.getClosure());
 				for (final Item item : this.getClosure()) {
 					if (item.hasNextSymbol()) {
 						final Item newItem = new Item(item.getRule(), item.getCursorIndex() + 1,
@@ -262,15 +381,6 @@ public final class LALR1Test {
 			 * {@value}.
 			 */
 			private static final long serialVersionUID = 4682355118829727025L;
-			
-		}
-		
-		/**
-		 * @author codistmonk (creation 2014-08-24)
-		 */
-		public static enum Special {
-			
-			END_TERMINAL;
 			
 		}
 		

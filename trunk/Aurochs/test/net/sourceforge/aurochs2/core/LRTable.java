@@ -10,6 +10,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import net.sourceforge.aurochs2.core.Grammar.ReductionListener;
+import net.sourceforge.aurochs2.core.Grammar.Rule;
+
 /**
  * @author codistmonk (creation 2014-08-24)
  */
@@ -44,7 +47,7 @@ public final class LRTable implements Serializable {
 						reductions.getKey(), (k, v) -> v == null ? new HashSet<>() : v);
 				
 				for (final Integer ruleIndex : reductions.getValue()) {
-					actions.add(new Reduce(ruleIndex));
+					actions.add(new Reduce(this.getGrammar().getRules().get(ruleIndex)));
 				}
 			}
 		}
@@ -67,7 +70,9 @@ public final class LRTable implements Serializable {
 	 * @author codistmonk (creation 2014-08-24)
 	 */
 	public static abstract interface Action extends Serializable {
-		// NOP
+		
+		public abstract void perform(List<StackItem> stack, TokenSource tokens);
+		
 	}
 	
 	/**
@@ -83,6 +88,11 @@ public final class LRTable implements Serializable {
 		
 		public final int getNextStateIndex() {
 			return this.nextStateIndex;
+		}
+		
+		@Override
+		public final void perform(final List<StackItem> stack, final TokenSource tokens) {
+			stack.add(new StackItem().setStateIndex(this.getNextStateIndex()).setToken(tokens.read().get()));
 		}
 		
 		@Override
@@ -114,14 +124,43 @@ public final class LRTable implements Serializable {
 	 */
 	public static final class Reduce implements LRTable.Action {
 		
-		private final int ruleIndex;
+		private final Rule rule;
 		
-		public Reduce(final int ruleIndex) {
-			this.ruleIndex = ruleIndex;
+		public Reduce(final Rule rule) {
+			this.rule = rule;
+		}
+		
+		public final Rule getRule() {
+			return this.rule;
 		}
 		
 		public final int getRuleIndex() {
-			return this.ruleIndex;
+			return this.getRule().getIndex();
+		}
+		
+		@Override
+		public final void perform(final List<StackItem> stack, final TokenSource tokens) {
+			final int stackSize = stack.size();
+			final int developmentSize = this.getRule().getDevelopment().length;
+			final List<StackItem> tail = stack.subList(stackSize - developmentSize, stackSize);
+			final ReductionListener listener = this.getRule().getListener();
+			final Object newToken = this.getRule().getNonterminal();
+			Object newDatum = null;
+			
+			if (listener != null) {
+				final Object[] data = new Object[developmentSize];
+				
+				for (int i = 0; i < developmentSize; ++i) {
+					data[i] = tail.get(i).getDatum();
+				}
+				
+				newDatum = listener.reduction(this.getRule(), tail.toArray());
+			}
+			
+			tail.clear();
+			tokens.back();
+			
+			StackItem.last(stack).setToken(newToken).setDatum(newDatum);
 		}
 		
 		@Override
