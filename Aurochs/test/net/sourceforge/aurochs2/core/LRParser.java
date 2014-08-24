@@ -90,7 +90,7 @@ import net.sourceforge.aurochs2.core.LRTable.Action;
 				
 				@Override
 				public final Object reduction(final Rule rule, final Object[] data) {
-					return data;
+					return data.length == 1 ? data[0] : data;
 				}
 				
 				/**
@@ -133,8 +133,6 @@ import net.sourceforge.aurochs2.core.LRTable.Action;
 						
 						break;
 					case TRY_NEXT:
-						Tools.debugPrint(choiceIndex, resolver.getActionChoices().size());
-						
 						if (choiceIndex < resolver.getActionChoices().size()) {
 							int choice = resolver.getActionChoices().get(choiceIndex) + nextChoiceDelta;
 							
@@ -162,6 +160,10 @@ import net.sourceforge.aurochs2.core.LRTable.Action;
 			
 			if (tokens.get() != Special.END_TERMINAL) {
 				throw new IllegalStateException();
+			}
+			
+			if (ConflictResolver.Mode.ACCEPT_CURRENT == resolver.getMode()) {
+				resolver.getActionChoices().clear();
 			}
 			
 			return last(stack).getDatum();
