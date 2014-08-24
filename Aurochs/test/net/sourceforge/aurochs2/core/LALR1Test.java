@@ -16,6 +16,7 @@ import net.sourceforge.aprog.tools.Tools;
 import net.sourceforge.aurochs2.core.Grammar.Rule;
 import net.sourceforge.aurochs2.core.LRParser.ConflictResolver;
 import net.sourceforge.aurochs2.core.LRParser.ConflictResolver.Mode;
+import net.sourceforge.aurochs2.core.LRTable.Action;
 
 import org.junit.Test;
 
@@ -64,25 +65,78 @@ public final class LALR1Test {
 		assertTrue(parser.parseAll(tokens("-1")));
 		assertFalse(parser.parseAll(tokens("1-")));
 		
-		resolveConflicts(parser, "1+1+1", array(array('1', '+', '1'), '+', '1'));
-		resolveConflicts(parser, "1+1-1", array(array('1', '+', '1'), '-', '1'));
-		resolveConflicts(parser, "1-1+1", array(array('1', '-', '1'), '+', '1'));
-		resolveConflicts(parser, "1-1-1", array(array('1', '-', '1'), '-', '1'));
+		resolveConflicts(parser, "11(1)", array(array('1', '1'), array('(', '1', ')')));
 		resolveConflicts(parser, "111", array(array('1', '1'), '1'));
 		resolveConflicts(parser, "11+1", array(array('1', '1'), '+', '1'));
-		resolveConflicts(parser, "1+11", array('1', '+', array('1', '1')));
-		resolveConflicts(parser, "(1-1)", array('(', array('1', '-', '1'), ')'));
-		resolveConflicts(parser, "-1-1", array(array('-', '1'), '-', '1'));
 		resolveConflicts(parser, "11-1", array(array('1', '1'), '-', '1'));
-		resolveConflicts(parser, "1-11", array('1', '-', array('1', '1')));
-		resolveConflicts(parser, "1+1(1)", array('1', '+', array('1', array('(', '1', ')'))));
-		resolveConflicts(parser, "1-1(1)", array('1', '-', array('1', array('(', '1', ')'))));
-		resolveConflicts(parser, "11(1)", array(array('1', '1'), array('(', '1', ')')));
-		resolveConflicts(parser, "-1+1", array(array('-', '1'), '+', '1'));
+		resolveConflicts(parser, "-11", array(array('-', '1'), '1'));
 		resolveConflicts(parser, "-1(1)", array(array('-', '1'), array('(', '1', ')')));
-		resolveConflicts(parser, "-(1)1", array(array('-', array('(', '1', ')')), '1'));
+		resolveConflicts(parser, "-1+1", array(array('-', '1'), '+', '1'));
+		resolveConflicts(parser, "-1-1", array(array('-', '1'), '-', '1'));
+		resolveConflicts(parser, "1+11", array('1', '+', array('1', '1')));
+		resolveConflicts(parser, "1+1(1)", array('1', '+', array('1', array('(', '1', ')'))));
+		resolveConflicts(parser, "1+1+1", array(array('1', '+', '1'), '+', '1'));
+		resolveConflicts(parser, "1+1-1", array(array('1', '+', '1'), '-', '1'));
+		resolveConflicts(parser, "1-11", array('1', '-', array('1', '1')));
+		resolveConflicts(parser, "1-1(1)", array('1', '-', array('1', array('(', '1', ')'))));
+		resolveConflicts(parser, "(1-1)", array('(', array('1', '-', '1'), ')'));
+		resolveConflicts(parser, "1-1+1", array(array('1', '-', '1'), '+', '1'));
+		resolveConflicts(parser, "1-1-1", array(array('1', '-', '1'), '-', '1'));
+		
+		Tools.debugPrint("\n" + Tools.join("\n", collectAmbiguousExamples(lrTable).toArray()));
 		
 		print(lrTable);
+	}
+	
+	public static final List<List<Object>> collectAmbiguousExamples(final LRTable lrTable) {
+		final List<List<Object>> result = new ArrayList<>();
+		final List<Map<Object, List<Action>>> actions = lrTable.getActions();
+		final int n = actions.size();
+		
+		for (int stateIndex = 0; stateIndex < n; ++stateIndex) {
+			final Map<Object, List<Action>> stateActions = actions.get(stateIndex);
+			
+			for (final Map.Entry<Object, List<Action>> entry : stateActions.entrySet()) {
+				if (1 < entry.getValue().size()) {
+					final List<Integer> path = new ArrayList<>();
+					final List<Object> ambiguousExample = new ArrayList<>();
+					
+					path.add(0, stateIndex);
+					ambiguousExample.add(0, entry.getKey());
+					
+					int target = stateIndex;
+					
+					while (!path.contains(0)) {
+						Action targetAction = new LRTable.Shift(target);
+						boolean antecedentFound = false;
+						
+						for (int i = 0; i < n && !antecedentFound; ++i) {
+							if (path.contains(i)) {
+								continue;
+							}
+							
+							for (final Map.Entry<Object, List<Action>> entry2 : actions.get(i).entrySet()) {
+								if (entry2.getValue().contains(targetAction)) {
+									ambiguousExample.add(0, entry2.getKey());
+									path.add(0, i);
+									target = i;
+									antecedentFound = true;
+									break;
+								}
+							}
+						}
+						
+						if (!antecedentFound) {
+							Tools.debugError("Couldn't find path to ambiguity " + entry);
+							break;
+						}
+					}
+					
+					result.add(ambiguousExample);
+				}
+			}
+		}
+		return result;
 	}
 	
 	public static final void print(final LRTable lrTable) {
@@ -100,15 +154,12 @@ public final class LALR1Test {
 		Object[] actual = (Object[]) parser.parseAll(tokens(string), resolver);
 		
 		while (!Arrays.deepEquals(expected, actual)) {
-			Tools.debugPrint(Arrays.deepToString(actual));
 			actual = (Object[]) parser.parseAll(tokens(string), resolver);
 			
 			if (isZeroes(resolver.getActionChoices())) {
 				break;
 			}
 		}
-		
-		Tools.debugPrint(Arrays.deepToString(actual));
 		
 		resolver.setMode(Mode.ACCEPT_CURRENT);
 		
