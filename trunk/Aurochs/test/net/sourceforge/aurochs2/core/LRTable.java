@@ -1,17 +1,21 @@
 package net.sourceforge.aurochs2.core;
 
 import static net.sourceforge.aprog.tools.Tools.cast;
+import static net.sourceforge.aurochs2.core.StackItem.last;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 
+import net.sourceforge.aprog.tools.Tools;
 import net.sourceforge.aurochs2.core.Grammar.ReductionListener;
 import net.sourceforge.aurochs2.core.Grammar.Rule;
+import net.sourceforge.aurochs2.core.Grammar.Special;
 
 /**
  * @author codistmonk (creation 2014-08-24)
@@ -20,7 +24,7 @@ public final class LRTable implements Serializable {
 	
 	private final Grammar grammar;
 	
-	private final List<Map<Object, Collection<LRTable.Action>>> actions;
+	private final List<Map<Object, List<LRTable.Action>>> actions;
 	
 	public LRTable(final ClosureTable closureTable) {
 		this.grammar = closureTable.getGrammar();
@@ -33,18 +37,19 @@ public final class LRTable implements Serializable {
 			this.actions.add(new HashMap<>());
 		}
 		
+		
 		for (int i = 0; i < n; ++i) {
 			final ClosureTable.State state = states.get(i);
-			final Map<Object, Collection<LRTable.Action>> stateActions = this.actions.get(i);
+			final Map<Object, List<LRTable.Action>> stateActions = this.actions.get(i);
 			
 			for (final Map.Entry<Object, Integer> transition : state.getTransitions().entrySet()) {
-				stateActions.compute(transition.getKey(),
-						(k, v) -> v == null ? new HashSet<>() : v).add(new Shift(transition.getValue()));
+				stateActions.compute(transition.getKey(), GET_OR_CREATE_ARRAY_LIST).add(
+						new Shift(transition.getValue()));
 			}
 			
 			for (final Map.Entry<Object, Collection<Integer>> reductions : state.getReductions().entrySet()) {
 				final Collection<LRTable.Action> actions = stateActions.compute(
-						reductions.getKey(), (k, v) -> v == null ? new HashSet<>() : v);
+						reductions.getKey(), GET_OR_CREATE_ARRAY_LIST);
 				
 				for (final Integer ruleIndex : reductions.getValue()) {
 					actions.add(new Reduce(this.getGrammar().getRules().get(ruleIndex)));
@@ -57,7 +62,7 @@ public final class LRTable implements Serializable {
 		return this.grammar;
 	}
 	
-	public final List<Map<Object, Collection<LRTable.Action>>> getActions() {
+	public final List<Map<Object, List<LRTable.Action>>> getActions() {
 		return this.actions;
 	}
 	
@@ -65,6 +70,9 @@ public final class LRTable implements Serializable {
 	 * {@value}.
 	 */
 	private static final long serialVersionUID = -3901998885688156104L;
+	
+	public static final BiFunction<? super Object, ? super List<Action>,
+			? extends List<Action>> GET_OR_CREATE_ARRAY_LIST = (k, v) -> v == null ? new ArrayList<>() : v;
 	
 	/**
 	 * @author codistmonk (creation 2014-08-24)
@@ -142,7 +150,7 @@ public final class LRTable implements Serializable {
 		public final void perform(final List<StackItem> stack, final TokenSource tokens) {
 			final int stackSize = stack.size();
 			final int developmentSize = this.getRule().getDevelopment().length;
-			final List<StackItem> tail = stack.subList(stackSize - developmentSize, stackSize);
+			final List<StackItem> tail = stack.subList(stackSize - 1 - developmentSize, stackSize - 1);
 			final ReductionListener listener = this.getRule().getListener();
 			final Object newToken = this.getRule().getNonterminal();
 			Object newDatum = null;
@@ -154,13 +162,15 @@ public final class LRTable implements Serializable {
 					data[i] = tail.get(i).getDatum();
 				}
 				
-				newDatum = listener.reduction(this.getRule(), tail.toArray());
+				newDatum = listener.reduction(this.getRule(), data);
 			}
+			
+			final int nextStateIndex = tail.get(0).getStateIndex();
 			
 			tail.clear();
 			tokens.back();
 			
-			StackItem.last(stack).setToken(newToken).setDatum(newDatum);
+			last(stack).setStateIndex(nextStateIndex).setToken(newToken).setDatum(newDatum);
 		}
 		
 		@Override
