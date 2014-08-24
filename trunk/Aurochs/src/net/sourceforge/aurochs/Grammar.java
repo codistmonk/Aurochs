@@ -47,6 +47,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 
@@ -460,12 +461,22 @@ public final class Grammar implements Serializable {
 	}
 
 	final void updatePriorities() {
-		for (final Map.Entry<Object, Short> entry : new LinkedHashSet<Map.Entry<Object, Short>>(this.getPriorities().entrySet())) {
-			for (final Object terminal : this.getFirsts(entry.getKey())) {
-				final Short oldPriority = this.getPriorities().put(terminal, entry.getValue());
-
-				if (oldPriority != null && oldPriority > entry.getValue()) {
-					this.getPriorities().put(terminal, oldPriority);
+		final LinkedHashSet<Entry<Object, Short>> copyOfPrioritiesEntries =
+				new LinkedHashSet<Map.Entry<Object, Short>>(this.getPriorities().entrySet());
+		
+		for (final Map.Entry<Object, Short> entry : copyOfPrioritiesEntries) {
+			final Set<Object> firsts = this.getFirsts(entry.getKey());
+			
+			if (firsts == null) {
+				getLoggerForThisMethod().log(Level.WARNING,
+						"Priority defined for unused symbol {0}", entry.getKey());
+			} else {
+				for (final Object terminal : firsts) {
+					final Short oldPriority = this.getPriorities().put(terminal, entry.getValue());
+					
+					if (oldPriority != null && oldPriority > entry.getValue()) {
+						this.getPriorities().put(terminal, oldPriority);
+					}
 				}
 			}
 		}
