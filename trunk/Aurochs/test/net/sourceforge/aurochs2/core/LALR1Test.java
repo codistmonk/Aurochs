@@ -63,24 +63,17 @@ public final class LALR1Test {
 			
 			for (int i = 0; i < this.states.size(); ++i) {
 				final State state = this.states.get(i);
-				final Map<Object, Collection<Item>> nextKernels = new HashMap<>();
-				
-				for (final Item item : state.getClosure()) {
-					if (item.hasNextSymbol()) {
-						nextKernels.compute(item.getNextSymbol(), (k, v) -> v == null ? new HashSet<>() : v).add(
-								new Item(item.getRule(), item.getCursorIndex() + 1, item.getLookAheads()));
-					}
-				}
+				final Map<Object, Collection<Item>> nextKernels = state.computeNextKernels();
 				
 				for (final Map.Entry<Object, Collection<Item>> entry : nextKernels.entrySet()) {
+					final Collection<Item> entryKernel = entry.getValue();
 					boolean addNewState = true;
 					
-					Tools.debugPrint();
-					Tools.debugPrint(entry.getValue());
-					
 					for (int j = 0; j < this.states.size(); ++j) {
-						Tools.debugPrint(entry.getValue().equals(this.states.get(j).getKernel()), this.states.get(j).getKernel());
-						if (entry.getValue().equals(this.states.get(j).getKernel())) {
+						final boolean existingKernelFound = matchAndConnectKernels(entryKernel,
+								this.states.get(j).getKernel());
+						
+						if (existingKernelFound) {
 							addNewState = false;
 							
 							if (state.getTransitions().put(entry.getKey(), j) != null) {
@@ -90,14 +83,24 @@ public final class LALR1Test {
 					}
 					
 					if (addNewState) {
-						this.states.add(new State(grammar, entry.getValue()));
+						this.states.add(new State(grammar, entryKernel));
 					}
 				}
 			}
 			
-			for (final State state : this.states) {
-				Tools.debugPrint(state.getKernel());
-			}
+			this.propagateLookAheads();
+		}
+		
+		private final void propagateLookAheads() {
+			boolean notDone;
+			
+			do {
+				notDone = false;
+				
+				for (final State state : this.states) {
+					notDone |= state.propagateLookAheads();
+				}
+			} while (notDone);
 		}
 		
 		public final List<State> getStates() {
@@ -108,6 +111,28 @@ public final class LALR1Test {
 		 * {@value}.
 		 */
 		private static final long serialVersionUID = -632237351102999005L;
+		
+		public static final boolean matchAndConnectKernels(final Collection<Item> entryKernel,
+				final Collection<Item> stateJKernel) {
+			boolean result = false;
+			
+			if (entryKernel.containsAll(stateJKernel)) {
+				int matchCount = 0;
+				
+				for (final Item entryItem : entryKernel) {
+					for (final Item stateJItem : stateJKernel) {
+						if (entryItem.equals(stateJItem)) {
+							entryItem.getLookAheadPropagationTargets().add(stateJItem);
+							++matchCount;
+						}
+					}
+				}
+				
+				result = matchCount == entryKernel.size();
+			}
+			
+			return result;
+		}
 		
 		/**
 		 * @author codistmonk (creation 2014-08-24)
@@ -148,12 +173,38 @@ public final class LALR1Test {
 							
 							for (final Rule rule : grammar.getRules()) {
 								if (nextSymbol.equals(rule.getNonterminal())) {
-									todo.add(new Item(rule, 0, nextLookAheads));
+									todo.add(new Item(rule, 0, new HashSet<>(nextLookAheads)));
 								}
 							}
 						}
 					}
 				}
+			}
+			
+			public final Map<Object, Collection<Item>> computeNextKernels() {
+				final Map<Object, Collection<Item>> result = new HashMap<>();
+				
+				for (final Item item : this.getClosure()) {
+					if (item.hasNextSymbol()) {
+						final Item newItem = new Item(item.getRule(), item.getCursorIndex() + 1,
+								new HashSet<>(item.getLookAheads()));
+						result.compute(
+								item.getNextSymbol(), (k, v) -> v == null ? new HashSet<>() : v).add(newItem);
+						item.getLookAheadPropagationTargets().add(newItem);
+					}
+				}
+				
+				return result;
+			}
+			
+			public final boolean propagateLookAheads() {
+				boolean result = false;
+				
+				for (final Item item : this.getKernel()) {
+					result |= item.propagateLookAheads();
+				}
+				
+				return result;
 			}
 			
 			public final Collection<Item> getKernel() {
@@ -195,10 +246,13 @@ public final class LALR1Test {
 			
 			private final Set<Object> lookAheads;
 			
+			private final Set<Item> lookAheadPropagationTargets;
+			
 			public Item(final Rule rule, final int cursorIndex, final Set<Object> lookAheads) {
 				this.rule = rule;
 				this.cursorIndex = cursorIndex;
 				this.lookAheads = lookAheads;
+				this.lookAheadPropagationTargets = new HashSet<>();
 			}
 			
 			public final Grammar.Rule getRule() {
@@ -211,6 +265,24 @@ public final class LALR1Test {
 			
 			public final Set<Object> getLookAheads() {
 				return this.lookAheads;
+			}
+			
+			public final Set<Item> getLookAheadPropagationTargets() {
+				return this.lookAheadPropagationTargets;
+			}
+			
+			public final boolean propagateLookAheads() {
+				boolean result = false;
+				
+				for (final Item target : this.getLookAheadPropagationTargets()) {
+					if (target.getLookAheads().addAll(this.getLookAheads())) {
+						result = true;
+						
+						target.propagateLookAheads();
+					}
+				}
+				
+				return result;
 			}
 			
 			public final boolean hasNextSymbol() {
