@@ -28,7 +28,6 @@ import static net.sourceforge.aprog.tools.Tools.*;
 import static net.sourceforge.aurochs.AurochsTools.*;
 import static net.sourceforge.aurochs.LRParserTest.Nonterminal.*;
 import static net.sourceforge.aurochs.RegularTools.*;
-
 import static org.junit.Assert.*;
 
 import java.util.Arrays;
@@ -40,6 +39,7 @@ import java.util.logging.Handler;
 import java.util.logging.Logger;
 import java.util.logging.LogRecord;
 
+import net.sourceforge.aprog.tools.Tools;
 import net.sourceforge.aurochs.AbstractLRParser.GeneratedToken;
 import net.sourceforge.aurochs.Grammar.Rule;
 import net.sourceforge.aurochs.AbstractLRParser.ReductionEvent;
@@ -520,7 +520,7 @@ public final class LRParserTest {
 		this.lexerBuilder.addTokenRule(MINUS, '-');
 		this.lexerBuilder.addTokenRule(TIMES, '*');
 		this.lexerBuilder.addTokenRule(DIVIDED, '/');
-		this.lexerBuilder.addTokenRule(MODULO, '/');
+		this.lexerBuilder.addTokenRule(MODULO, '%');
 		this.lexerBuilder.addTokenRule(POWER, '^');
 		this.lexerBuilder.addTokenRule(LEFT_PARENTHESIS, '(');
 		this.lexerBuilder.addTokenRule(RIGHT_PARENTHESIS, ')');
@@ -575,6 +575,25 @@ public final class LRParserTest {
 		assertTrue(this.tokenizeAndParse(input("a = 42")));
 		assertTrue(this.tokenizeAndParse(input("2 * (3 - 4)")));
 		assertFalse(this.tokenizeAndParse(input("2 * (3 - 4")));
+	}
+
+	@Test(timeout=20000)
+	public final void testParse13() {
+		this.parserBuilder.addRule(INSTRUCTION, EXPRESSION);
+		this.parserBuilder.addRule(EXPRESSION, EXPRESSION, '+', EXPRESSION);
+		this.parserBuilder.addRule(EXPRESSION, EXPRESSION, '-', EXPRESSION);
+		this.parserBuilder.addRule(EXPRESSION, '-', EXPRESSION);
+		this.parserBuilder.addRule(EXPRESSION, EXPRESSION, EXPRESSION);
+		this.parserBuilder.addRule(EXPRESSION, '(', EXPRESSION, ')');
+		this.parserBuilder.addRule(EXPRESSION, '0');
+		
+		Tools.debugPrint(this.parserBuilder.getGrammar().getRules());
+		
+		assertTrue(this.tokenizeAndParse(input("0")));
+		assertTrue(this.tokenizeAndParse(input("0+0")));
+		assertTrue(this.tokenizeAndParse(input("0-0")));
+		assertTrue(this.tokenizeAndParse(input("-0")));
+		assertTrue(this.tokenizeAndParse(input("00")));
 	}
 
 	@Test

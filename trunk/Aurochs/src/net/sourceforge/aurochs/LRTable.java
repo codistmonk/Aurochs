@@ -495,6 +495,12 @@ public final class LRTable extends AbstractObservable<LRTable.Listener> {
                     // Do nothing because the new transition is correct
                 }
             }
+            
+            // <editor-fold defaultstate="collapsed" desc="DEBUG">
+            if (debug) {
+                Tools.debugPrint(this.getResolution());
+            }
+            // </editor-fold>
         }
 
         /**
