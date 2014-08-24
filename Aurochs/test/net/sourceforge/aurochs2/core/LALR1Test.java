@@ -47,16 +47,191 @@ public final class LALR1Test {
 		final LALR1ClosureTable closureTable = new LALR1ClosureTable(grammar);
 		
 		Tools.debugPrint(closureTable.getStates().size());
+		
+		final LRTable lrTable = new LRTable(closureTable);
+		
+		{
+			final int n = lrTable.getActions().size();
+			
+			for (int i = 0; i < n; ++i) {
+				Tools.debugPrint(i, lrTable.getActions().get(i));
+			}
+		}
 	}
 	
 	/**
 	 * @author codistmonk (creation 2014-08-24)
 	 */
-	public static final class LALR1ClosureTable implements Serializable {
+	public static final class LRTable implements Serializable {
+		
+		private final Grammar grammar;
+		
+		private final List<Map<Object, Collection<Action>>> actions;
+		
+		public LRTable(final ClosureTable closureTable) {
+			this.grammar = closureTable.getGrammar();
+			this.actions = new ArrayList<>();
+			
+			final List<? extends ClosureTable.State> states = closureTable.getStates();
+			final int n = states.size();
+			
+			for (int i = 0; i < n; ++i) {
+				this.actions.add(new HashMap<>());
+			}
+			
+			for (int i = 0; i < n; ++i) {
+				final ClosureTable.State state = states.get(i);
+				final Map<Object, Collection<Action>> stateActions = this.actions.get(i);
+				
+				for (final Map.Entry<Object, Integer> transition : state.getTransitions().entrySet()) {
+					stateActions.compute(transition.getKey(),
+							(k, v) -> v == null ? new HashSet<>() : v).add(new Shift(transition.getValue()));
+				}
+				
+				for (final Map.Entry<Object, Collection<Integer>> reductions : state.getReductions().entrySet()) {
+					final Collection<Action> actions = stateActions.compute(
+							reductions.getKey(), (k, v) -> v == null ? new HashSet<>() : v);
+					
+					for (final Integer ruleIndex : reductions.getValue()) {
+						actions.add(new Reduce(ruleIndex));
+					}
+				}
+			}
+		}
+		
+		public final Grammar getGrammar() {
+			return this.grammar;
+		}
+		
+		public final List<Map<Object, Collection<Action>>> getActions() {
+			return this.actions;
+		}
+		
+		/**
+		 * {@value}.
+		 */
+		private static final long serialVersionUID = -3901998885688156104L;
+		
+		/**
+		 * @author codistmonk (creation 2014-08-24)
+		 */
+		public static abstract interface Action extends Serializable {
+			// NOP
+		}
+		
+		/**
+		 * @author codistmonk (creation 2014-08-24)
+		 */
+		public static final class Shift implements Action {
+			
+			private final int nextStateIndex;
+			
+			public Shift(final int nextStateIndex) {
+				this.nextStateIndex = nextStateIndex;
+			}
+			
+			public final int getNextStateIndex() {
+				return this.nextStateIndex;
+			}
+			
+			@Override
+			public final int hashCode() {
+				return this.getNextStateIndex();
+			}
+			
+			@Override
+			public final boolean equals(final Object object) {
+				final Shift that = cast(this.getClass(), object);
+				
+				return that != null && this.getNextStateIndex() == that.getNextStateIndex();
+			}
+			
+			@Override
+			public final String toString() {
+				return "s" + this.getNextStateIndex();
+			}
+			
+			/**
+			 * {@value}.
+			 */
+			private static final long serialVersionUID = -882400449940537919L;
+			
+		}
+		
+		/**
+		 * @author codistmonk (creation 2014-08-24)
+		 */
+		public static final class Reduce implements Action {
+			
+			private final int ruleIndex;
+			
+			public Reduce(final int ruleIndex) {
+				this.ruleIndex = ruleIndex;
+			}
+			
+			public final int getRuleIndex() {
+				return this.ruleIndex;
+			}
+			
+			@Override
+			public final int hashCode() {
+				return this.getRuleIndex();
+			}
+			
+			@Override
+			public final boolean equals(final Object object) {
+				final Reduce that = cast(this.getClass(), object);
+				
+				return that != null && this.getRuleIndex() == that.getRuleIndex();
+			}
+			
+			@Override
+			public final String toString() {
+				return "r" + this.getRuleIndex();
+			}
+			
+			/**
+			 * {@value}.
+			 */
+			private static final long serialVersionUID = -1092278669508228566L;
+			
+		}
+		
+	}
+	
+	/**
+	 * @author codistmonk (creation 2014-08-24)
+	 */
+	public static abstract interface ClosureTable extends Serializable {
+		
+		public abstract Grammar getGrammar();
+		
+		public abstract List<? extends State> getStates();
+		
+		/**
+		 * @author codistmonk (creation 2014-08-24)
+		 */
+		public static abstract interface State extends Serializable {
+			
+			public abstract Map<Object, Integer> getTransitions();
+			
+			public abstract Map<Object, Collection<Integer>> getReductions();
+			
+		}
+		
+	}
+	
+	/**
+	 * @author codistmonk (creation 2014-08-24)
+	 */
+	public static final class LALR1ClosureTable implements ClosureTable {
+		
+		private final Grammar grammar;
 		
 		private final List<State> states;
 		
 		public LALR1ClosureTable(final Grammar grammar) {
+			this.grammar = grammar;
 			this.states = new ArrayList<State>();
 			
 			this.states.add(new State(grammar, set(new Item(grammar.getRules().get(0), 0, set(Special.END_TERMINAL)))));
@@ -83,12 +258,23 @@ public final class LALR1Test {
 					}
 					
 					if (addNewState) {
+						state.getTransitions().put(entry.getKey(), this.states.size());
 						this.states.add(new State(grammar, entryKernel));
 					}
 				}
 			}
 			
 			this.propagateLookAheads();
+		}
+		
+		@Override
+		public final Grammar getGrammar() {
+			return this.grammar;
+		}
+		
+		@Override
+		public final List<State> getStates() {
+			return this.states;
 		}
 		
 		private final void propagateLookAheads() {
@@ -101,10 +287,6 @@ public final class LALR1Test {
 					notDone |= state.propagateLookAheads();
 				}
 			} while (notDone);
-		}
-		
-		public final List<State> getStates() {
-			return this.states;
 		}
 		
 		/**
@@ -137,7 +319,7 @@ public final class LALR1Test {
 		/**
 		 * @author codistmonk (creation 2014-08-24)
 		 */
-		public final class State implements Serializable {
+		public final class State implements ClosureTable.State {
 			
 			private final Collection<Item> kernel;
 			
@@ -215,8 +397,28 @@ public final class LALR1Test {
 				return this.closure;
 			}
 			
+			@Override
 			public final Map<Object, Integer> getTransitions() {
 				return this.transitions;
+			}
+			
+			@Override
+			public final Map<Object, Collection<Integer>> getReductions() {
+				final Map<Object, Collection<Integer>> result = new HashMap<>();
+				
+				for (final Item item : this.getClosure()) {
+					if (!item.hasNextSymbol()) {
+						final Integer ruleIndex = item.getRule().getIndex();
+						
+						for (final Object lookAhead : item.getLookAheads()) {
+							result.compute(lookAhead,
+									(k, v) -> v == null ? new HashSet<>() : v).add(ruleIndex);
+							
+						}
+					}
+				}
+				
+				return result;
 			}
 			
 			/**
