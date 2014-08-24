@@ -73,6 +73,14 @@ public final class LALR1Test {
 		resolveConflicts(parser, "1+11", array('1', '+', array('1', '1')));
 		resolveConflicts(parser, "(1-1)", array('(', array('1', '-', '1'), ')'));
 		resolveConflicts(parser, "-1-1", array(array('-', '1'), '-', '1'));
+		resolveConflicts(parser, "11-1", array(array('1', '1'), '-', '1'));
+		resolveConflicts(parser, "1-11", array('1', '-', array('1', '1')));
+		resolveConflicts(parser, "1+1(1)", array('1', '+', array('1', array('(', '1', ')'))));
+		resolveConflicts(parser, "1-1(1)", array('1', '-', array('1', array('(', '1', ')'))));
+		resolveConflicts(parser, "11(1)", array(array('1', '1'), array('(', '1', ')')));
+		resolveConflicts(parser, "-1+1", array(array('-', '1'), '+', '1'));
+		resolveConflicts(parser, "-1(1)", array(array('-', '1'), array('(', '1', ')')));
+		resolveConflicts(parser, "-(1)1", array(array('-', array('(', '1', ')')), '1'));
 		
 		print(lrTable);
 	}
@@ -90,13 +98,12 @@ public final class LALR1Test {
 		
 		final ConflictResolver resolver = new ConflictResolver();
 		Object[] actual = (Object[]) parser.parseAll(tokens(string), resolver);
-		final List<Integer> stop = new ArrayList<>(resolver.getActionChoices());
 		
 		while (!Arrays.deepEquals(expected, actual)) {
 			Tools.debugPrint(Arrays.deepToString(actual));
 			actual = (Object[]) parser.parseAll(tokens(string), resolver);
 			
-			if (stop.equals(resolver.getActionChoices())) {
+			if (isZeroes(resolver.getActionChoices())) {
 				break;
 			}
 		}
@@ -110,6 +117,16 @@ public final class LALR1Test {
 		if (!Arrays.deepEquals(expected, actual)) {
 			throw new IllegalStateException();
 		}
+	}
+	
+	public static final boolean isZeroes(final List<Integer> list) {
+		for (final Integer i : list) {
+			if (i.intValue() != 0) {
+				return false;
+			}
+		}
+		
+		return true;
 	}
 	
 	public static final TokenSource tokens(final String string) {

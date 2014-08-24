@@ -116,7 +116,7 @@ import net.sourceforge.aurochs2.core.LRTable.Action;
 				final List<Action> actions = this.getActions(last(stack));
 				
 				if (actions == null) {
-					return false;
+					throw new IllegalStateException();
 				}
 				
 				Action action = actions.get(0);
