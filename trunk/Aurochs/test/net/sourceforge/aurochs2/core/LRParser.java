@@ -1,21 +1,16 @@
 package net.sourceforge.aurochs2.core;
 
-import static net.sourceforge.aprog.tools.Tools.array;
 import static net.sourceforge.aurochs2.core.StackItem.last;
 import static net.sourceforge.aurochs2.core.TokenSource.tokens;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
-import net.sourceforge.aprog.tools.Pair;
-import net.sourceforge.aprog.tools.Tools;
 import net.sourceforge.aurochs2.core.Grammar.ReductionListener;
 import net.sourceforge.aurochs2.core.Grammar.Rule;
 import net.sourceforge.aurochs2.core.Grammar.Special;
-import net.sourceforge.aurochs2.core.LRParser.ConflictResolver.Mode;
 import net.sourceforge.aurochs2.core.LRTable.Action;
 
 /**
