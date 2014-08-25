@@ -63,9 +63,9 @@ public final class LALR1ClosureTable implements ClosureTable {
 		
 		this.propagateLookAheads();
 		
-		for (int i = 0; i < this.states.size(); ++i) {
-			Tools.debugPrint(i, this.states.get(i).getClosure());
-		}
+//		for (int i = 0; i < this.states.size(); ++i) {
+//			Tools.debugPrint(i, this.states.get(i).getClosure());
+//		}
 	}
 	
 	@Override

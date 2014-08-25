@@ -8,10 +8,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import net.sourceforge.aprog.tools.Tools;
 import net.sourceforge.aurochs2.core.Grammar.ReductionListener;
 import net.sourceforge.aurochs2.core.Grammar.Rule;
 import net.sourceforge.aurochs2.core.Grammar.Special;
 import net.sourceforge.aurochs2.core.LRTable.Action;
+import net.sourceforge.aurochs2.core.LRTable.Shift;
 
 /**
 	 * @author codistmonk (creation 2014-08-24)
@@ -71,10 +73,12 @@ import net.sourceforge.aurochs2.core.LRTable.Action;
 				
 				this.setMode(Mode.TRY_NEXT);
 				
-				Object[] actual = (Object[]) this.parser.parseAll(tokens(tokens), this);
+				final List<Object[]> actuals = new ArrayList<>();
 				
-				while (!Arrays.deepEquals(expected, actual)) {
-					actual = (Object[]) this.parser.parseAll(tokens(tokens), this);
+				actuals.add((Object[]) this.parser.parseAll(tokens(tokens), this));
+				
+				while (!Arrays.deepEquals(expected, last(actuals))) {
+					actuals.add((Object[]) this.parser.parseAll(tokens(tokens), this));
 					
 					if (isZeroes(this.getActionChoices())) {
 						break;
@@ -83,12 +87,18 @@ import net.sourceforge.aurochs2.core.LRTable.Action;
 				
 				this.setMode(Mode.ACCEPT_CURRENT);
 				
-				actual = (Object[]) this.parser.parseAll(tokens(tokens), this);
+				final Object[] actual = (Object[]) this.parser.parseAll(tokens(tokens), this);
 				
 				this.getActionChoices().clear();
 				this.setMode(Mode.TRY_NEXT);
 				
 				if (!Arrays.deepEquals(expected, actual)) {
+					Tools.debugError("Expected:", Arrays.deepToString(expected));
+					
+					for (int i = 0; i < actuals.size(); ++i) {
+						Tools.debugError("Actual[" + i + "]:", Arrays.deepToString(actuals.get(i)));
+					}
+					
 					throw new IllegalStateException();
 				}
 				
@@ -209,44 +219,16 @@ import net.sourceforge.aurochs2.core.LRTable.Action;
 			return last(stack).getDatum();
 		}
 		
-		public final boolean parseAll(final TokenSource tokens) {
-			final Object initialNonterminal = this.getGrammar().getRules().get(0).getNonterminal();
-			final List<StackItem> stack = new ArrayList<>();
+		public final boolean parse(final TokenSource tokens) {
+			final Parsing parsing = this.new Parsing(tokens);
+			ParsingStatus status;
 			
-			stack.add(new StackItem().setStateIndex(0).setToken(tokens.read().get()));
+			do {
+				status = parsing.step();
+			} while (!status.isDone());
 			
-			while (1 <= stack.size() && last(stack).getToken() != initialNonterminal) {
-				final Action action = this.getAction(last(stack));
-				
-				if (action == null) {
-					return false;
-				}
-				
-				action.perform(stack, tokens);
-			}
-			
-			
-			return tokens.get() == Special.END_TERMINAL;
+			return ParsingStatus.DONE == status;
 		}
-		
-//		public final boolean parsePrefix(final TokenSource tokens) {
-//			final LRTable.Reduce r0 = new LRTable.Reduce(this.getGrammar().getRules().get(0));
-//			final List<Object> stack = new ArrayList<>();
-//			int stateIndex = 0;
-//			Action action;
-//			Object token;
-//			
-//			do {
-//				token = tokens.read().get();
-//				action = this.getAction(last(stack));
-//				
-//				if (action != null) {
-//					stateIndex = action.perform(stateIndex, tokens, stack);
-//				}
-//			} while (action != null && !r0.equals(action));
-//			
-//			return action != null;
-//		}
 		
 		public final List<Action> getActions(final StackItem stackItem) {
 			final List<Action> actions = this.getTable().getActions()
@@ -274,4 +256,86 @@ import net.sourceforge.aurochs2.core.LRTable.Action;
 		 */
 		private static final long serialVersionUID = -7182999842019515805L;
 		
+		/**
+		 * @author codistmonk (creation 2014-08-24)
+		 */
+		public final class Parsing implements Serializable {
+			
+			private final TokenSource tokens;
+			
+			private final Object initialNonterminal;
+			
+			private final List<StackItem> stack;
+			
+			public Parsing(final TokenSource tokens) {
+				this.tokens = tokens;
+				this.initialNonterminal = LRParser.this.getGrammar().getRules().get(0).getNonterminal();
+				this.stack = new ArrayList<>();
+				
+				this.stack.add(new StackItem().setStateIndex(0).setToken(tokens.read().get()));
+			}
+			
+			public final ParsingStatus step() {
+				if (1 <= this.stack.size() && last(this.stack).getToken() != this.initialNonterminal) {
+					final Action action = LRParser.this.getAction(last(this.stack));
+					
+					if (action == null) {
+						return ParsingStatus.ERROR;
+					}
+					
+					action.perform(this.stack, this.tokens);
+					
+					return action instanceof Shift ? ParsingStatus.SHIFTED : ParsingStatus.REDUCED;
+				}
+				
+				return this.tokens.get() == Special.END_TERMINAL ? ParsingStatus.DONE : ParsingStatus.ERROR;
+			}
+			
+			/**
+			 * {@value}.
+			 */
+			private static final long serialVersionUID = -5182096759535319739L;
+			
+		}
+		
+		/**
+		 * @author codistmonk (creation 2014-08-24)
+		 */
+		public static enum ParsingStatus {
+			
+			SHIFTED {
+				
+				@Override
+				public final boolean isDone() {
+					return false;
+				}
+				
+			}, REDUCED {
+				
+				@Override
+				public final boolean isDone() {
+					return false;
+				}
+				
+			}, DONE {
+				
+				@Override
+				public final boolean isDone() {
+					return true;
+				}
+				
+			}, ERROR {
+				
+				@Override
+				public final boolean isDone() {
+					return true;
+				}
+				
+			};
+			
+			public abstract boolean isDone();
+			
+		}
+		
 	}
+	
