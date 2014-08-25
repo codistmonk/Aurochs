@@ -2,7 +2,7 @@ package net.sourceforge.aurochs2.core;
 
 import static net.sourceforge.aprog.tools.Tools.array;
 import static net.sourceforge.aprog.tools.Tools.set;
-import static net.sourceforge.aurochs2.core.LRParser.ConflictResolver.resolveConflicts;
+import static net.sourceforge.aurochs2.core.TokenSource.characters;
 import static net.sourceforge.aurochs2.core.TokenSource.tokens;
 import static org.junit.Assert.*;
 
@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.sourceforge.aprog.tools.Tools;
+import net.sourceforge.aurochs2.core.LRParser.ConflictResolver;
 import net.sourceforge.aurochs2.core.LRTable.Action;
 
 import org.junit.Test;
@@ -62,23 +63,25 @@ public final class LALR1Test {
 		assertTrue(parser.parseAll(tokens("-1")));
 		assertFalse(parser.parseAll(tokens("1-")));
 		
-		resolveConflicts(parser, "11(1)", array(array('1', '1'), array('(', '1', ')')));
-		resolveConflicts(parser, "111", array(array('1', '1'), '1'));
-		resolveConflicts(parser, "11+1", array(array('1', '1'), '+', '1'));
-		resolveConflicts(parser, "11-1", array(array('1', '1'), '-', '1'));
-		resolveConflicts(parser, "-11", array(array('-', '1'), '1'));
-		resolveConflicts(parser, "-1(1)", array(array('-', '1'), array('(', '1', ')')));
-		resolveConflicts(parser, "-1+1", array(array('-', '1'), '+', '1'));
-		resolveConflicts(parser, "-1-1", array(array('-', '1'), '-', '1'));
-		resolveConflicts(parser, "1+11", array('1', '+', array('1', '1')));
-		resolveConflicts(parser, "1+1(1)", array('1', '+', array('1', array('(', '1', ')'))));
-		resolveConflicts(parser, "1+1+1", array(array('1', '+', '1'), '+', '1'));
-		resolveConflicts(parser, "1+1-1", array(array('1', '+', '1'), '-', '1'));
-		resolveConflicts(parser, "1-11", array('1', '-', array('1', '1')));
-		resolveConflicts(parser, "1-1(1)", array('1', '-', array('1', array('(', '1', ')'))));
-		resolveConflicts(parser, "(1-1)", array('(', array('1', '-', '1'), ')'));
-		resolveConflicts(parser, "1-1+1", array(array('1', '-', '1'), '+', '1'));
-		resolveConflicts(parser, "1-1-1", array(array('1', '-', '1'), '-', '1'));
+		final ConflictResolver conflictResolver = new ConflictResolver(parser);
+		
+		conflictResolver.resolve(characters("11(1)"), array(array('1', '1'), array('(', '1', ')')));
+		conflictResolver.resolve(characters("111"), array(array('1', '1'), '1'));
+		conflictResolver.resolve(characters("11+1"), array(array('1', '1'), '+', '1'));
+		conflictResolver.resolve(characters("11-1"), array(array('1', '1'), '-', '1'));
+		conflictResolver.resolve(characters("-11"), array(array('-', '1'), '1'));
+		conflictResolver.resolve(characters("-1(1)"), array(array('-', '1'), array('(', '1', ')')));
+		conflictResolver.resolve(characters("-1+1"), array(array('-', '1'), '+', '1'));
+		conflictResolver.resolve(characters("-1-1"), array(array('-', '1'), '-', '1'));
+		conflictResolver.resolve(characters("1+11"), array('1', '+', array('1', '1')));
+		conflictResolver.resolve(characters("1+1(1)"), array('1', '+', array('1', array('(', '1', ')'))));
+		conflictResolver.resolve(characters("1+1+1"), array(array('1', '+', '1'), '+', '1'));
+		conflictResolver.resolve(characters("1+1-1"), array(array('1', '+', '1'), '-', '1'));
+		conflictResolver.resolve(characters("1-11"), array('1', '-', array('1', '1')));
+		conflictResolver.resolve(characters("1-1(1)"), array('1', '-', array('1', array('(', '1', ')'))));
+		conflictResolver.resolve(characters("(1-1)"), array('(', array('1', '-', '1'), ')'));
+		conflictResolver.resolve(characters("1-1+1"), array(array('1', '-', '1'), '+', '1'));
+		conflictResolver.resolve(characters("1-1-1"), array(array('1', '-', '1'), '-', '1'));
 		
 		Tools.debugPrint("\n" + Tools.join("\n", collectAmbiguousExamples(lrTable).toArray()));
 		
