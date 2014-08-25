@@ -215,9 +215,13 @@ public final class LRTable implements Serializable {
 				newDatum = listener.reduction(this.getRule(), data);
 			}
 			
-			final int nextStateIndex = tail.get(0).getStateIndex();
+			int nextStateIndex = last(stack).getStateIndex();
 			
-			tail.clear();
+			if (!tail.isEmpty()) {
+				nextStateIndex = tail.get(0).getStateIndex();
+				tail.clear();
+			}
+			
 			tokens.back();
 			
 			last(stack).setStateIndex(nextStateIndex).setToken(newToken).setDatum(newDatum);

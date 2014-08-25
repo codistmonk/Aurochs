@@ -21,7 +21,7 @@ import org.junit.Test;
 public final class LALR1Test {
 	
 	@Test
-	public final void test() {
+	public final void testParser1() {
 		final Grammar grammar = new Grammar();
 		
 		grammar.new Rule("()", "E");
@@ -83,6 +83,31 @@ public final class LALR1Test {
 		Tools.debugPrint("\n" + Tools.join("\n", lrTable.collectAmbiguousExamples().toArray()));
 		
 		print(lrTable);
+	}
+	
+	@Test
+	public final void testParser2() {
+		final Grammar grammar = new Grammar();
+		
+		grammar.new Rule("()", "S");
+		grammar.new Rule("S", '\'', "CS", '\'');
+		grammar.new Rule("CS", "C", "CS");
+		grammar.new Rule("CS");
+		grammar.new Rule("C", 'a');
+		grammar.new Rule("C", 'b');
+		grammar.new Rule("C", '\\', '\'');
+		
+		final LALR1ClosureTable closureTable = new LALR1ClosureTable(grammar);
+		final LRTable lrTable = new LRTable(closureTable);
+		final LRParser parser = new LRParser(lrTable);
+		
+		Tools.debugPrint(closureTable.getStates().size());
+		print(lrTable);
+		Tools.debugPrint("\n" + Tools.join("\n", lrTable.collectAmbiguousExamples().toArray()));
+		
+		assertTrue(parser.parseAll(tokens("''")));
+		assertTrue(parser.parseAll(tokens("'aba'")));
+		assertTrue(parser.parseAll(tokens("'\\''")));
 	}
 	
 	public static final void print(final LRTable lrTable) {
