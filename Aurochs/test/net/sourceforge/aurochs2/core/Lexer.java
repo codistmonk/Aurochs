@@ -28,11 +28,13 @@ public final class Lexer implements Serializable {
 	public final TokenSource translate(final TokenSource tokens) {
 		final LRParser parser = this.getParser();
 		final Object[] tokenBox = this.tokenBox;
-		final Parsing parsing = parser.new Parsing(tokens);
+//		final Parsing parsing = parser.new Parsing(tokens);
 		
 		return new TokenSource(new Iterator<Object>() {
 			
-			private ParsingStatus parsingStatus = parsing.step();
+//			private ParsingStatus parsingStatus = parsing.step();
+			
+			private boolean parsingStatus = parser.parsePrefix(tokens);
 			
 			@Override
 			public final Object next() {
@@ -41,11 +43,15 @@ public final class Lexer implements Serializable {
 			
 			@Override
 			public final boolean hasNext() {
-				while (tokenBox[0] == null && !this.parsingStatus.isDone()) {
-					this.parsingStatus = parsing.step();
+//				while (tokenBox[0] == null && !this.parsingStatus.isDone()) {
+//					this.parsingStatus = parsing.step();
+//				}
+				
+				while (tokenBox[0] == null && this.parsingStatus) {
+					this.parsingStatus = parser.parsePrefix(tokens);
 				}
 				
-				return tokenBox[0] != null || !this.parsingStatus.isDone();
+				return tokenBox[0] != null || this.parsingStatus;
 			}
 			
 		});

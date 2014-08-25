@@ -39,11 +39,7 @@ public final class LexerBuilder implements Serializable {
 		this.initialNonterminal = this.newToken();
 		this.commonNonterminal = this.newToken();
 		
-		final Object tmp = this.newToken();
-		
-		this.grammar.new Rule(this.initialNonterminal, tmp);
-		this.grammar.new Rule(tmp, this.commonNonterminal, tmp);
-		this.grammar.new Rule(tmp, this.commonNonterminal);
+		this.grammar.new Rule(this.initialNonterminal, this.commonNonterminal);
 	}
 	
 	public final Token[] getTokenBox() {
@@ -58,36 +54,29 @@ public final class LexerBuilder implements Serializable {
 		return this.grammar;
 	}
 	
-	public final LexerBuilder token(final Object token, final Object... development) {
-		return this.token(this.defaultTokenGenerator, token, development);
-	}
-	
-	public final LexerBuilder token(final LexerBuilder.TokenGenerator tokenGenerator, final Object token, final Object... development) {
+	public final LexerBuilder generate(final Object token, final Object... development) {
 		this.getGrammar().new Rule(this.commonNonterminal, token);
-		this.getGrammar().new Rule(token, this.computeActualDevelopment(development)).setListener(tokenGenerator);
+		this.getGrammar().new Rule(token, this.computeActualDevelopment(development)).setListener(this.defaultTokenGenerator);
 		
 		return this;
 	}
 	
-	public final LexerBuilder silent(final Object nonterminal, final Object... development) {
-		this.getGrammar().new Rule(this.commonNonterminal, nonterminal);
-		this.silentRule(nonterminal, this.computeActualDevelopment(development));
+	public final LexerBuilder skip(final Object... development) {
+		final Object token = this.newToken();
 		
-		return this;
+		this.getGrammar().new Rule(this.commonNonterminal, token);
+		
+		return this.define(token, development);
 	}
 	
-	public final LexerBuilder skip(Object... development) {
-		return this.silent(this.newToken(), development);
+	public final LexerBuilder define(final Object nonterminal, final Object... development) {
+		this.getGrammar().new Rule(nonterminal, this.computeActualDevelopment(development)).setListener(this.defaultReductionListener);
+		
+		return this;
 	}
 	
 	public final Object newToken() {
 		return ++this.newToken;
-	}
-	
-	final LexerBuilder silentRule(final Object nonterminal, final Object... development) {
-		this.getGrammar().new Rule(nonterminal, this.computeActualDevelopment(development)).setListener(this.defaultReductionListener);
-		
-		return this;
 	}
 	
 	final Object symbol(final Object symbol) {
@@ -195,8 +184,8 @@ public final class LexerBuilder implements Serializable {
 			final Object result = lexerBuilder.newToken();
 			final Object symbol = lexerBuilder.symbol(this.symbol);
 			
-			lexerBuilder.silentRule(result, symbol, result);
-			lexerBuilder.silentRule(result);
+			lexerBuilder.define(result, symbol, result);
+			lexerBuilder.define(result);
 			
 			return result;
 		}
@@ -224,8 +213,8 @@ public final class LexerBuilder implements Serializable {
 			final Object result = lexerBuilder.newToken();
 			final Object symbol = lexerBuilder.symbol(this.symbol);
 			
-			lexerBuilder.silentRule(result, symbol, result);
-			lexerBuilder.silentRule(result, symbol);
+			lexerBuilder.define(result, symbol, result);
+			lexerBuilder.define(result, symbol);
 			
 			return result;
 		}
@@ -253,7 +242,7 @@ public final class LexerBuilder implements Serializable {
 			final Object result = lexerBuilder.newToken();
 			
 			for (final Object symbol : this.symbols) {
-				lexerBuilder.silentRule(result, lexerBuilder.symbol(symbol));
+				lexerBuilder.define(result, lexerBuilder.symbol(symbol));
 			}
 			
 			return result;
@@ -281,7 +270,7 @@ public final class LexerBuilder implements Serializable {
 		public final Object updateGrammar(final LexerBuilder lexerBuilder) {
 			final Object result = lexerBuilder.newToken();
 			
-			lexerBuilder.silentRule(result, this.symbols);
+			lexerBuilder.define(result, this.symbols);
 			
 			return result;
 		}
