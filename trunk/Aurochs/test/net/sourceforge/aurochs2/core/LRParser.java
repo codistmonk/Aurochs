@@ -212,7 +212,7 @@ import net.sourceforge.aurochs2.core.LRTable.Shift;
 				action.perform(stack, tokens);
 			}
 			
-			if (tokens.get() != Special.END_TERMINAL) {
+			if (tokens.get() != Special.END) {
 				throw new IllegalStateException();
 			}
 			
@@ -288,7 +288,7 @@ import net.sourceforge.aurochs2.core.LRTable.Shift;
 					return action instanceof Shift ? ParsingStatus.SHIFTED : ParsingStatus.REDUCED;
 				}
 				
-				return this.tokens.get() == Special.END_TERMINAL ? ParsingStatus.DONE : ParsingStatus.ERROR;
+				return this.tokens.get() == Special.END ? ParsingStatus.DONE : ParsingStatus.ERROR;
 			}
 			
 			/**

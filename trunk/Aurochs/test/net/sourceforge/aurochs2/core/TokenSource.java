@@ -10,7 +10,7 @@ import net.sourceforge.aurochs2.core.Grammar.Special;
 /**
  * @author codistmonk (creation 2014-08-24)
  */
-public final class TokenSource implements Serializable {
+public final class TokenSource implements Serializable, Iterable<Object> {
 	
 	private final Iterator<Object> tokens;
 	
@@ -23,7 +23,7 @@ public final class TokenSource implements Serializable {
 	}
 	
 	public final boolean hasNext() {
-		return this.tokens.hasNext() || this.get() != Special.END_TERMINAL || this.previous != null;
+		return this.tokens.hasNext() || this.get() != Special.END || this.previous != null;
 	}
 	
 	public final TokenSource back() {
@@ -37,7 +37,7 @@ public final class TokenSource implements Serializable {
 			this.token = this.previous;
 			this.previous = null;
 		} else {
-			this.token = this.tokens.hasNext() ? this.tokens.next() : Special.END_TERMINAL;
+			this.token = this.tokens.hasNext() ? this.tokens.next() : Special.END;
 		}
 		
 		return this;
@@ -45,6 +45,23 @@ public final class TokenSource implements Serializable {
 	
 	public final Object get() {
 		return this.token;
+	}
+	
+	@Override
+	public final Iterator<Object> iterator() {
+		return new Iterator<Object>() {
+			
+			@Override
+			public final boolean hasNext() {
+				return TokenSource.this.hasNext();
+			}
+			
+			@Override
+			public final Object next() {
+				return TokenSource.this.read().get();
+			}
+			
+		};
 	}
 	
 	/**

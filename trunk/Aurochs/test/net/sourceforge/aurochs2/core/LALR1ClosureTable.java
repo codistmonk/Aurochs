@@ -29,7 +29,7 @@ public final class LALR1ClosureTable implements ClosureTable {
 		this.states = new ArrayList<State>();
 		
 		this.states.add(new State(grammar, set(new Item(null,
-				grammar.getRules().get(0), 0, set(Grammar.Special.END_TERMINAL)))));
+				grammar.getRules().get(0), 0, set(Grammar.Special.END)))));
 		
 		for (int i = 0; i < this.states.size(); ++i) {
 			final State state = this.states.get(i);
