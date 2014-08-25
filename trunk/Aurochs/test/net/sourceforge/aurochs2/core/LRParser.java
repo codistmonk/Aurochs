@@ -2,6 +2,7 @@ package net.sourceforge.aurochs2.core;
 
 import static net.sourceforge.aprog.tools.Tools.array;
 import static net.sourceforge.aurochs2.core.StackItem.last;
+import static net.sourceforge.aurochs2.core.TokenSource.tokens;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import net.sourceforge.aprog.tools.Tools;
 import net.sourceforge.aurochs2.core.Grammar.ReductionListener;
 import net.sourceforge.aurochs2.core.Grammar.Rule;
 import net.sourceforge.aurochs2.core.Grammar.Special;
+import net.sourceforge.aurochs2.core.LRParser.ConflictResolver.Mode;
 import net.sourceforge.aurochs2.core.LRTable.Action;
 
 /**
@@ -72,6 +74,39 @@ import net.sourceforge.aurochs2.core.LRTable.Action;
 				}
 				
 				return grammar;
+			}
+			
+			public static final void resolveConflicts(final LRParser parser, final String string, final Object[] expected) {
+				ConflictResolver.setup(parser.getGrammar());
+				
+				final ConflictResolver resolver = new ConflictResolver();
+				Object[] actual = (Object[]) parser.parseAll(tokens(string), resolver);
+				
+				while (!Arrays.deepEquals(expected, actual)) {
+					actual = (Object[]) parser.parseAll(tokens(string), resolver);
+					
+					if (isZeroes(resolver.getActionChoices())) {
+						break;
+					}
+				}
+				
+				resolver.setMode(Mode.ACCEPT_CURRENT);
+				
+				actual = (Object[]) parser.parseAll(tokens(string), resolver);
+				
+				if (!Arrays.deepEquals(expected, actual)) {
+					throw new IllegalStateException();
+				}
+			}
+			
+			public static final boolean isZeroes(final List<Integer> list) {
+				for (final Integer i : list) {
+					if (i.intValue() != 0) {
+						return false;
+					}
+				}
+				
+				return true;
 			}
 			
 			/**

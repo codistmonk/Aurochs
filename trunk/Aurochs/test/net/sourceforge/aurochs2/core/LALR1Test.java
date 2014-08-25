@@ -2,19 +2,17 @@ package net.sourceforge.aurochs2.core;
 
 import static net.sourceforge.aprog.tools.Tools.array;
 import static net.sourceforge.aprog.tools.Tools.set;
+import static net.sourceforge.aurochs2.core.LRParser.ConflictResolver.resolveConflicts;
 import static net.sourceforge.aurochs2.core.TokenSource.tokens;
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
 import net.sourceforge.aprog.tools.Tools;
-import net.sourceforge.aurochs2.core.LRParser.ConflictResolver;
-import net.sourceforge.aurochs2.core.LRParser.ConflictResolver.Mode;
 import net.sourceforge.aurochs2.core.LRTable.Action;
 
 import org.junit.Test;
@@ -144,39 +142,6 @@ public final class LALR1Test {
 		for (int i = 0; i < n; ++i) {
 			Tools.debugPrint(i, lrTable.getActions().get(i));
 		}
-	}
-	
-	public static final void resolveConflicts(final LRParser parser, final String string, final Object[] expected) {
-		ConflictResolver.setup(parser.getGrammar());
-		
-		final ConflictResolver resolver = new ConflictResolver();
-		Object[] actual = (Object[]) parser.parseAll(tokens(string), resolver);
-		
-		while (!Arrays.deepEquals(expected, actual)) {
-			actual = (Object[]) parser.parseAll(tokens(string), resolver);
-			
-			if (isZeroes(resolver.getActionChoices())) {
-				break;
-			}
-		}
-		
-		resolver.setMode(Mode.ACCEPT_CURRENT);
-		
-		actual = (Object[]) parser.parseAll(tokens(string), resolver);
-		
-		if (!Arrays.deepEquals(expected, actual)) {
-			throw new IllegalStateException();
-		}
-	}
-	
-	public static final boolean isZeroes(final List<Integer> list) {
-		for (final Integer i : list) {
-			if (i.intValue() != 0) {
-				return false;
-			}
-		}
-		
-		return true;
 	}
 	
 }
