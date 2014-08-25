@@ -7,13 +7,20 @@ import static net.sourceforge.aurochs2.core.TokenSource.characters;
 import static net.sourceforge.aurochs2.core.TokenSource.tokens;
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import net.sourceforge.aprog.tools.Tools;
+import net.sourceforge.aurochs2.core.Grammar.ReductionListener;
+import net.sourceforge.aurochs2.core.Grammar.Rule;
 import net.sourceforge.aurochs2.core.LRParser.ConflictResolver;
+import net.sourceforge.aurochs2.core.LRParser.Parsing;
+import net.sourceforge.aurochs2.core.LRParser.ParsingStatus;
 
 import org.junit.Test;
 
@@ -147,6 +154,43 @@ public final class LALR1Test {
 		assertTrue(parser.parse(tokens("   ")));
 		assertTrue(parser.parse(tokens("")));
 		assertTrue(parser.parse(tokens("'\\''   '''abab'")));
+		
+		{
+			final AtomicBoolean flag = new AtomicBoolean();
+			final List<Object> tokens = new ArrayList<Object>();
+			
+			grammar.getRules().get(3).setListener(new ReductionListener() {
+				
+				@Override
+				public final Object reduction(final Rule rule, final Object[] data) {
+					tokens.add(Arrays.deepToString(data));
+					flag.set(true);
+					
+					return null;
+				}
+				
+				/**
+				 * {@value}.
+				 */
+				private static final long serialVersionUID = 6122957581557730089L;
+				
+			});
+			final Parsing parsing = parser.new Parsing(tokens("''  'bb' "));
+			ParsingStatus status;
+			
+			do {
+				do {
+					status = parsing.step();
+				} while (!status.isDone() && !flag.get());
+				
+				if (flag.getAndSet(false)) {
+					Tools.debugPrint(tokens);
+				}
+			} while (!status.isDone());
+			
+			assertFalse(flag.get());
+			assertEquals(2L, tokens.size());
+		}
 	}
 	
 	public static final void print(final LRTable lrTable) {
