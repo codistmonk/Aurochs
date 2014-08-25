@@ -45,9 +45,17 @@ import net.sourceforge.aurochs2.core.LRTable.Action;
 		 */
 		public static final class ConflictResolver implements Serializable {
 			
-			private final List<Integer> actionChoices = new ArrayList<>();
+			private final LRParser parser;
 			
-			private Mode mode = Mode.TRY_NEXT;
+			private final List<Integer> actionChoices;
+			
+			private Mode mode;
+			
+			public ConflictResolver(final LRParser parser) {
+				this.parser = parser;
+				this.actionChoices = new ArrayList<>();
+				this.mode = Mode.TRY_NEXT;
+			}
 			
 			public final List<Integer> getActionChoices() {
 				return this.actionChoices;
@@ -63,6 +71,35 @@ import net.sourceforge.aurochs2.core.LRTable.Action;
 				return this;
 			}
 			
+			public final ConflictResolver resolve(final List<?> tokens, final Object[] expected) {
+				ConflictResolver.setup(this.parser.getGrammar());
+				
+				this.setMode(Mode.TRY_NEXT);
+				
+				Object[] actual = (Object[]) this.parser.parseAll(tokens(tokens), this);
+				
+				while (!Arrays.deepEquals(expected, actual)) {
+					actual = (Object[]) this.parser.parseAll(tokens(tokens), this);
+					
+					if (isZeroes(this.getActionChoices())) {
+						break;
+					}
+				}
+				
+				this.setMode(Mode.ACCEPT_CURRENT);
+				
+				actual = (Object[]) this.parser.parseAll(tokens(tokens), this);
+				
+				this.getActionChoices().clear();
+				this.setMode(Mode.TRY_NEXT);
+				
+				if (!Arrays.deepEquals(expected, actual)) {
+					throw new IllegalStateException();
+				}
+				
+				return this;
+			}
+			
 			/**
 			 * {@value}.
 			 */
@@ -74,29 +111,6 @@ import net.sourceforge.aurochs2.core.LRTable.Action;
 				}
 				
 				return grammar;
-			}
-			
-			public static final void resolveConflicts(final LRParser parser, final String string, final Object[] expected) {
-				ConflictResolver.setup(parser.getGrammar());
-				
-				final ConflictResolver resolver = new ConflictResolver();
-				Object[] actual = (Object[]) parser.parseAll(tokens(string), resolver);
-				
-				while (!Arrays.deepEquals(expected, actual)) {
-					actual = (Object[]) parser.parseAll(tokens(string), resolver);
-					
-					if (isZeroes(resolver.getActionChoices())) {
-						break;
-					}
-				}
-				
-				resolver.setMode(Mode.ACCEPT_CURRENT);
-				
-				actual = (Object[]) parser.parseAll(tokens(string), resolver);
-				
-				if (!Arrays.deepEquals(expected, actual)) {
-					throw new IllegalStateException();
-				}
 			}
 			
 			public static final boolean isZeroes(final List<Integer> list) {
@@ -195,10 +209,6 @@ import net.sourceforge.aurochs2.core.LRTable.Action;
 			
 			if (tokens.get() != Special.END_TERMINAL) {
 				throw new IllegalStateException();
-			}
-			
-			if (ConflictResolver.Mode.ACCEPT_CURRENT == resolver.getMode()) {
-				resolver.getActionChoices().clear();
 			}
 			
 			return last(stack).getDatum();
