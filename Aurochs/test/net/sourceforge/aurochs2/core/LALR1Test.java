@@ -2,18 +2,17 @@ package net.sourceforge.aurochs2.core;
 
 import static net.sourceforge.aprog.tools.Tools.array;
 import static net.sourceforge.aprog.tools.Tools.set;
+import static net.sourceforge.aurochs2.core.TokenSource.tokens;
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import net.sourceforge.aprog.tools.Tools;
-import net.sourceforge.aurochs2.core.Grammar.Rule;
 import net.sourceforge.aurochs2.core.LRParser.ConflictResolver;
 import net.sourceforge.aurochs2.core.LRParser.ConflictResolver.Mode;
 import net.sourceforge.aurochs2.core.LRTable.Action;
@@ -178,26 +177,6 @@ public final class LALR1Test {
 		}
 		
 		return true;
-	}
-	
-	public static final TokenSource tokens(final String string) {
-		return new TokenSource(new Iterator<Object>() {
-			
-			private final int n = string.length();
-			
-			private int i = 0;
-			
-			@Override
-			public final boolean hasNext() {
-				return this.i < this.n;
-			}
-			
-			@Override
-			public final Object next() {
-				return string.charAt(this.i++);
-			}
-			
-		});
 	}
 	
 }
