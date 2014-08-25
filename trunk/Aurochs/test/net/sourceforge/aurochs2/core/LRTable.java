@@ -5,7 +5,6 @@ import static net.sourceforge.aurochs2.core.StackItem.last;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -15,7 +14,6 @@ import java.util.function.BiFunction;
 import net.sourceforge.aprog.tools.Tools;
 import net.sourceforge.aurochs2.core.Grammar.ReductionListener;
 import net.sourceforge.aurochs2.core.Grammar.Rule;
-import net.sourceforge.aurochs2.core.Grammar.Special;
 
 /**
  * @author codistmonk (creation 2014-08-24)
@@ -64,6 +62,58 @@ public final class LRTable implements Serializable {
 	
 	public final List<Map<Object, List<LRTable.Action>>> getActions() {
 		return this.actions;
+	}
+	
+	public final List<List<Object>> collectAmbiguousExamples() {
+		final List<List<Object>> result = new ArrayList<>();
+		final List<Map<Object, List<Action>>> actions = this.getActions();
+		final int n = actions.size();
+		
+		for (int stateIndex = 0; stateIndex < n; ++stateIndex) {
+			final Map<Object, List<Action>> stateActions = actions.get(stateIndex);
+			
+			for (final Map.Entry<Object, List<Action>> entry : stateActions.entrySet()) {
+				if (1 < entry.getValue().size()) {
+					final List<Integer> path = new ArrayList<>();
+					final List<Object> ambiguousExample = new ArrayList<>();
+					
+					path.add(0, stateIndex);
+					ambiguousExample.add(0, entry.getKey());
+					
+					int target = stateIndex;
+					
+					while (!path.contains(0)) {
+						Action targetAction = new LRTable.Shift(target);
+						boolean antecedentFound = false;
+						
+						for (int i = 0; i < n && !antecedentFound; ++i) {
+							if (path.contains(i)) {
+								continue;
+							}
+							
+							for (final Map.Entry<Object, List<Action>> entry2 : actions.get(i).entrySet()) {
+								if (entry2.getValue().contains(targetAction)) {
+									ambiguousExample.add(0, entry2.getKey());
+									path.add(0, i);
+									target = i;
+									antecedentFound = true;
+									break;
+								}
+							}
+						}
+						
+						if (!antecedentFound) {
+							Tools.debugError("Couldn't find path to ambiguity " + entry);
+							break;
+						}
+					}
+					
+					result.add(ambiguousExample);
+				}
+			}
+		}
+		
+		return result;
 	}
 	
 	/**
