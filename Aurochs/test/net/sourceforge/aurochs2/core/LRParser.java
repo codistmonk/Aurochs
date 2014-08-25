@@ -44,12 +44,19 @@ import net.sourceforge.aurochs2.core.LRTable.Shift;
 			
 			private final LRParser parser;
 			
+			private final ReductionListener listener;
+			
 			private final List<Integer> actionChoices;
 			
 			private Mode mode;
 			
 			public ConflictResolver(final LRParser parser) {
+				this(parser, TreeCollector.INSTANCE);
+			}
+			
+			public ConflictResolver(final LRParser parser, final ReductionListener listener) {
 				this.parser = parser;
+				this.listener = listener;
 				this.actionChoices = new ArrayList<>();
 				this.mode = Mode.TRY_NEXT;
 			}
@@ -69,7 +76,9 @@ import net.sourceforge.aurochs2.core.LRTable.Shift;
 			}
 			
 			public final ConflictResolver resolve(final List<?> tokens, final Object[] expected) {
-				ConflictResolver.setup(this.parser.getGrammar());
+				if (this.listener != null) {
+					ConflictResolver.setup(this.parser.getGrammar(), this.listener);
+				}
 				
 				this.setMode(Mode.TRY_NEXT);
 				
@@ -110,9 +119,9 @@ import net.sourceforge.aurochs2.core.LRTable.Shift;
 			 */
 			private static final long serialVersionUID = -2269472491106015129L;
 			
-			public static final Grammar setup(final Grammar grammar) {
+			public static final Grammar setup(final Grammar grammar, final ReductionListener listener) {
 				for (final Rule rule : grammar.getRules()) {
-					rule.setListener(TreeCollector.INSTANCE);
+					rule.setListener(listener);
 				}
 				
 				return grammar;
