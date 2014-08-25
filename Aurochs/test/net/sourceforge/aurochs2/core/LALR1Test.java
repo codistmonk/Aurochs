@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -21,8 +20,6 @@ import net.sourceforge.aprog.tools.Tools;
 import net.sourceforge.aurochs2.core.Grammar.ReductionListener;
 import net.sourceforge.aurochs2.core.Grammar.Rule;
 import net.sourceforge.aurochs2.core.LRParser.ConflictResolver;
-import net.sourceforge.aurochs2.core.LRParser.Parsing;
-import net.sourceforge.aurochs2.core.LRParser.ParsingStatus;
 
 import org.junit.Test;
 
@@ -176,33 +173,17 @@ public final class LALR1Test {
 				private static final long serialVersionUID = 6122957581557730089L;
 				
 			});
-			final Parsing parsing = parser.new Parsing(tokens("''  'bb' "));
-			ParsingStatus status;
 			
-			do {
-				do {
-					status = parsing.step();
-				} while (!status.isDone() && tokenBox[0] == null);
-				
-				if (tokenBox[0] != null) {
-					tokens.add(takeFrom(tokenBox));
-					Tools.debugPrint(tokens);
-				}
-			} while (!status.isDone());
+			final Lexer lexer = new Lexer(parser, tokenBox);
+			
+			for (final Object token : lexer.translate(tokens("''  'bb' "))) {
+				tokens.add(token);
+				Tools.debugPrint(token);
+			}
 			
 			assertNull(tokenBox[0]);
-			assertEquals(2L, tokens.size());
+			assertEquals(3L, tokens.size());
 		}
-	}
-	
-	public static final <T> T takeFrom(final T[] t) {
-		final T result = t[0];
-		
-		if (result != null) {
-			t[0] = null;
-		}
-		
-		return result;
 	}
 	
 	public static final void print(final LRTable lrTable) {
@@ -236,57 +217,6 @@ public final class LALR1Test {
 		 * {@value}.
 		 */
 		private static final long serialVersionUID = 6798178708273123305L;
-		
-	}
-	
-	/**
-	 * @author codistmonk (creation 2014-08-25)
-	 */
-	public static final class Lexer implements Serializable {
-		
-		private final LRParser parser;
-		
-		private final Object[] tokenBox;
-		
-		public Lexer(final LRParser parser, final Object[] tokenBox) {
-			this.parser = parser;
-			this.tokenBox = tokenBox;
-		}
-		
-		public final LRParser getParser() {
-			return this.parser;
-		}
-		
-		public final TokenSource translate(final TokenSource tokens) {
-			final LRParser parser = this.getParser();
-			final Object[] tokenBox = this.tokenBox;
-			final Parsing parsing = parser.new Parsing(tokens);
-			
-			return new TokenSource(new Iterator<Object>() {
-				
-				private ParsingStatus parsingStatus = parsing.step();
-				
-				@Override
-				public final Object next() {
-					while (tokenBox[0] == null && this.hasNext()) {
-						this.parsingStatus = parsing.step();
-					}
-					
-					return takeFrom(tokenBox);
-				}
-				
-				@Override
-				public final boolean hasNext() {
-					return !this.parsingStatus.isDone();
-				}
-				
-			});
-		}
-		
-		/**
-		 * {@value}.
-		 */
-		private static final long serialVersionUID = 4768669397408042988L;
 		
 	}
 	

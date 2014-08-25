@@ -163,7 +163,7 @@ public final class Grammar implements Serializable {
 	 */
 	public static enum Special {
 		
-		END_TERMINAL;
+		END;
 		
 	}
 	
