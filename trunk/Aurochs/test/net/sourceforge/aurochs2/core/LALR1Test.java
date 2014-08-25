@@ -3,23 +3,23 @@ package net.sourceforge.aurochs2.core;
 import static net.sourceforge.aprog.tools.Tools.array;
 import static net.sourceforge.aprog.tools.Tools.join;
 import static net.sourceforge.aprog.tools.Tools.set;
+import static net.sourceforge.aurochs2.core.LexerBuilder.*;
 import static net.sourceforge.aurochs2.core.TokenSource.characters;
 import static net.sourceforge.aurochs2.core.TokenSource.tokens;
 import static org.junit.Assert.*;
 
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import net.sourceforge.aprog.tools.Tools;
 import net.sourceforge.aurochs2.core.Grammar.ReductionListener;
 import net.sourceforge.aurochs2.core.Grammar.Rule;
+import net.sourceforge.aurochs2.core.Grammar.Special;
 import net.sourceforge.aurochs2.core.LRParser.ConflictResolver;
+import net.sourceforge.aurochs2.core.Lexer.Token;
 
 import org.junit.Test;
 
@@ -125,25 +125,23 @@ public final class LALR1Test {
 		grammar.new Rule("()", "SS");
 		grammar.new Rule("SS", "S", "SS");
 		grammar.new Rule("SS", "S");
-		grammar.new Rule("S", '\'', ".*", '\'');
-		grammar.new Rule("S", " *");
-		grammar.new Rule(".*", ".", ".*");
-		grammar.new Rule(".*");
+		grammar.new Rule("S", '\'', ".+", '\'');
+		grammar.new Rule("S", '\'', '\'');
+		grammar.new Rule("S", " +");
+		grammar.new Rule(".+", ".", ".+");
+		grammar.new Rule(".+", ".");
 		grammar.new Rule(".", 'a');
 		grammar.new Rule(".", 'b');
 		grammar.new Rule(".", '\\', '\'');
-		grammar.new Rule(" *", ' ', " *");
-		grammar.new Rule(" *");
+		grammar.new Rule(" +", ' ', " +");
+		grammar.new Rule(" +", ' ');
 		
 		final LALR1ClosureTable closureTable = new LALR1ClosureTable(grammar);
 		final LRTable lrTable = new LRTable(closureTable);
 		final LRParser parser = new LRParser(lrTable);
 		final ConflictResolver conflictResolver = new ConflictResolver(parser);
 		
-		conflictResolver.resolve(characters(" "), array(' ', array()));
-		conflictResolver.resolve(characters("''"), array('\'', array(), '\''));
-		conflictResolver.resolve(characters("  "), array(' ', array(' ', array())));
-		conflictResolver.resolve(characters(" ''"), array(array(' ', array()), array('\'', array(), '\'')));
+		conflictResolver.resolve(characters("  "), array(' ', ' '));
 		
 		printAmbiguities(lrTable);
 		
@@ -151,28 +149,32 @@ public final class LALR1Test {
 		assertTrue(parser.parse(tokens("'aba'")));
 		assertTrue(parser.parse(tokens("'\\''")));
 		assertTrue(parser.parse(tokens("   ")));
-		assertTrue(parser.parse(tokens("")));
+		assertFalse(parser.parse(tokens("")));
 		assertTrue(parser.parse(tokens("'\\''   '''abab'")));
 		
 		{
-			final Object[] tokenBox = { null };
+			final Token[] tokenBox = { null };
 			final List<Object> tokens = new ArrayList<Object>();
 			
-			grammar.getRules().get(3).setListener(new ReductionListener() {
+			final ReductionListener concatenator = new ReductionListener() {
 				
 				@Override
 				public final Object reduction(final Rule rule, final Object[] data) {
-					tokenBox[0] = Arrays.deepToString(data);
-					
-					return null;
+					return join("", data);
 				}
 				
 				/**
 				 * {@value}.
 				 */
-				private static final long serialVersionUID = 6122957581557730089L;
+				private static final long serialVersionUID = -2808685856543700396L;
 				
-			});
+			};
+			
+			ConflictResolver.setup(grammar, concatenator);
+			
+			final ReductionListener listener = new StringTokenGenerator(tokenBox);
+			grammar.getRules().get(3).setListener(listener);
+			grammar.getRules().get(4).setListener(listener);
 			
 			final Lexer lexer = new Lexer(parser, tokenBox);
 			
@@ -184,6 +186,29 @@ public final class LALR1Test {
 			assertNull(tokenBox[0]);
 			assertEquals(3L, tokens.size());
 		}
+	}
+	
+	@Test
+	public final void testLexer2() {
+		final LexerBuilder lexerBuilder = new LexerBuilder();
+		
+		lexerBuilder.token("digit", oneOrMore(union(range('0', '9'))));
+		lexerBuilder.skip(oneOrMore(' '));
+		
+		final Lexer lexer = lexerBuilder.newLexer();
+		final List<Token> tokens = new ArrayList<Token>();
+		
+		print(lexer.getParser().getTable());
+		
+		for (final Object token : lexer.translate(tokens(characters("123 456")))) {
+			if (Special.END != token) {
+				tokens.add((Token) token);
+			}
+		}
+		
+		Tools.debugPrint(tokens);
+		
+		assertEquals(2L, tokens.size());
 	}
 	
 	public static final void print(final LRTable lrTable) {
@@ -200,24 +225,6 @@ public final class LALR1Test {
 		if (!ambiguities.isEmpty()) {
 			Tools.debugPrint("\n" + join("\n", ambiguities.toArray()));
 		}
-	}
-	
-	/**
-	 * @author codistmonk (creation 2014-08-25)
-	 */
-	public static final class LexerBuilder implements Serializable {
-		
-		private final Grammar grammar = new Grammar();
-		
-		public final Lexer newLexer() {
-			return null;
-		}
-		
-		/**
-		 * {@value}.
-		 */
-		private static final long serialVersionUID = 6798178708273123305L;
-		
 	}
 	
 }
