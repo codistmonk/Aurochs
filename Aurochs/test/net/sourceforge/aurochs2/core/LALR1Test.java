@@ -7,10 +7,12 @@ import static net.sourceforge.aurochs2.core.TokenSource.characters;
 import static net.sourceforge.aurochs2.core.TokenSource.tokens;
 import static org.junit.Assert.*;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -156,15 +158,14 @@ public final class LALR1Test {
 		assertTrue(parser.parse(tokens("'\\''   '''abab'")));
 		
 		{
-			final AtomicBoolean flag = new AtomicBoolean();
+			final Object[] tokenBox = { null };
 			final List<Object> tokens = new ArrayList<Object>();
 			
 			grammar.getRules().get(3).setListener(new ReductionListener() {
 				
 				@Override
 				public final Object reduction(final Rule rule, final Object[] data) {
-					tokens.add(Arrays.deepToString(data));
-					flag.set(true);
+					tokenBox[0] = Arrays.deepToString(data);
 					
 					return null;
 				}
@@ -181,16 +182,27 @@ public final class LALR1Test {
 			do {
 				do {
 					status = parsing.step();
-				} while (!status.isDone() && !flag.get());
+				} while (!status.isDone() && tokenBox[0] == null);
 				
-				if (flag.getAndSet(false)) {
+				if (tokenBox[0] != null) {
+					tokens.add(takeFrom(tokenBox));
 					Tools.debugPrint(tokens);
 				}
 			} while (!status.isDone());
 			
-			assertFalse(flag.get());
+			assertNull(tokenBox[0]);
 			assertEquals(2L, tokens.size());
 		}
+	}
+	
+	public static final <T> T takeFrom(final T[] t) {
+		final T result = t[0];
+		
+		if (result != null) {
+			t[0] = null;
+		}
+		
+		return result;
 	}
 	
 	public static final void print(final LRTable lrTable) {
@@ -207,6 +219,75 @@ public final class LALR1Test {
 		if (!ambiguities.isEmpty()) {
 			Tools.debugPrint("\n" + join("\n", ambiguities.toArray()));
 		}
+	}
+	
+	/**
+	 * @author codistmonk (creation 2014-08-25)
+	 */
+	public static final class LexerBuilder implements Serializable {
+		
+		private final Grammar grammar = new Grammar();
+		
+		public final Lexer newLexer() {
+			return null;
+		}
+		
+		/**
+		 * {@value}.
+		 */
+		private static final long serialVersionUID = 6798178708273123305L;
+		
+	}
+	
+	/**
+	 * @author codistmonk (creation 2014-08-25)
+	 */
+	public static final class Lexer implements Serializable {
+		
+		private final LRParser parser;
+		
+		private final Object[] tokenBox;
+		
+		public Lexer(final LRParser parser, final Object[] tokenBox) {
+			this.parser = parser;
+			this.tokenBox = tokenBox;
+		}
+		
+		public final LRParser getParser() {
+			return this.parser;
+		}
+		
+		public final TokenSource translate(final TokenSource tokens) {
+			final LRParser parser = this.getParser();
+			final Object[] tokenBox = this.tokenBox;
+			final Parsing parsing = parser.new Parsing(tokens);
+			
+			return new TokenSource(new Iterator<Object>() {
+				
+				private ParsingStatus parsingStatus = parsing.step();
+				
+				@Override
+				public final Object next() {
+					while (tokenBox[0] == null && this.hasNext()) {
+						this.parsingStatus = parsing.step();
+					}
+					
+					return takeFrom(tokenBox);
+				}
+				
+				@Override
+				public final boolean hasNext() {
+					return !this.parsingStatus.isDone();
+				}
+				
+			});
+		}
+		
+		/**
+		 * {@value}.
+		 */
+		private static final long serialVersionUID = 4768669397408042988L;
+		
 	}
 	
 }
