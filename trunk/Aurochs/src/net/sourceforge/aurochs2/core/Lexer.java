@@ -23,30 +23,23 @@ public final class Lexer implements Serializable {
 		return this.parser;
 	}
 	
-	public final TokenSource translate(final TokenSource tokens) {
+	public final TokenSource<Token> translate(final TokenSource<?> input) {
 		final LRParser parser = this.getParser();
-		final Object[] tokenBox = this.tokenBox;
-//		final Parsing parsing = parser.new Parsing(tokens);
+		final Token[] tokenBox = this.tokenBox;
 		
-		return new TokenSource(new Iterator<Object>() {
+		return new TokenSource<Token>(new Iterator<Token>() {
 			
-//			private ParsingStatus parsingStatus = parsing.step();
-			
-			private boolean parsingStatus = parser.parsePrefix(tokens);
+			private boolean parsingStatus = parser.parsePrefix(input);
 			
 			@Override
-			public final Object next() {
+			public final Token next() {
 				return takeFrom(tokenBox);
 			}
 			
 			@Override
 			public final boolean hasNext() {
-//				while (tokenBox[0] == null && !this.parsingStatus.isDone()) {
-//					this.parsingStatus = parsing.step();
-//				}
-				
 				while (tokenBox[0] == null && this.parsingStatus) {
-					this.parsingStatus = parser.parsePrefix(tokens);
+					this.parsingStatus = parser.parsePrefix(input);
 				}
 				
 				return tokenBox[0] != null || this.parsingStatus;
