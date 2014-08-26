@@ -5,11 +5,13 @@ import static net.sourceforge.aprog.tools.Tools.join;
 import static net.sourceforge.aprog.tools.Tools.list;
 import static net.sourceforge.aprog.tools.Tools.set;
 import static net.sourceforge.aurochs2.core.LexerBuilder.*;
+import static net.sourceforge.aurochs2.core.ParserBuilder.token;
 import static net.sourceforge.aurochs2.core.TokenSource.characters;
 import static net.sourceforge.aurochs2.core.TokenSource.tokens;
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -214,22 +216,26 @@ public final class LALR1Test {
 		final Lexer lexer = lexerBuilder.newLexer();
 		final ParserBuilder parserBuilder = new ParserBuilder(lexer);
 		
-		parserBuilder.addRule("()", "Expression");
-		parserBuilder.addRule("Expression", "Expression", "Expression");
-		parserBuilder.addRule("Expression", "Expression", ("+"), "Expression");
-		parserBuilder.addRule("Expression", "Expression", ("-"), "Expression");
-		parserBuilder.addRule("Expression", ("-"), "Expression");
-		parserBuilder.addRule("Expression", ("("), "Expression", (")"));
-		parserBuilder.addRule("Expression", ("string"));
-		parserBuilder.addRule("Expression", ("variable"));
-		parserBuilder.addRule("Expression", ("natural"));
+		parserBuilder.define("()", "Expression");
+		parserBuilder.define("Expression", "Expression", "Expression");
+		parserBuilder.define("Expression", "Expression", ("+"), "Expression");
+		parserBuilder.define("Expression", "Expression", ("-"), "Expression");
+		parserBuilder.define("Expression", ("-"), "Expression");
+		parserBuilder.define("Expression", ("("), "Expression", (")"));
+		parserBuilder.define("Expression", ("string"));
+		parserBuilder.define("Expression", ("variable"));
+		parserBuilder.define("Expression", ("natural"));
+		
+		parserBuilder.setPriority(300, "Expression", "Expression");
+		parserBuilder.setPriority(100, "Expression", token("+"), "Expression");
 		
 		final LRParser parser = parserBuilder.newParser();
 		
 		{
 			final ConflictResolver resolver = new ConflictResolver(parser);
 			
-			resolver.resolve(list(lexer.translate(tokens("aa''"))), array(array("a", "a"), "''"));
+			resolver.resolve(Arrays.asList("Expression", "Expression", token("string")), array(array("Expression", "Expression"), "string"));
+//			resolver.resolve(list(lexer.translate(tokens("aa''"))), array(array("a", "a"), "''"));
 			resolver.resolve(list(lexer.translate(tokens("aa11"))), array(array("a", "a"), "11"));
 			resolver.resolve(list(lexer.translate(tokens("aa(a)"))), array(array("a", "a"), array("(", "a", ")")));
 			resolver.resolve(list(lexer.translate(tokens("aaa"))), array(array("a", "a"), "a"));
