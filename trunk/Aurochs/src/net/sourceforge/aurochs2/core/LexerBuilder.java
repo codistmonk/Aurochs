@@ -157,10 +157,14 @@ public final class LexerBuilder implements Serializable {
 			this.symbol = symbol;
 		}
 		
+		public final Object getSymbol() {
+			return this.symbol;
+		}
+		
 		@Override
 		public final Object updateRules(final LexerBuilder lexerBuilder) {
 			final Object result = lexerBuilder.newToken();
-			final Object symbol = lexerBuilder.symbol(this.symbol);
+			final Object symbol = lexerBuilder.symbol(this.getSymbol());
 			
 			lexerBuilder.define(result, symbol);
 			lexerBuilder.define(result);
@@ -186,10 +190,14 @@ public final class LexerBuilder implements Serializable {
 			this.symbol = symbol;
 		}
 		
+		public final Object getSymbol() {
+			return this.symbol;
+		}
+		
 		@Override
 		public final Object updateRules(final LexerBuilder lexerBuilder) {
 			final Object result = lexerBuilder.newToken();
-			final Object symbol = lexerBuilder.symbol(this.symbol);
+			final Object symbol = lexerBuilder.symbol(this.getSymbol());
 			
 			lexerBuilder.define(result, symbol, result);
 			lexerBuilder.define(result);
@@ -215,10 +223,14 @@ public final class LexerBuilder implements Serializable {
 			this.symbol = symbol;
 		}
 		
+		public final Object getSymbol() {
+			return this.symbol;
+		}
+		
 		@Override
 		public final Object updateRules(final LexerBuilder lexerBuilder) {
 			final Object result = lexerBuilder.newToken();
-			final Object symbol = lexerBuilder.symbol(this.symbol);
+			final Object symbol = lexerBuilder.symbol(this.getSymbol());
 			
 			lexerBuilder.define(result, symbol, result);
 			lexerBuilder.define(result, symbol);
@@ -244,11 +256,15 @@ public final class LexerBuilder implements Serializable {
 			this.symbols = symbols;
 		}
 		
+		public final Object[] getSymbols() {
+			return this.symbols;
+		}
+		
 		@Override
 		public final Object updateRules(final LexerBuilder lexerBuilder) {
 			final Object result = lexerBuilder.newToken();
 			
-			for (final Object symbol : this.symbols) {
+			for (final Object symbol : this.getSymbols()) {
 				lexerBuilder.define(result, lexerBuilder.symbol(symbol));
 			}
 			
@@ -273,11 +289,15 @@ public final class LexerBuilder implements Serializable {
 			this.symbols = symbols;
 		}
 		
+		public final Object[] getSymbols() {
+			return this.symbols;
+		}
+		
 		@Override
 		public final Object updateRules(final LexerBuilder lexerBuilder) {
 			final Object result = lexerBuilder.newToken();
 			
-			lexerBuilder.define(result, this.symbols);
+			lexerBuilder.define(result, this.getSymbols());
 			
 			return result;
 		}
