@@ -46,8 +46,12 @@ public final class LexerBuilder implements Serializable {
 		return this.tokenBox;
 	}
 	
+	public final Lexer newLexer(final ClosureTable closureTable) {
+		return new Lexer(new LRParser(new LRTable(closureTable)), this.getTokenBox());
+	}
+	
 	public final Lexer newLexer() {
-		return new Lexer(new LRParser(new LRTable(new LALR1ClosureTable(this.getGrammar()))), this.getTokenBox());
+		return this.newLexer(new LALR1ClosureTable(this.getGrammar()));
 	}
 	
 	public final Grammar getGrammar() {
