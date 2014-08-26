@@ -7,17 +7,14 @@ import static net.sourceforge.aprog.tools.Tools.array;
 import static net.sourceforge.aprog.tools.Tools.cast;
 import static net.sourceforge.aprog.tools.Tools.join;
 import static net.sourceforge.aurochs2.core.ParserBuilder.Priority.Associativity.LEFT;
-import static net.sourceforge.aurochs2.core.ParserBuilder.Priority.Associativity.NONE;
 import static net.sourceforge.aurochs2.core.ParserBuilder.Priority.Associativity.RIGHT;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 
 import net.sourceforge.aprog.tools.Pair;
 import net.sourceforge.aprog.tools.Tools;
@@ -36,11 +33,14 @@ public final class ParserBuilder implements Serializable {
 	
 	private final Collection<Object> lexerTokens;
 	
+	private final List<Object[]> exampleTrees;
+	
 	private final List<Priority> priorities;
 	
 	public ParserBuilder(final Lexer lexer) {
 		this.grammar = new Grammar();
 		this.lexerTokens = new HashSet<>();
+		this.exampleTrees = new ArrayList<>();
 		this.priorities = new ArrayList<>();
 		
 		if (lexer != null) {
@@ -56,8 +56,12 @@ public final class ParserBuilder implements Serializable {
 		return this.grammar;
 	}
 	
+	public final void resolveConflictWith(final Object... exampleTree) {
+		this.exampleTrees.add(exampleTree);
+	}
+	
 	public final void setPriority(final int priority, final Associativity preferredAssociativity, final Object... symbols) {
-		this.priorities.add(new Priority(priority, preferredAssociativity, Arrays.asList(symbols)));
+		this.priorities.add(new Priority(priority, preferredAssociativity, this.tokenify(Arrays.asList(symbols))));
 	}
 	
 	public final Rule define(final Object nonterminal, final Object... development) {
@@ -77,10 +81,38 @@ public final class ParserBuilder implements Serializable {
 		return this.newParser(new LALR1ClosureTable(this.getGrammar()));
 	}
 	
+	public static final List<Object> flatten(final Object... tree) {
+		final List<Object> result = new ArrayList<>();
+		
+		for (final Object object : tree) {
+			if (object instanceof Object[]) {
+				result.addAll(flatten((Object[]) object));
+			} else {
+				result.add(object);
+			}
+		}
+		
+		return result;
+	}
+	
 	public final LRParser newParser(final ClosureTable table) {
 		final LRParser result = new LRParser(new LRTable(table));
-		final List<List<Object>> ambiguities = result.getTable().collectAmbiguousExamples();
+		
+		this.resolveConflicts(result);
+		
+		printAmbiguities(result.getTable());
+		
+		return result;
+	}
+	
+	private final void resolveConflicts(final LRParser result) {
 		final ConflictResolver resolver = new ConflictResolver(result);
+		
+		for (final Object[] exampleTree : this.exampleTrees) {
+			resolver.resolve(this.tokenify(flatten(exampleTree)), exampleTree);
+		}
+		
+		final List<List<Object>> ambiguities = result.getTable().collectAmbiguousExamples();
 		
 		for (final List<Object> ambiguity : ambiguities) {
 			final int ambiguitySize = ambiguity.size();
@@ -155,18 +187,13 @@ public final class ParserBuilder implements Serializable {
 						final List<Object> tokens = new ArrayList<>(prefixCoverSize + suffixCoverSize - overlap);
 						final Object[] expected;
 						
-						Tools.debugPrint(overlap);
-						Tools.debugPrint(ambiguity);
-						Tools.debugPrint(prefixCover);
-						Tools.debugPrint(suffixCover);
-						
 						if (prefixCoverPriority < suffixCoverPriority
 								|| (prefixCoverPriority == suffixCoverPriority
 									&& (prefixCoverAssociativity == RIGHT || suffixCoverAssociativity == RIGHT)
 									&& !(prefixCoverAssociativity == LEFT || suffixCoverAssociativity == LEFT))) {
 							final List<Object> left = prefixCoverSymbols.subList(0, prefixCoverSize - overlap);
 							final List<Object> right = suffixCoverSymbols;
-							Tools.debugPrint(left, right);
+							
 							tokens.addAll(left);
 							tokens.addAll(right);
 							expected = append(stringify(left), bloc(stringify(right)));
@@ -176,20 +203,15 @@ public final class ParserBuilder implements Serializable {
 									&& !(prefixCoverAssociativity == RIGHT || suffixCoverAssociativity == RIGHT))) {
 							final List<Object> left = prefixCoverSymbols;
 							final List<Object> right = suffixCoverSymbols.subList(overlap, suffixCoverSize);
-							Tools.debugPrint(left, right);
+							
 							tokens.addAll(left);
 							tokens.addAll(right);
 							expected = append(bloc(stringify(left)), stringify(right));
-							
 						} else {
-							Tools.debugPrint("TODO");
-							// TODO
 							expected = null;
 						}
 						
 						if (expected != null) {
-							Tools.debugPrint(tokens);
-							Tools.debugPrint(Arrays.deepToString(expected));
 							resolver.resolve(tokens, expected);
 						}
 					}
@@ -197,10 +219,20 @@ public final class ParserBuilder implements Serializable {
 				
 			}
 		}
+	}
+	
+	private final List<Object> tokenify(final List<Object> tokens) {
+		final int n = tokens.size();
 		
-		printAmbiguities(result.getTable());
+		for (int i = 0; i < n; ++i) {
+			final Object token = tokens.get(i);
+			
+			if (this.lexerTokens.contains(token)) {
+				tokens.set(i, token(token));
+			}
+		}
 		
-		return result;
+		return tokens;
 	}
 	
 	/**
