@@ -180,7 +180,7 @@ public final class LRParser implements Serializable {
 		
 	}
 	
-	public final Object parse(final TokenSource tokens, final ConflictResolver resolver) {
+	public final Object parse(final TokenSource<?> tokens, final ConflictResolver resolver) {
 		final Object initialNonterminal = this.getGrammar().getRules().get(0).getNonterminal();
 		final List<StackItem> stack = new ArrayList<>();
 		int nextChoiceDelta = 1;
@@ -241,7 +241,7 @@ public final class LRParser implements Serializable {
 		return last(stack).getDatum();
 	}
 	
-	public final boolean parse(final TokenSource tokens) {
+	public final boolean parse(final TokenSource<?> tokens) {
 		final Parsing parsing = this.new Parsing(tokens);
 		ParsingStatus status;
 		
@@ -252,7 +252,7 @@ public final class LRParser implements Serializable {
 		return ParsingStatus.DONE == status;
 	}
 	
-	public final boolean parsePrefix(final TokenSource tokens) {
+	public final boolean parsePrefix(final TokenSource<?> tokens) {
 		final Parsing parsing = this.new Parsing(tokens);
 		ParsingStatus status;
 		
@@ -298,13 +298,13 @@ public final class LRParser implements Serializable {
 	 */
 	public final class Parsing implements Serializable {
 		
-		private TokenSource tokens;
+		private TokenSource<?> tokens;
 		
 		private final Object initialNonterminal;
 		
 		private final List<StackItem> stack;
 		
-		public Parsing(final TokenSource tokens) {
+		public Parsing(final TokenSource<?> tokens) {
 			this.tokens = tokens;
 			this.initialNonterminal = LRParser.this.getGrammar().getRules().get(0).getNonterminal();
 			this.stack = new ArrayList<>();
@@ -384,6 +384,6 @@ public final class LRParser implements Serializable {
 		
 	}
 	
-	public static final TokenSource NO_TOKEN_SOURCE = new TokenSource(new ArrayList<>().iterator()).read();
+	public static final TokenSource<?> NO_TOKEN_SOURCE = new TokenSource<>(new ArrayList<>().iterator()).read();
 	
 }

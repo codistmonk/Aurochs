@@ -17,7 +17,6 @@ import java.util.Map;
 
 import net.sourceforge.aprog.tools.Tools;
 import net.sourceforge.aurochs2.core.Grammar.ReductionListener;
-import net.sourceforge.aurochs2.core.Grammar.Special;
 import net.sourceforge.aurochs2.core.LRParser.ConflictResolver;
 import net.sourceforge.aurochs2.core.Lexer.Token;
 import net.sourceforge.aurochs2.core.LexerBuilder.Union;
@@ -190,8 +189,7 @@ public final class LALR1Test {
 		
 		printAmbiguities(lexer.getParser().getTable());
 		
-		@SuppressWarnings("unchecked")
-		final List<Token> output = (List) list(lexer.translate(tokens(characters("' '   ''"))));
+		final List<Token> output = list(lexer.translate(tokens(characters("' '   ''"))));
 		
 		assertEquals(2L, output.size());
 	}

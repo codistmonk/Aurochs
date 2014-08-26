@@ -129,7 +129,7 @@ public final class LRTable implements Serializable {
 	 */
 	public static abstract interface Action extends Serializable {
 		
-		public abstract void perform(List<StackItem> stack, TokenSource tokens);
+		public abstract void perform(List<StackItem> stack, TokenSource<?> tokens);
 		
 	}
 	
@@ -149,7 +149,7 @@ public final class LRTable implements Serializable {
 		}
 		
 		@Override
-		public final void perform(final List<StackItem> stack, final TokenSource tokens) {
+		public final void perform(final List<StackItem> stack, final TokenSource<?> tokens) {
 			stack.add(new StackItem().setStateIndex(this.getNextStateIndex()).setToken(tokens.read().get()));
 		}
 		
@@ -197,7 +197,7 @@ public final class LRTable implements Serializable {
 		}
 		
 		@Override
-		public final void perform(final List<StackItem> stack, final TokenSource tokens) {
+		public final void perform(final List<StackItem> stack, final TokenSource<?> tokens) {
 			final int stackSize = stack.size();
 			final int developmentSize = this.getRule().getDevelopment().length;
 			final List<StackItem> tail = stack.subList(stackSize - 1 - developmentSize, stackSize - 1);
@@ -210,6 +210,10 @@ public final class LRTable implements Serializable {
 				
 				for (int i = 0; i < developmentSize; ++i) {
 					data[i] = tail.get(i).getDatum();
+					
+					while (data[i] instanceof Lexer.Token) {
+						data[i] = ((Lexer.Token) data[i]).getDatum();
+					}
 				}
 				
 				newDatum = listener.reduction(this.getRule(), data);

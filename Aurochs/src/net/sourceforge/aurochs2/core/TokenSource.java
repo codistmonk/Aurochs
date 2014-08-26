@@ -11,15 +11,15 @@ import net.sourceforge.aurochs2.core.Grammar.Special;
 /**
  * @author codistmonk (creation 2014-08-24)
  */
-public final class TokenSource implements Serializable, Iterable<Object> {
+public final class TokenSource<T> implements Serializable, Iterable<T> {
 	
-	private final Iterator<Object> tokens;
+	private final Iterator<T> tokens;
 	
 	private Object previous;
 	
 	private Object token;
 	
-	public TokenSource(final Iterator<Object> tokens) {
+	public TokenSource(final Iterator<T> tokens) {
 		this.tokens = tokens;
 	}
 	
@@ -27,13 +27,13 @@ public final class TokenSource implements Serializable, Iterable<Object> {
 		return this.tokens.hasNext() || this.get() != Special.END || this.previous != null;
 	}
 	
-	public final TokenSource back() {
+	public final TokenSource<T> back() {
 		this.previous = this.get();
 		
 		return this;
 	}
 	
-	public final TokenSource read() {
+	public final TokenSource<T> read() {
 		if (this.previous != null) {
 			this.token = this.previous;
 			this.previous = null;
@@ -44,13 +44,14 @@ public final class TokenSource implements Serializable, Iterable<Object> {
 		return this;
 	}
 	
-	public final Object get() {
-		return this.token;
+	@SuppressWarnings("unchecked")
+	public final T get() {
+		return (T) this.token;
 	}
 	
 	@Override
-	public final Iterator<Object> iterator() {
-		return new Iterator<Object>() {
+	public final Iterator<T> iterator() {
+		return new Iterator<T>() {
 			
 			private Boolean hasNext;
 			
@@ -66,15 +67,16 @@ public final class TokenSource implements Serializable, Iterable<Object> {
 				return this.hasNext;
 			}
 			
+			@SuppressWarnings("unchecked")
 			@Override
-			public final Object next() {
+			public final T next() {
 				if (!this.hasNext()) {
 					throw new NoSuchElementException();
 				}
 				
 				this.hasNext = null;
 				
-				return this.next;
+				return (T) this.next;
 			}
 			
 		};
@@ -96,14 +98,14 @@ public final class TokenSource implements Serializable, Iterable<Object> {
 		return result;
 	}
 	
-	public static final TokenSource tokens(final CharSequence sequence) {
+	public static final TokenSource<Character> tokens(final CharSequence sequence) {
 		return tokens(characters(sequence));
 	}
 	
-	public static final TokenSource tokens(final List<?> tokens) {
-		return new TokenSource(new Iterator<Object>() {
+	public static final <T> TokenSource<T> tokens(final List<T> tokens) {
+		return new TokenSource<>(new Iterator<T>() {
 			
-			private final Iterator<?> i = tokens.iterator();
+			private final Iterator<T> i = tokens.iterator();
 			
 			@Override
 			public final boolean hasNext() {
@@ -111,7 +113,7 @@ public final class TokenSource implements Serializable, Iterable<Object> {
 			}
 			
 			@Override
-			public final Object next() {
+			public final T next() {
 				return this.i.next();
 			}
 			
