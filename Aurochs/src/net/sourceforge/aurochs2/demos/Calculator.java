@@ -1,7 +1,7 @@
 package net.sourceforge.aurochs2.demos;
 
 import static net.sourceforge.aurochs2.core.LexerBuilder.*;
-import static net.sourceforge.aurochs2.core.ParserBuilder.bloc;
+import static net.sourceforge.aurochs2.core.ParserBuilder.block;
 import static net.sourceforge.aurochs2.core.ParserBuilder.Priority.Associativity.LEFT;
 import static net.sourceforge.aurochs2.core.ParserBuilder.Priority.Associativity.NONE;
 import static net.sourceforge.aurochs2.core.TokenSource.tokens;
@@ -111,11 +111,11 @@ public final class Calculator {
 			return result;
 		});
 		
-		parserBuilder.resolveConflictWith(bloc("Expression", "Expression"), bloc("(", "Expression", ")"));
-		parserBuilder.resolveConflictWith(bloc("-", "Expression"), bloc("(", "Expression", ")"));
-		parserBuilder.resolveConflictWith("Expression", "+", bloc("Expression", bloc("(", "Expression", ")")));
-		parserBuilder.resolveConflictWith("Expression", "-", bloc("Expression", bloc("(", "Expression", ")")));
-		parserBuilder.resolveConflictWith("(", bloc("Expression", "-", "Expression"), ")");
+		parserBuilder.resolveConflictWith(block("Expression", "Expression"), block("(", "Expression", ")"));
+		parserBuilder.resolveConflictWith(block("-", "Expression"), block("(", "Expression", ")"));
+		parserBuilder.resolveConflictWith("Expression", "+", block("Expression", block("(", "Expression", ")")));
+		parserBuilder.resolveConflictWith("Expression", "-", block("Expression", block("(", "Expression", ")")));
+		parserBuilder.resolveConflictWith("(", block("Expression", "-", "Expression"), ")");
 		
 		parserBuilder.setPriority(300, NONE, "-", "Expression");
 		parserBuilder.setPriority(300, LEFT, "Expression", "natural");

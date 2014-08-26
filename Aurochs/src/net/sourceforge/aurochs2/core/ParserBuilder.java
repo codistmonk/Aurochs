@@ -108,7 +108,14 @@ public final class ParserBuilder implements Serializable {
 		final ConflictResolver resolver = new ConflictResolver(result);
 		
 		for (final Object[] exampleTree : this.exampleTrees) {
-			resolver.resolve(this.tokenify(flatten(exampleTree)), exampleTree);
+			final List<Object> tokens = this.tokenify(flatten(exampleTree));
+			
+			try {
+				resolver.resolve(tokens, exampleTree);
+			} catch (final Exception exception) {
+				Tools.getLoggerForThisMethod().severe(
+						"Failed to resolve conflicts in " + tokens + " using " + Arrays.deepToString(exampleTree));
+			}
 		}
 		
 		final List<List<Object>> ambiguities = result.getTable().collectAmbiguousExamples();
@@ -164,7 +171,7 @@ public final class ParserBuilder implements Serializable {
 		return new Token(symbol, symbol);
 	}
 	
-	public static final Object[] bloc(final Object... objects) {
+	public static final Object[] block(final Object... objects) {
 		return objects;
 	}
 	
@@ -175,7 +182,7 @@ public final class ParserBuilder implements Serializable {
 	private static final Object[] bloc1(final Object object) {
 		final Object[] asArray = cast(Object[].class, object);
 		
-		return asArray != null && asArray.length == 1 ? asArray : bloc(object);
+		return asArray != null && asArray.length == 1 ? asArray : block(object);
 	}
 	
 	private static final void updatePrefixCovers(final List<Object> ambiguity,
