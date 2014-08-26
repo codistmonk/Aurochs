@@ -22,6 +22,7 @@ import net.sourceforge.aurochs2.core.Grammar.ReductionListener;
 import net.sourceforge.aurochs2.core.LRParser.ConflictResolver;
 import net.sourceforge.aurochs2.core.Lexer.Token;
 import net.sourceforge.aurochs2.core.LexerBuilder.Union;
+import net.sourceforge.aurochs2.core.ParserBuilder.Priority.Associativity;
 
 import org.junit.Test;
 
@@ -226,16 +227,18 @@ public final class LALR1Test {
 		parserBuilder.define("Expression", ("variable"));
 		parserBuilder.define("Expression", ("natural"));
 		
-		parserBuilder.setPriority(300, "Expression", "Expression");
-		parserBuilder.setPriority(100, "Expression", token("+"), "Expression");
+		parserBuilder.setPriority(300, Associativity.NONE, token("-"), "Expression");
+		parserBuilder.setPriority(300, Associativity.NONE, "Expression", token("string"));
+		parserBuilder.setPriority(300, Associativity.LEFT, "Expression", "Expression");
+		parserBuilder.setPriority(100, Associativity.LEFT, "Expression", token("+"), "Expression");
+		parserBuilder.setPriority(100, Associativity.LEFT, "Expression", token("-"), "Expression");
 		
 		final LRParser parser = parserBuilder.newParser();
 		
 		{
 			final ConflictResolver resolver = new ConflictResolver(parser);
 			
-			resolver.resolve(Arrays.asList("Expression", "Expression", token("string")), array(array("Expression", "Expression"), "string"));
-//			resolver.resolve(list(lexer.translate(tokens("aa''"))), array(array("a", "a"), "''"));
+			resolver.resolve(list(lexer.translate(tokens("aa''"))), array(array("a", "a"), "''"));
 			resolver.resolve(list(lexer.translate(tokens("aa11"))), array(array("a", "a"), "11"));
 			resolver.resolve(list(lexer.translate(tokens("aa(a)"))), array(array("a", "a"), array("(", "a", ")")));
 			resolver.resolve(list(lexer.translate(tokens("aaa"))), array(array("a", "a"), "a"));
