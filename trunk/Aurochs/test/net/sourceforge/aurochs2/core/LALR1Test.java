@@ -16,7 +16,6 @@ import java.util.Map;
 
 import net.sourceforge.aprog.tools.Tools;
 import net.sourceforge.aurochs2.core.Grammar.ReductionListener;
-import net.sourceforge.aurochs2.core.Grammar.Rule;
 import net.sourceforge.aurochs2.core.Grammar.Special;
 import net.sourceforge.aurochs2.core.LRParser.ConflictResolver;
 import net.sourceforge.aurochs2.core.Lexer.Token;

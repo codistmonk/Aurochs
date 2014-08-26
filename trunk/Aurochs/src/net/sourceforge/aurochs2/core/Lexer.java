@@ -4,8 +4,6 @@ import java.io.Serializable;
 import java.util.Iterator;
 
 import net.sourceforge.aprog.tools.Tools;
-import net.sourceforge.aurochs2.core.LRParser.Parsing;
-import net.sourceforge.aurochs2.core.LRParser.ParsingStatus;
 
 /**
  * @author codistmonk (creation 2014-08-25)
