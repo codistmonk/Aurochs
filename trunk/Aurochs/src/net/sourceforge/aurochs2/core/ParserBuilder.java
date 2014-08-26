@@ -115,108 +115,21 @@ public final class ParserBuilder implements Serializable {
 		final List<List<Object>> ambiguities = result.getTable().collectAmbiguousExamples();
 		
 		for (final List<Object> ambiguity : ambiguities) {
-			final int ambiguitySize = ambiguity.size();
 			final List<Pair<Integer, Priority>> prefixCovers = new ArrayList<>();
 			final List<Pair<Integer, Priority>> suffixCovers = new ArrayList<>();
 			
 			for (final Priority priority : this.priorities) {
-				final List<Object> symbols = priority.getSymbols();
-				final int symbolsSize = symbols.size();
-				
-				{
-					int goodOffset = Integer.MIN_VALUE;
-					
-					for (int symbolsOffset = -symbolsSize + 1; symbolsOffset <= 0; ++symbolsOffset) {
-						boolean offsetIsGood = true;
-						
-						for (int i = 0; i < min(ambiguitySize, symbolsOffset + symbolsSize); ++i) {
-							if (!ambiguity.get(i).equals(symbols.get(i - symbolsOffset))) {
-								offsetIsGood = false;
-							}
-						}
-						
-						if (offsetIsGood) {
-							goodOffset = symbolsOffset;
-						}
-					}
-					
-					if (Integer.MIN_VALUE != goodOffset) {
-						prefixCovers.add(new Pair<>(goodOffset, priority));
-					}
-				}
-				
-				{
-					int goodOffset = Integer.MAX_VALUE;
-					
-					for (int symbolsOffset = ambiguitySize - 1; ambiguitySize - symbolsSize <= symbolsOffset; --symbolsOffset) {
-						boolean offsetIsGood = true;
-						
-						for (int i = max(0, symbolsOffset); i < ambiguitySize; ++i) {
-							if (!ambiguity.get(i).equals(symbols.get(i - symbolsOffset))) {
-								offsetIsGood = false;
-							}
-						}
-						
-						if (offsetIsGood) {
-							goodOffset = symbolsOffset;
-						}
-					}
-					
-					if (Integer.MAX_VALUE != goodOffset) {
-						suffixCovers.add(new Pair<>(goodOffset, priority));
-					}
-				}
+				updatePrefixCovers(ambiguity, prefixCovers, priority);
+				updateSuffixCovers(ambiguity, suffixCovers, priority);
 			}
 			
+			tryToResolve:
 			for (final Pair<Integer, Priority> prefixCover : prefixCovers) {
-				final int prefixCoverOffset = prefixCover.getFirst();
-				final int prefixCoverPriority = prefixCover.getSecond().getPriority();
-				final Associativity prefixCoverAssociativity = prefixCover.getSecond().getPreferredAssociativity();
-				final List<Object> prefixCoverSymbols = prefixCover.getSecond().getSymbols();
-				final int prefixCoverSize = prefixCoverSymbols.size();
-				
 				for (final Pair<Integer, Priority> suffixCover : suffixCovers) {
-					final int suffixCoverOffset = suffixCover.getFirst();
-					final int suffixCoverPriority = suffixCover.getSecond().getPriority();
-					final Associativity suffixCoverAssociativity = suffixCover.getSecond().getPreferredAssociativity();
-					final List<Object> suffixCoverSymbols = suffixCover.getSecond().getSymbols();
-					final int overlap = (prefixCoverSize + prefixCoverOffset) - suffixCoverOffset;
-					final int suffixCoverSize = suffixCoverSymbols.size();
-					
-					if (0 < overlap) {
-						final List<Object> tokens = new ArrayList<>(prefixCoverSize + suffixCoverSize - overlap);
-						final Object[] expected;
-						
-						if (prefixCoverPriority < suffixCoverPriority
-								|| (prefixCoverPriority == suffixCoverPriority
-									&& (prefixCoverAssociativity == RIGHT || suffixCoverAssociativity == RIGHT)
-									&& !(prefixCoverAssociativity == LEFT || suffixCoverAssociativity == LEFT))) {
-							final List<Object> left = prefixCoverSymbols.subList(0, prefixCoverSize - overlap);
-							final List<Object> right = suffixCoverSymbols;
-							
-							tokens.addAll(left);
-							tokens.addAll(right);
-							expected = append(stringify(left), bloc(stringify(right)));
-						} else if (suffixCoverPriority < prefixCoverPriority
-								|| (prefixCoverPriority == suffixCoverPriority
-									&& (prefixCoverAssociativity == LEFT || suffixCoverAssociativity == LEFT)
-									&& !(prefixCoverAssociativity == RIGHT || suffixCoverAssociativity == RIGHT))) {
-							final List<Object> left = prefixCoverSymbols;
-							final List<Object> right = suffixCoverSymbols.subList(overlap, suffixCoverSize);
-							
-							tokens.addAll(left);
-							tokens.addAll(right);
-							expected = append(bloc(stringify(left)), stringify(right));
-						} else {
-							expected = null;
-						}
-						
-						if (expected != null) {
-							resolver.resolve(tokens, expected);
-						}
+					if (tryToResolve(resolver, prefixCover, suffixCover)) {
+						break tryToResolve;
 					}
 				}
-				
 			}
 		}
 	}
@@ -240,6 +153,14 @@ public final class ParserBuilder implements Serializable {
 	 */
 	private static final long serialVersionUID = -8371256689133167533L;
 	
+	public static final void printAmbiguities(final LRTable lrTable) {
+		final List<List<Object>> ambiguities = lrTable.collectAmbiguousExamples();
+		
+		if (!ambiguities.isEmpty()) {
+			Tools.getLoggerForThisMethod().warning("Ambiguities:\n" + join("\n", ambiguities.toArray()));
+		}
+	}
+	
 	public static final Token token(final Object symbol) {
 		return new Token(symbol, symbol);
 	}
@@ -254,12 +175,108 @@ public final class ParserBuilder implements Serializable {
 		return asArray != null && asArray.length == 1 ? asArray : array(object);
 	}
 	
-	public static final void printAmbiguities(final LRTable lrTable) {
-		final List<List<Object>> ambiguities = lrTable.collectAmbiguousExamples();
+	private static final void updatePrefixCovers(final List<Object> ambiguity,
+			final List<Pair<Integer, Priority>> prefixCovers, final Priority priority) {
+		final int ambiguitySize = ambiguity.size();
+		final List<Object> symbols = priority.getSymbols();
+		final int symbolsSize = symbols.size();
+		int goodOffset = Integer.MIN_VALUE;
 		
-		if (!ambiguities.isEmpty()) {
-			Tools.getLoggerForThisMethod().warning("Ambiguities:\n" + join("\n", ambiguities.toArray()));
+		for (int symbolsOffset = -symbolsSize + 1; symbolsOffset <= 0; ++symbolsOffset) {
+			boolean offsetIsGood = true;
+			
+			for (int i = 0; i < min(ambiguitySize, symbolsOffset + symbolsSize); ++i) {
+				if (!ambiguity.get(i).equals(symbols.get(i - symbolsOffset))) {
+					offsetIsGood = false;
+				}
+			}
+			
+			if (offsetIsGood) {
+				goodOffset = symbolsOffset;
+			}
 		}
+		
+		if (Integer.MIN_VALUE != goodOffset) {
+			prefixCovers.add(new Pair<>(goodOffset, priority));
+		}
+	}
+	
+	private static final void updateSuffixCovers(final List<Object> ambiguity,
+			final List<Pair<Integer, Priority>> suffixCovers, final Priority priority) {
+		final int ambiguitySize = ambiguity.size();
+		final List<Object> symbols = priority.getSymbols();
+		final int symbolsSize = symbols.size();
+		int goodOffset = Integer.MAX_VALUE;
+		
+		for (int symbolsOffset = ambiguitySize - 1; ambiguitySize - symbolsSize <= symbolsOffset; --symbolsOffset) {
+			boolean offsetIsGood = true;
+			
+			for (int i = max(0, symbolsOffset); i < ambiguitySize; ++i) {
+				if (!ambiguity.get(i).equals(symbols.get(i - symbolsOffset))) {
+					offsetIsGood = false;
+				}
+			}
+			
+			if (offsetIsGood) {
+				goodOffset = symbolsOffset;
+			}
+		}
+		
+		if (Integer.MAX_VALUE != goodOffset) {
+			suffixCovers.add(new Pair<>(goodOffset, priority));
+		}
+	}
+	
+	private static final boolean tryToResolve(final ConflictResolver resolver,
+			final Pair<Integer, Priority> prefixCover, final Pair<Integer, Priority> suffixCover) {
+		final int prefixCoverOffset = prefixCover.getFirst();
+		final int prefixCoverPriority = prefixCover.getSecond().getPriority();
+		final Associativity prefixCoverAssociativity = prefixCover.getSecond().getPreferredAssociativity();
+		final List<Object> prefixCoverSymbols = prefixCover.getSecond().getSymbols();
+		final int prefixCoverSize = prefixCoverSymbols.size();
+		final int suffixCoverOffset = suffixCover.getFirst();
+		final int suffixCoverPriority = suffixCover.getSecond().getPriority();
+		final Associativity suffixCoverAssociativity = suffixCover.getSecond().getPreferredAssociativity();
+		final List<Object> suffixCoverSymbols = suffixCover.getSecond().getSymbols();
+		final int overlap = (prefixCoverSize + prefixCoverOffset) - suffixCoverOffset;
+		
+		if (0 < overlap) {
+			final int suffixCoverSize = suffixCoverSymbols.size();
+			final List<Object> tokens = new ArrayList<>(prefixCoverSize + suffixCoverSize - overlap);
+			final Object[] expected;
+			
+			if (prefixCoverPriority < suffixCoverPriority
+					|| (prefixCoverPriority == suffixCoverPriority
+						&& (prefixCoverAssociativity == RIGHT || suffixCoverAssociativity == RIGHT)
+						&& !(prefixCoverAssociativity == LEFT || suffixCoverAssociativity == LEFT))) {
+				final List<Object> left = prefixCoverSymbols.subList(0, prefixCoverSize - overlap);
+				final List<Object> right = suffixCoverSymbols;
+				
+				tokens.addAll(left);
+				tokens.addAll(right);
+				expected = append(stringify(left), bloc(stringify(right)));
+			} else if (suffixCoverPriority < prefixCoverPriority
+					|| (prefixCoverPriority == suffixCoverPriority
+						&& (prefixCoverAssociativity == LEFT || suffixCoverAssociativity == LEFT)
+						&& !(prefixCoverAssociativity == RIGHT || suffixCoverAssociativity == RIGHT))) {
+				final List<Object> left = prefixCoverSymbols;
+				final List<Object> right = suffixCoverSymbols.subList(overlap, suffixCoverSize);
+				
+				tokens.addAll(left);
+				tokens.addAll(right);
+				expected = append(bloc(stringify(left)), stringify(right));
+			} else {
+				expected = null;
+			}
+			
+			if (expected != null) {
+				resolver.resolve(tokens, expected);
+				
+				return true;
+			}
+		}
+		
+		return false;
 	}
 	
 	/**

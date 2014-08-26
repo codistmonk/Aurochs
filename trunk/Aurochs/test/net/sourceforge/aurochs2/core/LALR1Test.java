@@ -241,8 +241,10 @@ public final class LALR1Test {
 		
 		final LRParser parser = parserBuilder.newParser();
 		
-		// This bloc is not needed anymore for conflict resolution, but can still be used for testing because it
-		// will fail if there is a problem with resolution done in ParserBuilder 
+		assertEquals(0L, parser.getTable().collectAmbiguousExamples().size());
+		
+		// This bloc is not needed anymore for conflict resolution, but can still be used for testing because
+		// it will fail if there is a problem with the resolution done in ParserBuilder 
 		{
 			final ConflictResolver resolver = new ConflictResolver(parser);
 			
@@ -271,8 +273,6 @@ public final class LALR1Test {
 			resolver.resolve(list(lexer.translate(tokens("(a-a)"))), array("(", array("a", "-", "a"), ")"));
 			resolver.resolve(list(lexer.translate(tokens("a-a+a"))), array(array("a", "-", "a"), "+", "a"));
 			resolver.resolve(list(lexer.translate(tokens("a-a-a"))), array(array("a", "-", "a"), "-", "a"));
-			
-			printAmbiguities(parser.getTable());
 		}
 		
 		assertTrue(parser.parse(lexer.translate(tokens("12(-42)   'toto'"))));
