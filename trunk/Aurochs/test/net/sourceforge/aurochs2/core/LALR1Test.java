@@ -5,13 +5,11 @@ import static net.sourceforge.aprog.tools.Tools.join;
 import static net.sourceforge.aprog.tools.Tools.list;
 import static net.sourceforge.aprog.tools.Tools.set;
 import static net.sourceforge.aurochs2.core.LexerBuilder.*;
-import static net.sourceforge.aurochs2.core.ParserBuilder.token;
 import static net.sourceforge.aurochs2.core.TokenSource.characters;
 import static net.sourceforge.aurochs2.core.TokenSource.tokens;
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -227,14 +225,24 @@ public final class LALR1Test {
 		parserBuilder.define("Expression", ("variable"));
 		parserBuilder.define("Expression", ("natural"));
 		
-		parserBuilder.setPriority(300, Associativity.NONE, token("-"), "Expression");
-		parserBuilder.setPriority(300, Associativity.NONE, "Expression", token("string"));
+		parserBuilder.resolveConflictWith(array("Expression", "Expression"), array(("("), "Expression", (")")));
+		parserBuilder.resolveConflictWith(array(("-"), "Expression"), array(("("), "Expression", (")")));
+		parserBuilder.resolveConflictWith("Expression", ("+"), array("Expression", array(("("), "Expression", (")"))));
+		parserBuilder.resolveConflictWith("Expression", ("-"), array("Expression", array(("("), "Expression", (")"))));
+		parserBuilder.resolveConflictWith(("("), array("Expression", ("-"), "Expression"), (")"));
+		
+		parserBuilder.setPriority(300, Associativity.NONE, ("-"), "Expression");
+		parserBuilder.setPriority(300, Associativity.LEFT, "Expression", ("string"));
+		parserBuilder.setPriority(300, Associativity.LEFT, "Expression", ("natural"));
+		parserBuilder.setPriority(300, Associativity.LEFT, "Expression", ("variable"));
 		parserBuilder.setPriority(300, Associativity.LEFT, "Expression", "Expression");
-		parserBuilder.setPriority(100, Associativity.LEFT, "Expression", token("+"), "Expression");
-		parserBuilder.setPriority(100, Associativity.LEFT, "Expression", token("-"), "Expression");
+		parserBuilder.setPriority(100, Associativity.LEFT, "Expression", ("+"), "Expression");
+		parserBuilder.setPriority(100, Associativity.LEFT, "Expression", ("-"), "Expression");
 		
 		final LRParser parser = parserBuilder.newParser();
 		
+		// This bloc is not needed anymore for conflict resolution, but can still be used for testing because it
+		// will fail if there is a problem with resolution done in ParserBuilder 
 		{
 			final ConflictResolver resolver = new ConflictResolver(parser);
 			
