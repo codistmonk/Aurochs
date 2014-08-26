@@ -2,6 +2,7 @@ package net.sourceforge.aurochs2.core;
 
 import static net.sourceforge.aprog.tools.Tools.array;
 import static net.sourceforge.aprog.tools.Tools.join;
+import static net.sourceforge.aprog.tools.Tools.list;
 import static net.sourceforge.aprog.tools.Tools.set;
 import static net.sourceforge.aurochs2.core.LexerBuilder.*;
 import static net.sourceforge.aurochs2.core.TokenSource.characters;
@@ -163,11 +164,10 @@ public final class LALR1Test {
 			
 			for (final Object token : lexer.translate(tokens("''  'bb' "))) {
 				output.add(token);
-				Tools.debugPrint(token);
 			}
 			
 			assertNull(tokenBox[0]);
-			assertEquals(3L, output.size());
+			assertEquals(2L, output.size());
 		}
 	}
 	
@@ -190,17 +190,8 @@ public final class LALR1Test {
 		
 		printAmbiguities(lexer.getParser().getTable());
 		
-		final List<Token> output = new ArrayList<Token>();
-		
-		for (final Object token : lexer.translate(tokens(characters("' '   ''")))) {
-			if (Special.END == token) {
-				break;
-			}
-			
-			output.add((Token) token);
-		}
-		
-		Tools.debugPrint(output);
+		@SuppressWarnings("unchecked")
+		final List<Token> output = (List) list(lexer.translate(tokens(characters("' '   ''"))));
 		
 		assertEquals(2L, output.size());
 	}
