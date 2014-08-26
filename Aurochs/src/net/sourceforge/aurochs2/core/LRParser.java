@@ -24,6 +24,10 @@ public final class LRParser implements Serializable {
 	
 	private final LRTable table;
 	
+	public LRParser(final Grammar grammar) {
+		this(new LRTable(new LALR1ClosureTable(grammar)));
+	}
+	
 	public LRParser(final LRTable table) {
 		this.grammar = table.getGrammar();
 		this.table = table;

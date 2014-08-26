@@ -173,9 +173,9 @@ public final class LALR1Test {
 	@Test
 	public final void testLexer2() {
 		final LexerBuilder lexerBuilder = new LexerBuilder();
-		
 		final Union digit = union(range('0', '9'));
 		final Union letter = union(union(range('a', 'z')), union(range('A', 'Z')));
+		
 		lexerBuilder.generate("natural", oneOrMore(digit));
 		lexerBuilder.generate("variable", letter);
 		lexerBuilder.generate("string", '\'', "characters", '\'');
@@ -192,6 +192,77 @@ public final class LALR1Test {
 		final List<Token> output = list(lexer.translate(tokens(characters("' '   ''"))));
 		
 		assertEquals(2L, output.size());
+	}
+	
+	@Test
+	public final void testFullParser1() {
+		final LexerBuilder lexerBuilder = new LexerBuilder();
+		final Union digit = union(range('0', '9'));
+		final Union letter = union(union(range('a', 'z')), union(range('A', 'Z')));
+		
+		lexerBuilder.generate("natural", oneOrMore(digit));
+		lexerBuilder.generate("variable", letter);
+		lexerBuilder.generate("+", '+');
+		lexerBuilder.generate("-", '-');
+		lexerBuilder.generate("(", '(');
+		lexerBuilder.generate(")", ')');
+		lexerBuilder.generate("string", '\'', "characters", '\'');
+		lexerBuilder.generate("string", '\'', '\'');
+		lexerBuilder.define("characters", oneOrMore(union(digit, letter, ' ', '+', '-', '(', ')', sequence('\\', '\''))));
+		lexerBuilder.skip(oneOrMore(' '));
+		
+		final Grammar grammar = new Grammar();
+		
+		grammar.new Rule("()", "Expression");
+		grammar.new Rule("Expression", "Expression", "Expression");
+		grammar.new Rule("Expression", "Expression", token("+"), "Expression");
+		grammar.new Rule("Expression", "Expression", token("-"), "Expression");
+		grammar.new Rule("Expression", token("-"), "Expression");
+		grammar.new Rule("Expression", token("("), "Expression", token(")"));
+		grammar.new Rule("Expression", token("string"));
+		grammar.new Rule("Expression", token("variable"));
+		grammar.new Rule("Expression", token("natural"));
+		
+		final Lexer lexer = lexerBuilder.newLexer();
+		final LRParser parser = new LRParser(grammar);
+		
+		{
+			final ConflictResolver resolver = new ConflictResolver(parser);
+			
+			resolver.resolve(list(lexer.translate(tokens("aa''"))), array(array("a", "a"), "''"));
+			resolver.resolve(list(lexer.translate(tokens("aa11"))), array(array("a", "a"), "11"));
+			resolver.resolve(list(lexer.translate(tokens("aa(a)"))), array(array("a", "a"), array("(", "a", ")")));
+			resolver.resolve(list(lexer.translate(tokens("aaa"))), array(array("a", "a"), "a"));
+			resolver.resolve(list(lexer.translate(tokens("aa+a"))), array(array("a", "a"), "+", "a"));
+			resolver.resolve(list(lexer.translate(tokens("aa-a"))), array(array("a", "a"), "-", "a"));
+			resolver.resolve(list(lexer.translate(tokens("-a''"))), array(array("-", "a"), "''"));
+			resolver.resolve(list(lexer.translate(tokens("-a1"))), array(array("-", "a"), "1"));
+			resolver.resolve(list(lexer.translate(tokens("-a(a)"))), array(array("-", "a"), array("(", "a", ")")));
+			resolver.resolve(list(lexer.translate(tokens("-aa"))), array(array("-", "a"), "a"));
+			resolver.resolve(list(lexer.translate(tokens("-a+a"))), array(array("-", "a"), "+", "a"));
+			resolver.resolve(list(lexer.translate(tokens("-a-a"))), array(array("-", "a"), "-", "a"));
+			resolver.resolve(list(lexer.translate(tokens("a+a''"))), array("a", "+", array("a", "''")));
+			resolver.resolve(list(lexer.translate(tokens("a+a1"))), array("a", "+", array("a", "1")));
+			resolver.resolve(list(lexer.translate(tokens("a+a(a)"))), array("a", "+", array("a", array("(", "a", ")"))));
+			resolver.resolve(list(lexer.translate(tokens("a+aa"))), array("a", "+", array("a", "a")));
+			resolver.resolve(list(lexer.translate(tokens("a+a+a"))), array(array("a", "+", "a"), "+", "a"));
+			resolver.resolve(list(lexer.translate(tokens("a+a-a"))), array(array("a", "+", "a"), "-", "a"));
+			resolver.resolve(list(lexer.translate(tokens("a-a''"))), array("a", "-", array("a", "''")));
+			resolver.resolve(list(lexer.translate(tokens("a-a1"))), array("a", "-", array("a", "1")));
+			resolver.resolve(list(lexer.translate(tokens("a-a(a)"))), array("a", "-", array("a", array("(", "a", ")"))));
+			resolver.resolve(list(lexer.translate(tokens("a-aa"))), array("a", "-", array("a", "a")));
+			resolver.resolve(list(lexer.translate(tokens("(a-a)"))), array("(", array("a", "-", "a"), ")"));
+			resolver.resolve(list(lexer.translate(tokens("a-a+a"))), array(array("a", "-", "a"), "+", "a"));
+			resolver.resolve(list(lexer.translate(tokens("a-a-a"))), array(array("a", "-", "a"), "-", "a"));
+			
+			printAmbiguities(parser.getTable());
+		}
+		
+		assertTrue(parser.parse(lexer.translate(tokens("12(-42)   'toto'"))));
+	}
+	
+	public static final Token token(final Object symbol) {
+		return new Token(symbol, symbol);
 	}
 	
 	public static final void print(final LRTable lrTable) {
