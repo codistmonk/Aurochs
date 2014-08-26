@@ -1,7 +1,6 @@
 package net.sourceforge.aurochs2.core;
 
 import static net.sourceforge.aprog.tools.Tools.array;
-import static net.sourceforge.aprog.tools.Tools.join;
 import static net.sourceforge.aprog.tools.Tools.list;
 import static net.sourceforge.aprog.tools.Tools.set;
 import static net.sourceforge.aurochs2.core.LexerBuilder.*;
