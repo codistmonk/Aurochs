@@ -89,7 +89,7 @@ public final class LALR1Test {
 		conflictResolver.resolve(characters("1-1+1"), array(array('1', '-', '1'), '+', '1'));
 		conflictResolver.resolve(characters("1-1-1"), array(array('1', '-', '1'), '-', '1'));
 		
-		printAmbiguities(lrTable);
+		lrTable.printAmbiguities();
 		
 		print(lrTable);
 	}
@@ -112,7 +112,7 @@ public final class LALR1Test {
 		
 		Tools.debugPrint(closureTable.getStates().size());
 		print(lrTable);
-		printAmbiguities(lrTable);
+		lrTable.printAmbiguities();
 		
 		assertTrue(parser.parse(tokens("''")));
 		assertTrue(parser.parse(tokens("'aba'")));
@@ -142,7 +142,7 @@ public final class LALR1Test {
 		
 		conflictResolver.resolve(characters("  "), array(' ', ' '));
 		
-		printAmbiguities(lrTable);
+		lrTable.printAmbiguities();
 		
 		assertTrue(parser.parse(tokens("''")));
 		assertTrue(parser.parse(tokens("'aba'")));
@@ -188,7 +188,7 @@ public final class LALR1Test {
 		
 		new ConflictResolver(lexer.getParser()).resolve(characters("''"), array(array('\'', '\'')));
 		
-		printAmbiguities(lexer.getParser().getTable());
+		lexer.getParser().getTable().printAmbiguities();
 		
 		final List<Token> output = list(lexer.translate(tokens(characters("' '   ''"))));
 		
@@ -283,14 +283,6 @@ public final class LALR1Test {
 		
 		for (int i = 0; i < n; ++i) {
 			Tools.debugPrint(i, lrTable.getActions().get(i));
-		}
-	}
-	
-	public static final void printAmbiguities(final LRTable lrTable) {
-		final List<List<Object>> ambiguities = lrTable.collectAmbiguousExamples();
-		
-		if (!ambiguities.isEmpty()) {
-			Tools.debugPrint("\n" + join("\n", ambiguities.toArray()));
 		}
 	}
 	

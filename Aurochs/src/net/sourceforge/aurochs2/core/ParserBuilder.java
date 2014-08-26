@@ -3,7 +3,6 @@ package net.sourceforge.aurochs2.core;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static net.sourceforge.aprog.tools.Tools.append;
-import static net.sourceforge.aprog.tools.Tools.array;
 import static net.sourceforge.aprog.tools.Tools.cast;
 import static net.sourceforge.aprog.tools.Tools.join;
 import static net.sourceforge.aurochs2.core.ParserBuilder.Priority.Associativity.LEFT;
@@ -100,7 +99,7 @@ public final class ParserBuilder implements Serializable {
 		
 		this.resolveConflicts(result);
 		
-		printAmbiguities(result.getTable());
+		result.getTable().printAmbiguities();
 		
 		return result;
 	}
@@ -165,14 +164,18 @@ public final class ParserBuilder implements Serializable {
 		return new Token(symbol, symbol);
 	}
 	
+	public static final Object[] bloc(final Object... objects) {
+		return objects;
+	}
+	
 	private static final Object[] stringify(final List<Object> symbols) {
 		return symbols.stream().map(Object::toString).toArray();
 	}
 	
-	private static final Object[] bloc(final Object object) {
+	private static final Object[] bloc1(final Object object) {
 		final Object[] asArray = cast(Object[].class, object);
 		
-		return asArray != null && asArray.length == 1 ? asArray : array(object);
+		return asArray != null && asArray.length == 1 ? asArray : bloc(object);
 	}
 	
 	private static final void updatePrefixCovers(final List<Object> ambiguity,
@@ -254,7 +257,7 @@ public final class ParserBuilder implements Serializable {
 				
 				tokens.addAll(left);
 				tokens.addAll(right);
-				expected = append(stringify(left), bloc(stringify(right)));
+				expected = append(stringify(left), bloc1(stringify(right)));
 			} else if (suffixCoverPriority < prefixCoverPriority
 					|| (prefixCoverPriority == suffixCoverPriority
 						&& (prefixCoverAssociativity == LEFT || suffixCoverAssociativity == LEFT)
@@ -264,7 +267,7 @@ public final class ParserBuilder implements Serializable {
 				
 				tokens.addAll(left);
 				tokens.addAll(right);
-				expected = append(bloc(stringify(left)), stringify(right));
+				expected = append(bloc1(stringify(left)), stringify(right));
 			} else {
 				expected = null;
 			}

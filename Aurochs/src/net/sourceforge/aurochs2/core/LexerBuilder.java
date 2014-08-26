@@ -47,7 +47,11 @@ public final class LexerBuilder implements Serializable {
 	}
 	
 	public final Lexer newLexer(final ClosureTable closureTable) {
-		return new Lexer(new LRParser(new LRTable(closureTable)), this.getTokenBox());
+		final Lexer result = new Lexer(new LRParser(new LRTable(closureTable)), this.getTokenBox());
+		
+		result.getParser().getTable().printAmbiguities();
+		
+		return result;
 	}
 	
 	public final Lexer newLexer() {
