@@ -84,7 +84,7 @@ public final class LexerBuilder implements Serializable {
 	}
 	
 	final Object symbol(final Object symbol) {
-		return symbol instanceof LexerBuilder.Regular ? ((LexerBuilder.Regular) symbol).updateGrammar(this) : symbol;
+		return symbol instanceof LexerBuilder.Regular ? ((LexerBuilder.Regular) symbol).updateRules(this) : symbol;
 	}
 	
 	private final Object[] computeActualDevelopment(final Object... development) {
@@ -138,7 +138,7 @@ public final class LexerBuilder implements Serializable {
 	 */
 	public static abstract interface Regular extends Serializable {
 		
-		public abstract Object updateGrammar(LexerBuilder lexerBuilder);
+		public abstract Object updateRules(LexerBuilder lexerBuilder);
 		
 	}
 	
@@ -154,13 +154,12 @@ public final class LexerBuilder implements Serializable {
 		}
 		
 		@Override
-		public final Object updateGrammar(final LexerBuilder lexerBuilder) {
-			final Grammar grammar = lexerBuilder.getGrammar();
+		public final Object updateRules(final LexerBuilder lexerBuilder) {
 			final Object result = lexerBuilder.newToken();
 			final Object symbol = lexerBuilder.symbol(this.symbol);
 			
-			grammar.new Rule(result, symbol);
-			grammar.new Rule(result);
+			lexerBuilder.define(result, symbol);
+			lexerBuilder.define(result);
 			
 			return result;
 		}
@@ -184,7 +183,7 @@ public final class LexerBuilder implements Serializable {
 		}
 		
 		@Override
-		public final Object updateGrammar(final LexerBuilder lexerBuilder) {
+		public final Object updateRules(final LexerBuilder lexerBuilder) {
 			final Object result = lexerBuilder.newToken();
 			final Object symbol = lexerBuilder.symbol(this.symbol);
 			
@@ -213,7 +212,7 @@ public final class LexerBuilder implements Serializable {
 		}
 		
 		@Override
-		public final Object updateGrammar(final LexerBuilder lexerBuilder) {
+		public final Object updateRules(final LexerBuilder lexerBuilder) {
 			final Object result = lexerBuilder.newToken();
 			final Object symbol = lexerBuilder.symbol(this.symbol);
 			
@@ -242,7 +241,7 @@ public final class LexerBuilder implements Serializable {
 		}
 		
 		@Override
-		public final Object updateGrammar(final LexerBuilder lexerBuilder) {
+		public final Object updateRules(final LexerBuilder lexerBuilder) {
 			final Object result = lexerBuilder.newToken();
 			
 			for (final Object symbol : this.symbols) {
@@ -271,7 +270,7 @@ public final class LexerBuilder implements Serializable {
 		}
 		
 		@Override
-		public final Object updateGrammar(final LexerBuilder lexerBuilder) {
+		public final Object updateRules(final LexerBuilder lexerBuilder) {
 			final Object result = lexerBuilder.newToken();
 			
 			lexerBuilder.define(result, this.symbols);
