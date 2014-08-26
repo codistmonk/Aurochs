@@ -211,20 +211,20 @@ public final class LALR1Test {
 		lexerBuilder.define("characters", oneOrMore(union(digit, letter, ' ', '+', '-', '(', ')', sequence('\\', '\''))));
 		lexerBuilder.skip(oneOrMore(' '));
 		
-		final Grammar grammar = new Grammar();
-		
-		grammar.new Rule("()", "Expression");
-		grammar.new Rule("Expression", "Expression", "Expression");
-		grammar.new Rule("Expression", "Expression", token("+"), "Expression");
-		grammar.new Rule("Expression", "Expression", token("-"), "Expression");
-		grammar.new Rule("Expression", token("-"), "Expression");
-		grammar.new Rule("Expression", token("("), "Expression", token(")"));
-		grammar.new Rule("Expression", token("string"));
-		grammar.new Rule("Expression", token("variable"));
-		grammar.new Rule("Expression", token("natural"));
-		
 		final Lexer lexer = lexerBuilder.newLexer();
-		final LRParser parser = new LRParser(grammar);
+		final ParserBuilder parserBuilder = new ParserBuilder(lexer);
+		
+		parserBuilder.addRule("()", "Expression");
+		parserBuilder.addRule("Expression", "Expression", "Expression");
+		parserBuilder.addRule("Expression", "Expression", ("+"), "Expression");
+		parserBuilder.addRule("Expression", "Expression", ("-"), "Expression");
+		parserBuilder.addRule("Expression", ("-"), "Expression");
+		parserBuilder.addRule("Expression", ("("), "Expression", (")"));
+		parserBuilder.addRule("Expression", ("string"));
+		parserBuilder.addRule("Expression", ("variable"));
+		parserBuilder.addRule("Expression", ("natural"));
+		
+		final LRParser parser = parserBuilder.newParser();
 		
 		{
 			final ConflictResolver resolver = new ConflictResolver(parser);
@@ -259,10 +259,6 @@ public final class LALR1Test {
 		}
 		
 		assertTrue(parser.parse(lexer.translate(tokens("12(-42)   'toto'"))));
-	}
-	
-	public static final Token token(final Object symbol) {
-		return new Token(symbol, symbol);
 	}
 	
 	public static final void print(final LRTable lrTable) {
