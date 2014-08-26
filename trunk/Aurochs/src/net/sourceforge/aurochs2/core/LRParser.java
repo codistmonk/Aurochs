@@ -246,12 +246,20 @@ public final class LRParser implements Serializable {
 	}
 	
 	public final boolean parse(final TokenSource<?> tokens) {
+		return this.parse(tokens, (Object[]) null);
+	}
+	
+	public final boolean parse(final TokenSource<?> tokens, final Object[] datum) {
 		final Parsing parsing = this.new Parsing(tokens);
 		ParsingStatus status;
 		
 		do {
 			status = parsing.step();
 		} while (!status.isDone());
+		
+		if (datum != null) {
+			datum[0] = parsing.getDatum();
+		}
 		
 		return ParsingStatus.DONE == status;
 	}
@@ -308,12 +316,18 @@ public final class LRParser implements Serializable {
 		
 		private final List<StackItem> stack;
 		
+		private Object datum;
+		
 		public Parsing(final TokenSource<?> tokens) {
 			this.tokens = tokens;
 			this.initialNonterminal = LRParser.this.getGrammar().getRules().get(0).getNonterminal();
 			this.stack = new ArrayList<>();
 			
 			this.stack.add(new StackItem().setStateIndex(0).setToken(tokens.read().get()));
+		}
+		
+		public final Object getDatum() {
+			return this.datum;
 		}
 		
 		public final ParsingStatus step() {
@@ -325,6 +339,14 @@ public final class LRParser implements Serializable {
 				}
 				
 				action.perform(this.stack, this.tokens);
+				
+				if (!this.stack.isEmpty()) {
+					this.datum = last(this.stack).getDatum();
+					
+					while (this.getDatum() instanceof Lexer.Token) {
+						this.datum = ((Lexer.Token) this.getDatum()).getDatum();
+					}
+				}
 				
 				return action instanceof Shift ? ParsingStatus.SHIFTED : ParsingStatus.REDUCED;
 			}
