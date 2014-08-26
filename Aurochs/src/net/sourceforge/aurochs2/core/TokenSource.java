@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import net.sourceforge.aurochs2.core.Grammar.Special;
 
@@ -51,14 +52,29 @@ public final class TokenSource implements Serializable, Iterable<Object> {
 	public final Iterator<Object> iterator() {
 		return new Iterator<Object>() {
 			
+			private Boolean hasNext;
+			
+			private Object next;
+			
 			@Override
 			public final boolean hasNext() {
-				return TokenSource.this.hasNext();
+				if (this.hasNext == null) {
+					this.next = TokenSource.this.read().get();
+					this.hasNext = Special.END != this.next;
+				}
+				
+				return this.hasNext;
 			}
 			
 			@Override
 			public final Object next() {
-				return TokenSource.this.read().get();
+				if (!this.hasNext()) {
+					throw new NoSuchElementException();
+				}
+				
+				this.hasNext = null;
+				
+				return this.next;
 			}
 			
 		};
