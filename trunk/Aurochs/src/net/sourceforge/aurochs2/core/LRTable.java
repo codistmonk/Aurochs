@@ -1,6 +1,7 @@
 package net.sourceforge.aurochs2.core;
 
 import static net.sourceforge.aprog.tools.Tools.cast;
+import static net.sourceforge.aprog.tools.Tools.join;
 import static net.sourceforge.aurochs2.core.StackItem.last;
 
 import java.io.Serializable;
@@ -114,6 +115,15 @@ public final class LRTable implements Serializable {
 		}
 		
 		return result;
+	}
+	
+	public final void printAmbiguities() {
+		final List<List<Object>> ambiguities = this.collectAmbiguousExamples();
+		
+		if (!ambiguities.isEmpty()) {
+			Tools.getLoggerForThisMethod().warning(
+					"Ambiguities detected (" + ambiguities.size() +"):\n" + join("\n", ambiguities.toArray()));
+		}
 	}
 	
 	/**
