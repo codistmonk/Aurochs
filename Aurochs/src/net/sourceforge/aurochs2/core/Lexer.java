@@ -99,7 +99,10 @@ public final class Lexer implements Serializable {
 		
 		@Override
 		public final String toString() {
-			return this.getNonterminal() + "(" + this.getDatum() + ")";
+			final Object nonterminal = this.getNonterminal();
+			final Object datum = this.getDatum();
+			
+			return nonterminal == datum ? nonterminal.toString() : (nonterminal + "(" + datum + ")");
 		}
 		
 		/**
