@@ -52,17 +52,17 @@ public final class Calculator {
 		final Map<String, BigInteger> context = new HashMap<>();
 		
 		parserBuilder.define("()", "Instruction");
-		parserBuilder.define("Instruction", "quit").setListener((rule, data) -> {
+		parserBuilder.define("Instruction", "quit").setAction((rule, data) -> {
 			System.exit(0);
 			
 			return null;
 		});
-		parserBuilder.define("Instruction", "help").setListener((rule, data) -> {
+		parserBuilder.define("Instruction", "help").setAction((rule, data) -> {
 			help();
 			
 			return null;
 		});
-		parserBuilder.define("Instruction", "variable", "=", "Expression").setListener((rule, data) -> {
+		parserBuilder.define("Instruction", "variable", "=", "Expression").setAction((rule, data) -> {
 			final BigInteger value = (BigInteger) data[2];
 			
 			if (value != null) {
@@ -73,35 +73,35 @@ public final class Calculator {
 			
 			return null;
 		});
-		parserBuilder.define("Instruction", "Expression").setListener((rule, data) -> {
+		parserBuilder.define("Instruction", "Expression").setAction((rule, data) -> {
 			if (data[0] != null) {
 				System.out.println(data[0]);
 			}
 			
 			return null;
 		});
-		parserBuilder.define("Expression", "Expression", "Expression").setListener((rule, data) -> {
+		parserBuilder.define("Expression", "Expression", "Expression").setAction((rule, data) -> {
 			final BigInteger left = (BigInteger) data[0];
 			final BigInteger right = (BigInteger) data[1];
 			
 			return left != null && right != null ? left.multiply(right) : null;
 		});
-		parserBuilder.define("Expression", "Expression", "+", "Expression").setListener((rule, data) -> {
+		parserBuilder.define("Expression", "Expression", "+", "Expression").setAction((rule, data) -> {
 			final BigInteger left = (BigInteger) data[0];
 			final BigInteger right = (BigInteger) data[2];
 			
 			return left != null && right != null ? left.add(right) : null;
 		});
-		parserBuilder.define("Expression", "Expression", "-", "Expression").setListener((rule, data) -> {
+		parserBuilder.define("Expression", "Expression", "-", "Expression").setAction((rule, data) -> {
 			final BigInteger left = (BigInteger) data[0];
 			final BigInteger right = (BigInteger) data[2];
 			
 			return left != null && right != null ? left.subtract(right) : null;
 		});
-		parserBuilder.define("Expression", "-", "Expression").setListener((rule, data) -> ((BigInteger) data[1]).negate());
-		parserBuilder.define("Expression", "(", "Expression", ")").setListener((rule, data) -> data[1]);
-		parserBuilder.define("Expression", "natural").setListener((rule, data) -> new BigInteger(data[0].toString()));
-		parserBuilder.define("Expression", "variable").setListener((rule, data) -> {
+		parserBuilder.define("Expression", "-", "Expression").setAction((rule, data) -> ((BigInteger) data[1]).negate());
+		parserBuilder.define("Expression", "(", "Expression", ")").setAction((rule, data) -> data[1]);
+		parserBuilder.define("Expression", "natural").setAction((rule, data) -> new BigInteger(data[0].toString()));
+		parserBuilder.define("Expression", "variable").setAction((rule, data) -> {
 			final BigInteger result = context.get(data[0].toString());
 			
 			if (result == null) {

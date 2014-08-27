@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.sourceforge.aprog.tools.Tools;
-import net.sourceforge.aurochs2.core.Grammar.ReductionListener;
+import net.sourceforge.aurochs2.core.Grammar.RuleAction;
 import net.sourceforge.aurochs2.core.LRParser.ConflictResolver;
 import net.sourceforge.aurochs2.core.Lexer.Token;
 import net.sourceforge.aurochs2.core.LexerBuilder.Union;
@@ -155,9 +155,9 @@ public final class LALR1Test {
 			
 			ConflictResolver.setup(grammar, StringCollector.INSTANCE);
 			
-			final ReductionListener listener = new StringTokenGenerator(tokenBox);
-			grammar.getRules().get(1).setListener(listener);
-			grammar.getRules().get(2).setListener(listener);
+			final RuleAction listener = new StringTokenGenerator(tokenBox);
+			grammar.getRules().get(1).setAction(listener);
+			grammar.getRules().get(2).setAction(listener);
 			
 			final Lexer lexer = new Lexer(parser, tokenBox);
 			
