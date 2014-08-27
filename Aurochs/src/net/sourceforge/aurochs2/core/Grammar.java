@@ -104,7 +104,7 @@ public final class Grammar implements Serializable {
 		
 		private final Object[] development;
 		
-		private ReductionListener listener;
+		private RuleAction action;
 		
 		public Rule(final Object nonterminal, final Object... development) {
 			Grammar.this.checkEditable();
@@ -136,12 +136,12 @@ public final class Grammar implements Serializable {
 			return this.development;
 		}
 		
-		public final ReductionListener getListener() {
-			return this.listener;
+		public final RuleAction getAction() {
+			return this.action;
 		}
 		
-		public final Rule setListener(final ReductionListener listener) {
-			this.listener = listener;
+		public final Rule setAction(final RuleAction action) {
+			this.action = action;
 			
 			return this;
 		}
@@ -170,9 +170,9 @@ public final class Grammar implements Serializable {
 	/**
 	 * @author codistmonk (creation 2014-08-24)
 	 */
-	public static abstract interface ReductionListener extends Serializable {
+	public static abstract interface RuleAction extends Serializable {
 		
-		public abstract Object reduction(Rule rule, Object[] data);
+		public abstract Object execute(Rule rule, Object[] data);
 		
 	}
 	

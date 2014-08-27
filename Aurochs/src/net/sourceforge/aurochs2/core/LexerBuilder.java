@@ -4,7 +4,7 @@ import static net.sourceforge.aprog.tools.Tools.join;
 
 import java.io.Serializable;
 
-import net.sourceforge.aurochs2.core.Grammar.ReductionListener;
+import net.sourceforge.aurochs2.core.Grammar.RuleAction;
 import net.sourceforge.aurochs2.core.Grammar.Rule;
 import net.sourceforge.aurochs2.core.Lexer.Token;
 
@@ -19,7 +19,7 @@ public final class LexerBuilder implements Serializable {
 	
 	private final LexerBuilder.TokenGenerator defaultTokenGenerator;
 	
-	private final ReductionListener defaultReductionListener;
+	private final RuleAction defaultRuleAction;
 	
 	private final Object initialNonterminal;
 	
@@ -31,15 +31,23 @@ public final class LexerBuilder implements Serializable {
 		this(new StringTokenGenerator(new Token[1]), StringCollector.INSTANCE);
 	}
 	
-	public LexerBuilder(final LexerBuilder.TokenGenerator defaultTokenGenerator, final ReductionListener defaultReductionListener) {
+	public LexerBuilder(final LexerBuilder.TokenGenerator defaultTokenGenerator, final RuleAction defaultRuleAction) {
 		this.grammar = new Grammar();
 		this.tokenBox = defaultTokenGenerator.getTokenBox();
 		this.defaultTokenGenerator = defaultTokenGenerator;
-		this.defaultReductionListener = defaultReductionListener;
+		this.defaultRuleAction = defaultRuleAction;
 		this.initialNonterminal = this.newToken();
 		this.commonNonterminal = this.newToken();
 		
 		this.grammar.new Rule(this.initialNonterminal, this.commonNonterminal);
+	}
+	
+	public final TokenGenerator getDefaultTokenGenerator() {
+		return this.defaultTokenGenerator;
+	}
+	
+	public final RuleAction getDefaultRuleAction() {
+		return this.defaultRuleAction;
 	}
 	
 	public final Token[] getTokenBox() {
@@ -62,14 +70,14 @@ public final class LexerBuilder implements Serializable {
 		return this.grammar;
 	}
 	
-	public final LexerBuilder generate(final Object token, final Object... development) {
+	public final Rule generate(final Object token, final Object... development) {
 		this.getGrammar().new Rule(this.commonNonterminal, token);
-		this.getGrammar().new Rule(token, this.computeActualDevelopment(development)).setListener(this.defaultTokenGenerator);
 		
-		return this;
+		return this.getGrammar().new Rule(token,
+				this.computeActualDevelopment(development)).setAction(this.getDefaultTokenGenerator());
 	}
 	
-	public final LexerBuilder skip(final Object... development) {
+	public final Rule skip(final Object... development) {
 		final Object token = this.newToken();
 		
 		this.getGrammar().new Rule(this.commonNonterminal, token);
@@ -77,10 +85,9 @@ public final class LexerBuilder implements Serializable {
 		return this.define(token, development);
 	}
 	
-	public final LexerBuilder define(final Object nonterminal, final Object... development) {
-		this.getGrammar().new Rule(nonterminal, this.computeActualDevelopment(development)).setListener(this.defaultReductionListener);
-		
-		return this;
+	public final Rule define(final Object nonterminal, final Object... development) {
+		return this.getGrammar().new Rule(nonterminal,
+				this.computeActualDevelopment(development)).setAction(this.getDefaultRuleAction());
 	}
 	
 	public final Object newToken() {
@@ -88,7 +95,8 @@ public final class LexerBuilder implements Serializable {
 	}
 	
 	final Object symbol(final Object symbol) {
-		return symbol instanceof LexerBuilder.Regular ? ((LexerBuilder.Regular) symbol).updateRules(this) : symbol;
+		return symbol instanceof LexerBuilder.Regular ?
+				((LexerBuilder.Regular) symbol).updateRules(this) : symbol;
 	}
 	
 	private final Object[] computeActualDevelopment(final Object... development) {
@@ -312,7 +320,7 @@ public final class LexerBuilder implements Serializable {
 	/**
 	 * @author codistmonk (creation 2014-08-25)
 	 */
-	public static abstract class TokenGenerator implements ReductionListener {
+	public static abstract class TokenGenerator implements RuleAction {
 		
 		private final Token[] tokenBox;
 		
@@ -341,7 +349,7 @@ public final class LexerBuilder implements Serializable {
 		}
 		
 		@Override
-		public final Object reduction(final Rule rule, final Object[] data) {
+		public final Object execute(final Rule rule, final Object[] data) {
 			this.getTokenBox()[0] = new Token(rule.getNonterminal(), join("", data));
 			
 			return null;
@@ -357,10 +365,10 @@ public final class LexerBuilder implements Serializable {
 	/**
 	 * @author codistmonk (creation 2014-08-25)
 	 */
-	public static final class StringCollector implements ReductionListener {
+	public static final class StringCollector implements RuleAction {
 		
 		@Override
-		public final Object reduction(final Rule rule, final Object[] data) {
+		public final Object execute(final Rule rule, final Object[] data) {
 			return join("", data);
 		}
 		

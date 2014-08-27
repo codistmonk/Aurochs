@@ -44,7 +44,7 @@ public final class ParserBuilder implements Serializable {
 		
 		if (lexer != null) {
 			for (final Rule rule : lexer.getParser().getGrammar().getRules()) {
-				if (rule.getListener() instanceof TokenGenerator) {
+				if (rule.getAction() instanceof TokenGenerator) {
 					this.lexerTokens.add(rule.getNonterminal());
 				}
 			}

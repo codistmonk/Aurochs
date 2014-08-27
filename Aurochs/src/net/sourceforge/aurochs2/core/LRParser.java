@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import net.sourceforge.aprog.tools.Tools;
-import net.sourceforge.aurochs2.core.Grammar.ReductionListener;
+import net.sourceforge.aurochs2.core.Grammar.RuleAction;
 import net.sourceforge.aurochs2.core.Grammar.Rule;
 import net.sourceforge.aurochs2.core.Grammar.Special;
 import net.sourceforge.aurochs2.core.LRTable.Action;
@@ -48,7 +48,7 @@ public final class LRParser implements Serializable {
 		
 		private final LRParser parser;
 		
-		private final ReductionListener listener;
+		private final RuleAction objectGenerator;
 		
 		private final List<Integer> actionChoices;
 		
@@ -58,9 +58,9 @@ public final class LRParser implements Serializable {
 			this(parser, TreeCollector.INSTANCE);
 		}
 		
-		public ConflictResolver(final LRParser parser, final ReductionListener listener) {
+		public ConflictResolver(final LRParser parser, final RuleAction objectGenerator) {
 			this.parser = parser;
-			this.listener = listener;
+			this.objectGenerator = objectGenerator;
 			this.actionChoices = new ArrayList<>();
 			this.mode = Mode.TRY_NEXT;
 		}
@@ -82,12 +82,12 @@ public final class LRParser implements Serializable {
 		public final ConflictResolver resolve(final List<?> tokens, final Object[] expected) {
 			final Grammar grammar = this.parser.getGrammar();
 			final List<Rule> rules = grammar.getRules();
-			final ReductionListener[] savedListeners = rules.stream()
-					.map(rule -> rule.getListener()).toArray(ReductionListener[]::new);
+			final RuleAction[] savedRuleActions = rules.stream()
+					.map(rule -> rule.getAction()).toArray(RuleAction[]::new);
 			
 			try {
-				if (this.listener != null) {
-					ConflictResolver.setup(grammar, this.listener);
+				if (this.objectGenerator != null) {
+					ConflictResolver.setup(grammar, this.objectGenerator);
 				}
 				
 				this.setMode(Mode.TRY_NEXT);
@@ -123,10 +123,10 @@ public final class LRParser implements Serializable {
 				
 				return this;
 			} finally {
-				final int n = savedListeners.length;
+				final int n = savedRuleActions.length;
 				
 				for (int i = 0; i < n; ++i) {
-					rules.get(i).setListener(savedListeners[i]);
+					rules.get(i).setAction(savedRuleActions[i]);
 				}
 			}
 		}
@@ -136,9 +136,9 @@ public final class LRParser implements Serializable {
 		 */
 		private static final long serialVersionUID = -2269472491106015129L;
 		
-		public static final Grammar setup(final Grammar grammar, final ReductionListener listener) {
+		public static final Grammar setup(final Grammar grammar, final RuleAction listener) {
 			for (final Rule rule : grammar.getRules()) {
-				rule.setListener(listener);
+				rule.setAction(listener);
 			}
 			
 			return grammar;
@@ -166,10 +166,10 @@ public final class LRParser implements Serializable {
 		/**
 		 * @author codistmonk (creation 2014-08-24)
 		 */
-		public static final class TreeCollector implements ReductionListener {
+		public static final class TreeCollector implements RuleAction {
 			
 			@Override
-			public final Object reduction(final Rule rule, final Object[] data) {
+			public final Object execute(final Rule rule, final Object[] data) {
 				return data.length == 1 ? data[0] : data;
 			}
 			

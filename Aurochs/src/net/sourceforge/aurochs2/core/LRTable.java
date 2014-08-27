@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.function.BiFunction;
 
 import net.sourceforge.aprog.tools.Tools;
-import net.sourceforge.aurochs2.core.Grammar.ReductionListener;
+import net.sourceforge.aurochs2.core.Grammar.RuleAction;
 import net.sourceforge.aurochs2.core.Grammar.Rule;
 
 /**
@@ -211,7 +211,7 @@ public final class LRTable implements Serializable {
 			final int stackSize = stack.size();
 			final int developmentSize = this.getRule().getDevelopment().length;
 			final List<StackItem> tail = stack.subList(stackSize - 1 - developmentSize, stackSize - 1);
-			final ReductionListener listener = this.getRule().getListener();
+			final RuleAction listener = this.getRule().getAction();
 			final Object newToken = this.getRule().getNonterminal();
 			Object newDatum = null;
 			
@@ -226,7 +226,7 @@ public final class LRTable implements Serializable {
 					}
 				}
 				
-				newDatum = listener.reduction(this.getRule(), data);
+				newDatum = listener.execute(this.getRule(), data);
 			}
 			
 			int nextStateIndex = last(stack).getStateIndex();
