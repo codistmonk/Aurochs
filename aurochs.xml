@@ -13,7 +13,7 @@
 				<present present="srconly" targetdir="test"/>
 			</fileset>
 			<fileset dir="src"/>
-			<zipfileset excludes="META-INF/*.SF" src="lib/aprog.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="lib/multij-1.8.201506041044.jar"/>
 		</jar>
 		<jar destfile="aurochs.jar" filesetmanifest="mergewithoutmain">
 			<manifest>
