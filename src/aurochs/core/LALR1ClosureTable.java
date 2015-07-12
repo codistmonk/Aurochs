@@ -1,7 +1,7 @@
 package aurochs.core;
 
-import static net.sourceforge.aprog.tools.Tools.cast;
-import static net.sourceforge.aprog.tools.Tools.set;
+import static multij.tools.Tools.cast;
+import static multij.tools.Tools.set;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.Set;
 
 import aurochs.core.Grammar.Rule;
-import net.sourceforge.aprog.tools.Tools;
+import multij.tools.Tools;
 
 /**
  * @author codistmonk (creation 2014-08-24)

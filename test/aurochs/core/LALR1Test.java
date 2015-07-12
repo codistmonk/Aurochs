@@ -3,9 +3,9 @@ package aurochs.core;
 import static aurochs.core.LexerBuilder.*;
 import static aurochs.core.TokenSource.characters;
 import static aurochs.core.TokenSource.tokens;
-import static net.sourceforge.aprog.tools.Tools.array;
-import static net.sourceforge.aprog.tools.Tools.list;
-import static net.sourceforge.aprog.tools.Tools.set;
+import static multij.tools.Tools.array;
+import static multij.tools.Tools.list;
+import static multij.tools.Tools.set;
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
@@ -14,7 +14,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import net.sourceforge.aprog.tools.Tools;
+import multij.tools.Tools;
 
 import org.junit.Test;
 

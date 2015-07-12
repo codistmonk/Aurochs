@@ -1,8 +1,8 @@
 package aurochs.core;
 
 import static aurochs.core.StackItem.last;
-import static net.sourceforge.aprog.tools.Tools.cast;
-import static net.sourceforge.aprog.tools.Tools.join;
+import static multij.tools.Tools.cast;
+import static multij.tools.Tools.join;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -14,7 +14,7 @@ import java.util.function.BiFunction;
 
 import aurochs.core.Grammar.Rule;
 import aurochs.core.Grammar.RuleAction;
-import net.sourceforge.aprog.tools.Tools;
+import multij.tools.Tools;
 
 /**
  * @author codistmonk (creation 2014-08-24)

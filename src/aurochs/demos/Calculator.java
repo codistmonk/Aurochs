@@ -16,7 +16,7 @@ import aurochs.core.Lexer;
 import aurochs.core.LexerBuilder;
 import aurochs.core.ParserBuilder;
 import aurochs.core.LexerBuilder.Union;
-import net.sourceforge.aprog.tools.IllegalInstantiationException;
+import multij.tools.IllegalInstantiationException;
 
 /**
  * @author codistmonk (creation 2014-08-26)

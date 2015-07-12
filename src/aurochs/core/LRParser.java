@@ -13,7 +13,7 @@ import aurochs.core.Grammar.RuleAction;
 import aurochs.core.Grammar.Special;
 import aurochs.core.LRTable.Action;
 import aurochs.core.LRTable.Shift;
-import net.sourceforge.aprog.tools.Tools;
+import multij.tools.Tools;
 
 /**
  * @author codistmonk (creation 2014-08-24)

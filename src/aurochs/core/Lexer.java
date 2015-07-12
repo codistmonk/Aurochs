@@ -3,7 +3,7 @@ package aurochs.core;
 import java.io.Serializable;
 import java.util.Iterator;
 
-import net.sourceforge.aprog.tools.Tools;
+import multij.tools.Tools;
 
 /**
  * @author codistmonk (creation 2014-08-25)

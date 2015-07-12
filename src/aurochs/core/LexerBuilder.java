@@ -1,6 +1,6 @@
 package aurochs.core;
 
-import static net.sourceforge.aprog.tools.Tools.join;
+import static multij.tools.Tools.join;
 
 import java.io.Serializable;
 

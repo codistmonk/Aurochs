@@ -4,9 +4,9 @@ import static aurochs.core.ParserBuilder.Priority.Associativity.LEFT;
 import static aurochs.core.ParserBuilder.Priority.Associativity.RIGHT;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static net.sourceforge.aprog.tools.Tools.append;
-import static net.sourceforge.aprog.tools.Tools.cast;
-import static net.sourceforge.aprog.tools.Tools.join;
+import static multij.tools.Tools.append;
+import static multij.tools.Tools.cast;
+import static multij.tools.Tools.join;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -20,8 +20,8 @@ import aurochs.core.LRParser.ConflictResolver;
 import aurochs.core.Lexer.Token;
 import aurochs.core.LexerBuilder.TokenGenerator;
 import aurochs.core.ParserBuilder.Priority.Associativity;
-import net.sourceforge.aprog.tools.Pair;
-import net.sourceforge.aprog.tools.Tools;
+import multij.tools.Pair;
+import multij.tools.Tools;
 
 /**
  * @author codistmonk (creation 2014-08-26)
